@@ -41,13 +41,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import BulkBookImport from "@/components/BulkBookImport";
 import BulkBookExport from "@/components/BulkBookExport";
-import { deleteBook } from "@/lib/data-service";
+import { deleteBook, bulkUpdateBooks } from "@/lib/data-service";
 import {
   BookPagination,
   BookStats,
   BookEmptyState,
   BookFilters,
 } from "@/components/books";
+import { BulkEditModal, BulkEditData } from "@/components/books/BulkEditModal";
 import { BookCard } from "@/components/books/BookCard";
 import { AddBookModal } from "@/components/books/AddBookModal";
 
@@ -147,6 +148,7 @@ export default function BooksPage() {
 
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedBooks, setSelectedBooks] = useState<string[]>([]);
+  const [bulkEditDialogOpen, setBulkEditDialogOpen] = useState(false);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -238,6 +240,46 @@ export default function BooksPage() {
       toast({
         variant: "destructive",
         title: "Error deleting book",
+        description: errorMessage,
+      });
+    },
+  });
+
+  const bulkEditMutation = useMutation({
+    mutationFn: async (updates: BulkEditData) => {
+      return await bulkUpdateBooks(selectedBooks, updates, userId);
+    },
+    onSuccess: async (result) => {
+      // Invalidate all book-related queries to refresh data
+      await queryClient.invalidateQueries({ queryKey: ["books"] });
+
+      // Force refetch to ensure stats are updated
+      await queryClient.refetchQueries({ queryKey: ["books", userId, sorting] });
+
+      if (result.failed > 0) {
+        toast({
+          title: "Partial Success",
+          description: `${result.success} book(s) updated, ${result.failed} failed`,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: `${result.success} book(s) updated successfully`,
+        });
+      }
+
+      setBulkEditDialogOpen(false);
+      setSelectedBooks([]);
+      setSelectionMode(false);
+    },
+    onError: (error: unknown) => {
+      const errorMessage =
+        error instanceof Error ? error.message : "An unknown error occurred";
+
+      toast({
+        variant: "destructive",
+        title: "Error updating books",
         description: errorMessage,
       });
     },
@@ -391,7 +433,7 @@ export default function BooksPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -419,6 +461,19 @@ export default function BooksPage() {
           >
             {selectionMode ? "Cancel" : "Select"}
           </Button>
+
+          {selectionMode && (
+            <Button
+              variant="secondary"
+              onClick={selectAllBooks}
+              size="sm"
+              className="whitespace-nowrap"
+            >
+              {selectedBooks.length === paginatedBooks.length && paginatedBooks.length > 0
+                ? "Deselect All"
+                : "Select All"}
+            </Button>
+          )}
 
           <Button
             variant="outline"
@@ -518,6 +573,13 @@ export default function BooksPage() {
             {selectedBooks.length} items selected
           </span>
           <div className="flex-1"></div>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => setBulkEditDialogOpen(true)}
+          >
+            <FileEdit className="h-4 w-4 mr-1" /> Bulk Edit
+          </Button>
           <button
             onClick={handleBulkExport}
             className="inline-flex items-center justify-center px-3 py-1.5 text-sm font-medium bg-black text-white s rounded-md shadow-xs hover:bg-black/40 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
@@ -789,6 +851,14 @@ export default function BooksPage() {
         book={bookToEdit}
         userRole={userRole}
         onSuccess={handleBookFormSuccess}
+      />
+
+      <BulkEditModal
+        open={bulkEditDialogOpen}
+        onOpenChange={setBulkEditDialogOpen}
+        selectedCount={selectedBooks.length}
+        onSubmit={(updates) => bulkEditMutation.mutate(updates)}
+        isLoading={bulkEditMutation.isPending}
       />
     </div>
   );

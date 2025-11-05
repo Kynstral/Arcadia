@@ -31,6 +31,7 @@ const BookCirculation = lazy(() => import("./pages/BookCirculation.tsx"));
 const Checkout = lazy(() => import("./pages/Checkout.tsx"));
 const Transactions = lazy(() => import("./pages/Transactions.tsx"));
 const Settings = lazy(() => import("./pages/Settings"));
+const Trash = lazy(() => import("./pages/Trash"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -183,6 +184,14 @@ const App = () => (
                     element={
                       <ProtectedRoute>
                         <Transactions />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/trash"
+                    element={
+                      <ProtectedRoute>
+                        <Trash />
                       </ProtectedRoute>
                     }
                   />

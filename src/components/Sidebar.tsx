@@ -14,6 +14,7 @@ import {
   RefreshCcw,
   Settings,
   Sun,
+  Trash2,
   Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -190,6 +191,11 @@ const Sidebar = ({
         title: "Book Circulation",
         icon: RefreshCcw,
         path: "/book-circulation",
+      },
+      {
+        title: "Trash",
+        icon: Trash2,
+        path: "/trash",
       },
     ];
 

@@ -11,7 +11,11 @@ import {
 import { books } from "@/lib/data.ts";
 
 export const getBooks = async (userId?: string | null): Promise<Book[]> => {
-  let query = supabase.from("books").select("*").order("title");
+  let query = supabase
+    .from("books")
+    .select("*")
+    .is("deleted_at", null)
+    .order("title");
 
   if (userId) {
     query = query.eq("user_id", userId);
@@ -55,6 +59,7 @@ export const searchBooks = async (
   let dbQuery = supabase
     .from("books")
     .select("*")
+    .is("deleted_at", null)
     .or(
       `title.ilike.%${query}%,author.ilike.%${query}%,description.ilike.%${query}%,isbn.ilike.%${query}%`,
     )
@@ -99,7 +104,54 @@ export const deleteBook = async (
   id: string,
   userId?: string | null,
 ): Promise<string> => {
-  console.log("deleteBook function called for id:", id);
+  console.log("deleteBook function called for id:", id, "- moving to trash");
+
+  // Soft delete: set deleted_at timestamp instead of actually deleting
+  const { error } = await supabase
+    .from("books")
+    .update({
+      deleted_at: new Date().toISOString(),
+      deleted_by: userId,
+    })
+    .eq("id", id)
+    .eq("user_id", userId || "");
+
+  if (error) {
+    console.error(`Error moving book to trash with ID ${id}:`, error);
+    throw new Error(`Error moving book to trash: ${error.message}`);
+  }
+
+  return id;
+};
+
+export const restoreBook = async (
+  id: string,
+  userId?: string | null,
+): Promise<string> => {
+  console.log("restoreBook function called for id:", id);
+
+  const { error } = await supabase
+    .from("books")
+    .update({
+      deleted_at: null,
+      deleted_by: null,
+    })
+    .eq("id", id)
+    .eq("user_id", userId || "");
+
+  if (error) {
+    console.error(`Error restoring book with ID ${id}:`, error);
+    throw new Error(`Error restoring book: ${error.message}`);
+  }
+
+  return id;
+};
+
+export const permanentlyDeleteBook = async (
+  id: string,
+  userId?: string | null,
+): Promise<string> => {
+  console.log("permanentlyDeleteBook function called for id:", id);
 
   const { error } = await supabase
     .from("books")
@@ -108,11 +160,153 @@ export const deleteBook = async (
     .eq("user_id", userId || "");
 
   if (error) {
-    console.error(`Error deleting book with ID ${id}:`, error);
-    throw new Error(`Error deleting book: ${error.message}`);
+    console.error(`Error permanently deleting book with ID ${id}:`, error);
+    throw new Error(`Error permanently deleting book: ${error.message}`);
   }
 
   return id;
+};
+
+export const getDeletedBooks = async (
+  userId?: string | null,
+): Promise<Book[]> => {
+  let query = supabase
+    .from("books")
+    .select("*")
+    .not("deleted_at", "is", null)
+    .order("deleted_at", { ascending: false });
+
+  if (userId) {
+    query = query.eq("user_id", userId);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error("Error fetching deleted books:", error);
+    throw new Error(`Error fetching deleted books: ${error.message}`);
+  }
+
+  return data.map((book) => ({
+    id: book.id,
+    title: book.title,
+    author: book.author,
+    isbn: book.isbn,
+    publisher: book.publisher,
+    publicationYear: book.publication_year,
+    description: book.description,
+    pageCount: book.page_count,
+    category: book.category as BookCategory,
+    coverImage: book.cover_image,
+    language: book.language,
+    price: book.price,
+    stock: book.stock,
+    status: book.status as BookStatus,
+    rating: book.rating,
+    tags: book.tags,
+    location: book.location,
+    created_at: book.created_at,
+    updated_at: book.updated_at,
+    user_id: book.user_id,
+    salesCount: book.sales_count,
+    deleted_at: book.deleted_at,
+    deleted_by: book.deleted_by,
+  }));
+};
+
+export const emptyTrash = async (userId?: string | null): Promise<number> => {
+  console.log("emptyTrash function called");
+
+  // Get all deleted books for this user
+  const { data: deletedBooks, error: fetchError } = await supabase
+    .from("books")
+    .select("id")
+    .not("deleted_at", "is", null)
+    .eq("user_id", userId || "");
+
+  if (fetchError) {
+    console.error("Error fetching deleted books:", fetchError);
+    throw new Error(`Error fetching deleted books: ${fetchError.message}`);
+  }
+
+  if (!deletedBooks || deletedBooks.length === 0) {
+    return 0;
+  }
+
+  // Permanently delete all
+  const { error: deleteError } = await supabase
+    .from("books")
+    .delete()
+    .not("deleted_at", "is", null)
+    .eq("user_id", userId || "");
+
+  if (deleteError) {
+    console.error("Error emptying trash:", deleteError);
+    throw new Error(`Error emptying trash: ${deleteError.message}`);
+  }
+
+  return deletedBooks.length;
+};
+
+export interface BulkUpdateResult {
+  success: number;
+  failed: number;
+  errors: Array<{ bookId: string; error: string }>;
+}
+
+export const bulkUpdateBooks = async (
+  bookIds: string[],
+  updates: {
+    category?: string;
+    status?: string;
+    publisher?: string;
+    location?: string;
+    stock?: number;
+  },
+  userId?: string | null,
+): Promise<BulkUpdateResult> => {
+  console.log("bulkUpdateBooks function called for", bookIds.length, "books");
+
+  const results: BulkUpdateResult = {
+    success: 0,
+    failed: 0,
+    errors: [],
+  };
+
+  // Process updates in parallel
+  const updatePromises = bookIds.map(async (bookId) => {
+    try {
+      const { error } = await supabase
+        .from("books")
+        .update({
+          ...(updates.category && { category: updates.category }),
+          ...(updates.status && { status: updates.status }),
+          ...(updates.publisher && { publisher: updates.publisher }),
+          ...(updates.location && { location: updates.location }),
+          ...(updates.stock !== undefined && { stock: updates.stock }),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", bookId)
+        .eq("user_id", userId || "")
+        .is("deleted_at", null);
+
+      if (error) {
+        throw error;
+      }
+
+      results.success++;
+    } catch (error: any) {
+      results.failed++;
+      results.errors.push({
+        bookId,
+        error: error.message || "Unknown error",
+      });
+    }
+  });
+
+  await Promise.all(updatePromises);
+
+  return results;
 };
 
 export const getDashboardStats = async (
@@ -120,7 +314,8 @@ export const getDashboardStats = async (
 ): Promise<DashboardStats> => {
   let booksQuery = supabase
     .from("books")
-    .select("*", { count: "exact", head: true });
+    .select("*", { count: "exact", head: true })
+    .is("deleted_at", null);
 
   if (userId) {
     booksQuery = booksQuery.eq("user_id", userId);

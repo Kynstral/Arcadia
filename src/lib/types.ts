@@ -102,6 +102,8 @@ export interface Book {
   created_at?: string;
   updated_at?: string;
   user_id?: string;
+  deleted_at?: string | null;
+  deleted_by?: string | null;
 }
 
 export interface CheckoutItem {

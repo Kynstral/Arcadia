@@ -8,6 +8,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Book } from "@/lib/types";
+import { FavoriteButton } from "./FavoriteButton";
 
 interface BookCardProps {
   book: Book;
@@ -35,6 +36,13 @@ export function BookCard({
       className={`h-[300px] relative group transition-all ${isSelected ? "ring-2 ring-primary ring-offset-2" : ""
         }`}
     >
+      {/* Favorite button - top right */}
+      {!selectionMode && (
+        <div className="absolute top-2 right-2 z-20">
+          <FavoriteButton bookId={book.id} className="bg-background/80 backdrop-blur-sm hover:bg-background" />
+        </div>
+      )}
+
       {selectionMode && (
         <div
           className="absolute top-2 left-2 z-20 cursor-pointer transition-transform hover:scale-110"
@@ -87,16 +95,23 @@ export function BookCard({
           </p>
 
           <div className="flex items-center justify-between mt-1 gap-2">
-            <span
-              className={`px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${book.stock <= 0
-                ? "bg-destructive text-destructive-foreground"
-                : book.stock < 5
-                  ? "bg-yellow-500 text-white"
-                  : "bg-secondary text-secondary-foreground"
-                }`}
-            >
-              {book.stock} in stock
-            </span>
+            {/* Show status badge if not available, otherwise show stock */}
+            {book.status !== "Available" ? (
+              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground">
+                {book.status}
+              </span>
+            ) : (
+              <span
+                className={`px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${book.stock <= 0
+                  ? "bg-destructive text-destructive-foreground"
+                  : book.stock < 5
+                    ? "bg-yellow-500 text-white"
+                    : "bg-secondary text-secondary-foreground"
+                  }`}
+              >
+                {book.stock} in stock
+              </span>
+            )}
             {book.price > 0 && (
               <Tooltip delayDuration={300}>
                 <TooltipTrigger asChild>
@@ -110,15 +125,6 @@ export function BookCard({
               </Tooltip>
             )}
           </div>
-
-          {/* Status badge if not available */}
-          {book.status !== "Available" && (
-            <div className="mt-1">
-              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground">
-                {book.status}
-              </span>
-            </div>
-          )}
 
           {/* Action buttons - hidden by default, shown on hover with smooth animation */}
           <div className="flex items-center gap-1 mt-0 max-h-0 opacity-0 overflow-hidden transition-all duration-300 ease-in-out group-hover:mt-2 group-hover:max-h-12 group-hover:opacity-100">

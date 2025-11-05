@@ -26,6 +26,7 @@ import { Book, BookCategory, BookStatus } from "@/lib/types";
 import { getRelatedBooks } from "@/lib/data";
 import { useAuth } from "@/components/AuthStatusProvider";
 import { useCart } from "@/hooks/use-cart";
+import { FavoriteButton } from "@/components/books/FavoriteButton";
 
 const BookDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -246,9 +247,12 @@ const BookDetail = () => {
                 </Badge>
               </div>
 
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-                {book.title}
-              </h1>
+              <div className="flex items-start justify-between gap-2">
+                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex-1">
+                  {book.title}
+                </h1>
+                <FavoriteButton bookId={book.id} size="default" />
+              </div>
               <div className="flex items-center">
                 <User className="h-4 w-4 mr-2 text-muted-foreground" />
                 <p className="text-lg text-muted-foreground">
@@ -261,11 +265,10 @@ const BookDetail = () => {
                   {[...Array(5)].map((_, i) => (
                     <Star
                       key={i}
-                      className={`h-4 w-4 ${
-                        i < Math.floor(book.rating || 0)
-                          ? "text-yellow-500 fill-yellow-500"
-                          : "text-muted"
-                      }`}
+                      className={`h-4 w-4 ${i < Math.floor(book.rating || 0)
+                        ? "text-yellow-500 fill-yellow-500"
+                        : "text-muted"
+                        }`}
                     />
                   ))}
                   <span className="ml-2 text-sm font-medium">
@@ -307,11 +310,10 @@ const BookDetail = () => {
                   {[...Array(5)].map((_, i) => (
                     <Star
                       key={i}
-                      className={`h-5 w-5 ${
-                        i < Math.floor(book.rating || 0)
-                          ? "text-yellow-500 fill-yellow-500"
-                          : "text-muted"
-                      }`}
+                      className={`h-5 w-5 ${i < Math.floor(book.rating || 0)
+                        ? "text-yellow-500 fill-yellow-500"
+                        : "text-muted"
+                        }`}
                     />
                   ))}
                   <span className="ml-2 text-sm font-medium">
@@ -596,44 +598,46 @@ const BookDetail = () => {
           </div>
         </div>
 
-        {relatedBooks.length > 0 && (
-          <div className="mt-16 animate-fade-in">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold">Related Books</h2>
-              <Button variant="ghost" size="sm" asChild>
-                <Link to={`/catalog?category=${book.category}`}>
-                  View All
-                  <ArrowLeft className="h-4 w-4 ml-2 rotate-180" />
-                </Link>
-              </Button>
-            </div>
+        {
+          relatedBooks.length > 0 && (
+            <div className="mt-16 animate-fade-in">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold">Related Books</h2>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to={`/catalog?category=${book.category}`}>
+                    View All
+                    <ArrowLeft className="h-4 w-4 ml-2 rotate-180" />
+                  </Link>
+                </Button>
+              </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {relatedBooks.map((relatedBook) => (
-                <BookCard
-                  key={relatedBook.id}
-                  book={relatedBook}
-                  onAddToCart={() => {
-                    addToCart({
-                      bookId: relatedBook.id,
-                      title: relatedBook.title,
-                      price: relatedBook.price,
-                      quantity: 1,
-                      coverImage: relatedBook.coverImage,
-                    });
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {relatedBooks.map((relatedBook) => (
+                  <BookCard
+                    key={relatedBook.id}
+                    book={relatedBook}
+                    onAddToCart={() => {
+                      addToCart({
+                        bookId: relatedBook.id,
+                        title: relatedBook.title,
+                        price: relatedBook.price,
+                        quantity: 1,
+                        coverImage: relatedBook.coverImage,
+                      });
 
-                    toast({
-                      title: "Added to cart",
-                      description: `"${relatedBook.title}" has been added to your cart.`,
-                    });
-                  }}
-                />
-              ))}
+                      toast({
+                        title: "Added to cart",
+                        description: `"${relatedBook.title}" has been added to your cart.`,
+                      });
+                    }}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
-        )}
-      </main>
-    </div>
+          )
+        }
+      </main >
+    </div >
   );
 };
 
