@@ -421,3 +421,59 @@
     - Verify status changes
     - Test low stock warnings
     - _Requirements: 9.1-9.4, 10.1-10.5_
+
+
+- [ ] 13. Performance and UX enhancements
+  - [x] 13.1 Implement debounced search
+    - Create useDebounce custom hook
+    - Apply to search input
+    - Reduce unnecessary re-renders
+    - Improve performance with large datasets
+    - _Requirements: 2.2, 10.3_
+
+  - [x] 13.2 Add pagination system
+    - Add pagination state (currentPage, itemsPerPage)
+    - Calculate total pages and page ranges
+    - Implement pagination controls (Previous/Next)
+    - Add items per page selector (10/25/50/100)
+    - Reset pagination when filters change
+    - _Requirements: 1.1, 2.5_
+
+  - [x] 13.3 Improve book count display
+    - Show "Showing X-Y of Z books" message
+    - Display filtered vs total count
+    - Add items per page selector
+    - Show page number indicator
+    - _Requirements: 1.1, 2.5_
+
+  - [x] 13.4 Enhance empty states
+    - Create distinct empty state for no books
+    - Add "Add Your First Book" CTA
+    - Improve "No results" message for filters
+    - Add clear filters button in empty state
+    - _Requirements: 2.5, 3.1_
+
+  - [x] 13.5 Refactor into reusable components
+    - Create components/books/ directory structure
+    - Extract BookPagination component
+    - Extract BookStats component
+    - Extract BookFilters component
+    - Extract BookEmptyState component
+    - Create index.ts for exports
+    - Update Books.tsx to use new components
+    - Remove unused imports
+    - _Requirements: 1.1, 3.1, 9.1_
+
+  - [ ] 13.6 Add loading states for mutations
+    - Show loading state during delete
+    - Show loading state during bulk operations
+    - Disable actions during loading
+    - Add visual feedback
+    - _Requirements: 3.4, 5.3, 7.4_
+
+  - [ ] 13.7 Optimize select all functionality
+    - Update to work with pagination
+    - Select all on current page only
+    - Add "Select all X books" option
+    - Clear selection on page change
+    - _Requirements: 7.2_

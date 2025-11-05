@@ -5,8 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Book, BookCategory, BookStatus } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
+import { useDebounce } from "@/hooks/use-debounce";
 import {
-  BookOpen,
   ChevronDown,
   ChevronUp,
   CircleArrowDown,
@@ -14,8 +14,6 @@ import {
   Database,
   Eye,
   FileEdit,
-  LayoutGrid,
-  List,
   PlusCircle,
   Search,
   Trash2,
@@ -40,20 +38,18 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Card } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import BulkBookImport from "@/components/BulkBookImport";
 import BulkBookExport from "@/components/BulkBookExport";
 import BookForm from "@/components/BookForm";
 import { deleteBook } from "@/lib/data-service";
+import {
+  BookPagination,
+  BookStats,
+  BookEmptyState,
+  BookFilters,
+} from "@/components/books";
 
 const bookCategories: BookCategory[] = [
   "Action & Adventure",
@@ -150,6 +146,13 @@ export default function BooksPage() {
 
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedBooks, setSelectedBooks] = useState<string[]>([]);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(25);
+
+  // Debounce search query
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
   const { data: books = [], isLoading } = useQuery({
     queryKey: ["books", userId, sorting],
@@ -272,10 +275,10 @@ export default function BooksPage() {
   };
 
   const selectAllBooks = () => {
-    if (selectedBooks.length === filteredBooks.length) {
+    if (selectedBooks.length === paginatedBooks.length) {
       setSelectedBooks([]);
     } else {
-      setSelectedBooks(filteredBooks.map((book) => book.id));
+      setSelectedBooks(paginatedBooks.map((book) => book.id));
     }
   };
 
@@ -314,17 +317,18 @@ export default function BooksPage() {
     setPublisherFilter("all");
     setYearFilter("all");
     setStatusFilter("all");
+    resetPagination();
   };
 
   const filteredBooks = useMemo(() => {
     return books.filter((book) => {
       const matchesSearch =
-        !searchQuery ||
-        book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        book.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        book.isbn.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        !debouncedSearchQuery ||
+        book.title.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+        book.author.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+        book.isbn.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
         (book.description &&
-          book.description.toLowerCase().includes(searchQuery.toLowerCase()));
+          book.description.toLowerCase().includes(debouncedSearchQuery.toLowerCase()));
 
       const matchesCategory =
         categoryFilter === "all" || book.category === categoryFilter;
@@ -345,12 +349,23 @@ export default function BooksPage() {
     });
   }, [
     books,
-    searchQuery,
+    debouncedSearchQuery,
     categoryFilter,
     publisherFilter,
     yearFilter,
     statusFilter,
   ]);
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredBooks.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedBooks = filteredBooks.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  const resetPagination = () => {
+    setCurrentPage(1);
+  };
 
   const handleBookFormSuccess = () => {
     setBookFormDialogOpen(false);
@@ -385,7 +400,7 @@ export default function BooksPage() {
         <h1 className="text-2xl font-bold">Manage Books</h1>
         <div className="flex flex-wrap gap-2 w-full sm:w-auto justify-end">
           <Button
-            variant={selectionMode ? "default" : "outline-solid"}
+            variant={selectionMode ? "default" : "outline"}
             onClick={toggleSelectionMode}
             size="sm"
             className="whitespace-nowrap"
@@ -436,96 +451,54 @@ export default function BooksPage() {
         )}
       </div>
 
-      <div className="flex flex-col gap-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
-          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger>
-              <SelectValue placeholder="Category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              {bookCategories.map((category) => (
-                <SelectItem key={category} value={category}>
-                  {category}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      <BookStats
+        totalBooks={books.length}
+        filteredCount={filteredBooks.length}
+        startIndex={startIndex}
+        endIndex={endIndex}
+        itemsPerPage={itemsPerPage}
+        onItemsPerPageChange={(value) => {
+          setItemsPerPage(value);
+          resetPagination();
+        }}
+      />
 
-          <Select value={publisherFilter} onValueChange={setPublisherFilter}>
-            <SelectTrigger>
-              <SelectValue placeholder="Publisher" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Publishers</SelectItem>
-              {uniquePublishers.map((publisher) => (
-                <SelectItem key={publisher} value={publisher}>
-                  {publisher}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select value={yearFilter} onValueChange={setYearFilter}>
-            <SelectTrigger>
-              <SelectValue placeholder="Year" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Years</SelectItem>
-              {uniqueYears.map((year) => (
-                <SelectItem key={year} value={year.toString()}>
-                  {year}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger>
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              {bookStatuses.map((status) => (
-                <SelectItem key={status} value={status}>
-                  {status}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <div className="flex items-center justify-between gap-2">
-            <Button
-              variant="outline"
-              onClick={clearFilters}
-              className="flex-1"
-              disabled={
-                !searchQuery &&
-                categoryFilter === "all" &&
-                publisherFilter === "all" &&
-                yearFilter === "all" &&
-                statusFilter === "all"
-              }
-            >
-              Clear Filters
-            </Button>
-            <ToggleGroup
-              type="single"
-              value={viewMode}
-              onValueChange={(value) =>
-                value && setViewMode(value as "list" | "grid")
-              }
-            >
-              <ToggleGroupItem value="list" aria-label="List view">
-                <List className="h-4 w-4" />
-              </ToggleGroupItem>
-              <ToggleGroupItem value="grid" aria-label="Grid view">
-                <LayoutGrid className="h-4 w-4" />
-              </ToggleGroupItem>
-            </ToggleGroup>
-          </div>
-        </div>
-      </div>
+      <BookFilters
+        categoryFilter={categoryFilter}
+        publisherFilter={publisherFilter}
+        yearFilter={yearFilter}
+        statusFilter={statusFilter}
+        viewMode={viewMode}
+        categories={bookCategories}
+        publishers={uniquePublishers}
+        years={uniqueYears}
+        statuses={bookStatuses}
+        onCategoryChange={(value) => {
+          setCategoryFilter(value);
+          resetPagination();
+        }}
+        onPublisherChange={(value) => {
+          setPublisherFilter(value);
+          resetPagination();
+        }}
+        onYearChange={(value) => {
+          setYearFilter(value);
+          resetPagination();
+        }}
+        onStatusChange={(value) => {
+          setStatusFilter(value);
+          resetPagination();
+        }}
+        onViewModeChange={setViewMode}
+        onClearFilters={clearFilters}
+        hasActiveFilters={
+          searchQuery !== "" ||
+          categoryFilter !== "all" ||
+          publisherFilter !== "all" ||
+          yearFilter !== "all" ||
+          statusFilter !== "all"
+        }
+      />
 
       {selectionMode && selectedBooks.length > 0 && (
         <div className="flex items-center gap-2 mt-2 p-2 bg-muted rounded-md">
@@ -555,8 +528,8 @@ export default function BooksPage() {
                   <TableHead className="w-10">
                     <Checkbox
                       checked={
-                        selectedBooks.length === filteredBooks.length &&
-                        filteredBooks.length > 0
+                        selectedBooks.length === paginatedBooks.length &&
+                        paginatedBooks.length > 0
                       }
                       onCheckedChange={selectAllBooks}
                     />
@@ -600,7 +573,7 @@ export default function BooksPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredBooks.length === 0 ? (
+              {paginatedBooks.length === 0 ? (
                 <TableRow>
                   <TableCell
                     colSpan={
@@ -614,29 +587,15 @@ export default function BooksPage() {
                     }
                     className="text-center py-10"
                   >
-                    <div className="flex flex-col items-center justify-center text-muted-foreground">
-                      <BookOpen className="h-12 w-12 mx-auto text-muted-foreground/50" />
-                      <p className="mt-2">No books found</p>
-                      <Button
-                        variant="link"
-                        onClick={clearFilters}
-                        className={
-                          searchQuery ||
-                          categoryFilter !== "all" ||
-                          publisherFilter !== "all" ||
-                          yearFilter !== "all" ||
-                          statusFilter !== "all"
-                            ? ""
-                            : "hidden"
-                        }
-                      >
-                        Clear filters
-                      </Button>
-                    </div>
+                    <BookEmptyState
+                      hasBooks={books.length > 0}
+                      onAddBook={() => setBookFormDialogOpen(true)}
+                      onClearFilters={clearFilters}
+                    />
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredBooks.map((book) => (
+                paginatedBooks.map((book) => (
                   <TableRow key={book.id}>
                     {selectionMode && (
                       <TableCell>
@@ -716,30 +675,16 @@ export default function BooksPage() {
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 w-full">
-          {filteredBooks.length === 0 ? (
+          {paginatedBooks.length === 0 ? (
             <div className="col-span-full text-center py-10">
-              <div className="flex flex-col items-center justify-center text-muted-foreground">
-                <BookOpen className="h-12 w-12 mx-auto text-muted-foreground/50" />
-                <p className="mt-2">No books found</p>
-                <Button
-                  variant="link"
-                  onClick={clearFilters}
-                  className={
-                    searchQuery ||
-                    categoryFilter !== "all" ||
-                    publisherFilter !== "all" ||
-                    yearFilter !== "all" ||
-                    statusFilter !== "all"
-                      ? ""
-                      : "hidden"
-                  }
-                >
-                  Clear filters
-                </Button>
-              </div>
+              <BookEmptyState
+                hasBooks={books.length > 0}
+                onAddBook={() => setBookFormDialogOpen(true)}
+                onClearFilters={clearFilters}
+              />
             </div>
           ) : (
-            filteredBooks.map((book) => (
+            paginatedBooks.map((book) => (
               <Card
                 key={book.id}
                 className="overflow-hidden h-[300px] relative group"
@@ -796,13 +741,12 @@ export default function BooksPage() {
 
                     <div className="flex items-center justify-between mt-1">
                       <span
-                        className={`px-2 py-0.5 rounded-full text-xs ${
-                          book.stock <= 0
-                            ? "bg-red-500/80 text-white"
-                            : book.stock < 5
-                              ? "bg-yellow-500/80 text-white"
-                              : "bg-green-500/80 text-white"
-                        }`}
+                        className={`px-2 py-0.5 rounded-full text-xs ${book.stock <= 0
+                          ? "bg-red-500/80 text-white"
+                          : book.stock < 5
+                            ? "bg-yellow-500/80 text-white"
+                            : "bg-green-500/80 text-white"
+                          }`}
                       >
                         {book.stock} in stock
                       </span>
@@ -842,6 +786,14 @@ export default function BooksPage() {
             ))
           )}
         </div>
+      )}
+
+      {filteredBooks.length > 0 && (
+        <BookPagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
       )}
 
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
