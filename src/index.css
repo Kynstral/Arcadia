@@ -1,0 +1,310 @@
+@import 'tailwindcss';
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap');
+
+@plugin 'tailwindcss-animate';
+
+@custom-variant dark (&:is(.dark *));
+
+@utility container {
+  margin-inline: auto;
+  padding-inline: 2rem;
+
+  @media (width >=--theme(--breakpoint-sm)) {
+    max-width: none;
+  }
+
+  @media (width >=1400px) {
+    max-width: 1400px;
+  }
+}
+
+@theme {
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+
+  --color-sidebar: hsl(var(--sidebar-background));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+  --animate-fade-in: fade-in 0.4s ease-out;
+  --animate-slide-in: slide-in 0.3s ease-out;
+  --animate-scale-in: scale-in 0.2s ease-out;
+
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+
+    to {
+      height: 0;
+    }
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slide-in {
+    from {
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes scale-in {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
+
+/* Custom utility classes for sidebar */
+@utility bg-sidebar-background {
+  background-color: hsl(var(--sidebar-background));
+}
+
+@utility from-sidebar-background {
+  --tw-gradient-from: hsl(var(--sidebar-background)) var(--tw-gradient-from-position);
+  --tw-gradient-to: hsl(var(--sidebar-background) / 0) var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+
+@utility via-sidebar-background {
+  --tw-gradient-to: hsl(var(--sidebar-background) / 0) var(--tw-gradient-to-position);
+  --tw-gradient-stops:
+    var(--tw-gradient-from),
+    hsl(var(--sidebar-background)) var(--tw-gradient-via-position),
+    var(--tw-gradient-to);
+}
+
+@utility to-sidebar-background/95 {
+  --tw-gradient-to: hsl(var(--sidebar-background) / 0.95) var(--tw-gradient-to-position);
+}
+
+@layer base {
+  :root {
+    /* Arcadia Natural Theme (Light Mode) */
+    --background: 42 50% 95%;
+    /* #F8F4E8 */
+    --foreground: 120 10% 24%;
+    /* #3D4A3D */
+
+    --card: 0 0% 100%;
+    /* #FFFFFF */
+    --card-foreground: 120 10% 24%;
+    /* #3D4A3D */
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 120 10% 24%;
+
+    --primary: 20 70% 68%;
+    /* #E89B73 */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 120 20% 62%;
+    /* #8DB38B */
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 42 40% 90%;
+    /* #E0D9C7 */
+    --muted-foreground: 120 10% 45%;
+    /* #728172 */
+
+    --accent: 20 70% 68%;
+    /* #E89B73 */
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 65% 58%;
+    /* #d9534f */
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 42 40% 88%;
+    /* #E0D9C7 */
+    --input: 42 40% 88%;
+    --ring: 20 70% 68%;
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 120 10% 24%;
+    --sidebar-primary: 20 70% 68%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 42 50% 95%;
+    --sidebar-accent-foreground: 120 10% 24%;
+    --sidebar-border: 42 40% 88%;
+    --sidebar-ring: 20 70% 68%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    /* Arcadia Cozy Library Theme (Dark Mode) */
+    --background: 120 10% 15%;
+    /* #242C24 */
+    --foreground: 42 50% 95%;
+    /* #F8F4E8 */
+
+    --card: 120 10% 20%;
+    /* #333D33 */
+    --card-foreground: 42 50% 95%;
+
+    --popover: 120 10% 20%;
+    --popover-foreground: 42 50% 95%;
+
+    --primary: 20 70% 68%;
+    /* #E89B73 */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 120 20% 62%;
+    /* #8DB38B */
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 120 10% 25%;
+    /* #4A574A */
+    --muted-foreground: 120 10% 67%;
+    /* #A9B4A9 */
+
+    --accent: 20 70% 68%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 65% 58%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 120 10% 25%;
+    /* #4A574A */
+    --input: 120 10% 25%;
+    --ring: 20 70% 68%;
+
+    --sidebar-background: 120 10% 20%;
+    --sidebar-foreground: 42 50% 95%;
+    --sidebar-primary: 20 70% 68%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 120 10% 25%;
+    --sidebar-accent-foreground: 42 50% 95%;
+    --sidebar-border: 120 10% 25%;
+    --sidebar-ring: 20 70% 68%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Quicksand', sans-serif;
+  }
+}
+
+/* Gradient backgrounds */
+.dashboard-gradient {
+  @apply bg-background bg-linear-to-br from-background via-background to-background/80;
+}
+
+.sidebar-gradient {
+  @apply bg-sidebar-background bg-linear-to-b from-sidebar-background via-sidebar-background to-sidebar-background/95;
+}
+
+/* Animations */
+.page-transition {
+  @apply animate-fade-in;
+}
+
+/* Improved button visibility in dark mode */
+.dark button[data-variant="default"] {
+  @apply text-primary-foreground bg-primary hover:bg-primary/90;
+}
+
+.dark button[data-variant="outline"] {
+  @apply border-border/80 text-foreground hover:bg-accent hover:text-accent-foreground;
+}
+
+.dark button[data-variant="ghost"] {
+  @apply hover:bg-accent hover:text-accent-foreground;
+}
+
+.dark button[data-variant="secondary"] {
+  @apply bg-secondary text-secondary-foreground hover:bg-secondary/80;
+}
