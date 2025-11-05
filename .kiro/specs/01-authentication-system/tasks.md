@@ -488,3 +488,46 @@
     - Log out in one tab
     - Verify other tab updates
     - _Requirements: 5.4, 5.5_
+
+- [x] 11. Add OAuth authentication support
+  - [x] 11.1 Implement handleOAuthSignIn function
+    - Create async function accepting provider parameter (google | github)
+    - Call supabase.auth.signInWithOAuth with provider
+    - Set redirectTo to /auth/callback
+    - Handle errors with toast notifications
+    - Set loading state during OAuth flow
+    - _Requirements: 6.1_
+
+  - [x] 11.2 Add OAuth buttons to sign-up form
+    - Create grid layout with Google and GitHub buttons
+    - Add Google SVG icon with brand colors
+    - Add GitHub SVG icon
+    - Wire up onClick handlers to handleOAuthSignIn
+    - Disable buttons during loading state
+    - _Requirements: 6.1_
+
+  - [x] 11.3 Add OAuth buttons to sign-in form
+    - Duplicate OAuth button grid for sign-in form
+    - Maintain consistent styling with sign-up
+    - Add separator with "Or continue with email" text
+    - _Requirements: 6.1_
+
+  - [x] 11.4 Import required components
+    - Import Link from react-router-dom
+    - Import ArrowLeft icon from lucide-react
+    - Import Separator component
+    - _Requirements: 1.1, 6.1_
+
+- [x] 12. UI/UX improvements to Auth page
+  - [x] 12.1 Add "Back to home" button
+    - Create secondary button variant with Link component
+    - Position at top-8 left-8 for proper spacing
+    - Add ArrowLeft icon
+    - Link to landing page (/)
+    - _Requirements: 1.1_
+
+  - [x] 12.2 Minor UI polish
+    - Add cursor-pointer to toggle buttons
+    - Add cursor-pointer to "Forgot password?" link
+    - Improve button hover states
+    - _Requirements: 1.1_
