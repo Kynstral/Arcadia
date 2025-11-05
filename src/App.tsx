@@ -25,7 +25,6 @@ const Index = lazy(() => import("./pages/Index"));
 const Catalog = lazy(() => import("./pages/Catalog"));
 const Books = lazy(() => import("./pages/Books"));
 const BookDetail = lazy(() => import("./pages/BookDetail"));
-const EditBook = lazy(() => import("./pages/EditBook"));
 const Members = lazy(() => import("./pages/Members"));
 const EditMember = lazy(() => import("./pages/EditMember"));
 const BookCirculation = lazy(() => import("./pages/BookCirculation.tsx"));
@@ -136,14 +135,6 @@ const App = () => (
                     element={
                       <ProtectedRoute>
                         <BookDetail />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/books/edit/:id"
-                    element={
-                      <ProtectedRoute>
-                        <EditBook />
                       </ProtectedRoute>
                     }
                   />

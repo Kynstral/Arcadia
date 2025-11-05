@@ -38,11 +38,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import BulkBookImport from "@/components/BulkBookImport";
 import BulkBookExport from "@/components/BulkBookExport";
-import BookForm from "@/components/BookForm";
 import { deleteBook } from "@/lib/data-service";
 import {
   BookPagination,
@@ -50,6 +48,8 @@ import {
   BookEmptyState,
   BookFilters,
 } from "@/components/books";
+import { BookCard } from "@/components/books/BookCard";
+import { AddBookModal } from "@/components/books/AddBookModal";
 
 const bookCategories: BookCategory[] = [
   "Action & Adventure",
@@ -137,6 +137,7 @@ export default function BooksPage() {
   const [bookToDelete, setBookToDelete] = useState<Book | null>(null);
   const [importExportDialogOpen, setImportExportDialogOpen] = useState(false);
   const [bookFormDialogOpen, setBookFormDialogOpen] = useState(false);
+  const [bookToEdit, setBookToEdit] = useState<Book | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
@@ -369,11 +370,22 @@ export default function BooksPage() {
 
   const handleBookFormSuccess = () => {
     setBookFormDialogOpen(false);
+    setBookToEdit(null);
     queryClient.invalidateQueries({ queryKey: ["books", userId] });
     toast({
       title: "Success",
       description: "Book has been saved successfully",
     });
+  };
+
+  const handleEdit = (book: Book) => {
+    setBookToEdit(book);
+    setBookFormDialogOpen(true);
+  };
+
+  const handleAddNew = () => {
+    setBookToEdit(null);
+    setBookFormDialogOpen(true);
   };
 
   if (isLoading) {
@@ -420,7 +432,7 @@ export default function BooksPage() {
           </Button>
 
           <Button
-            onClick={() => setBookFormDialogOpen(true)}
+            onClick={handleAddNew}
             size="sm"
             className="whitespace-nowrap"
           >
@@ -653,7 +665,7 @@ export default function BooksPage() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => navigate(`/books/edit/${book.id}`)}
+                          onClick={() => handleEdit(book)}
                         >
                           <FileEdit className="h-4 w-4" />
                         </Button>
@@ -679,110 +691,22 @@ export default function BooksPage() {
             <div className="col-span-full text-center py-10">
               <BookEmptyState
                 hasBooks={books.length > 0}
-                onAddBook={() => setBookFormDialogOpen(true)}
+                onAddBook={handleAddNew}
                 onClearFilters={clearFilters}
               />
             </div>
           ) : (
             paginatedBooks.map((book) => (
-              <Card
+              <BookCard
                 key={book.id}
-                className="overflow-hidden h-[300px] relative group"
-              >
-                {selectionMode && (
-                  <div
-                    className="absolute top-2 left-2 z-20 cursor-pointer"
-                    onClick={() => toggleBookSelection(book.id)}
-                  >
-                    {selectedBooks.includes(book.id) ? (
-                      <div className="w-6 h-6 bg-blue-600 rounded-md flex items-center justify-center border-2 border-white shadow-md">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="white"
-                          strokeWidth="3"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <polyline points="20 6 9 17 4 12"></polyline>
-                        </svg>
-                      </div>
-                    ) : (
-                      <div className="w-6 h-6 bg-black/60 rounded-md flex items-center justify-center border-2 border-white shadow-md hover:bg-black/80"></div>
-                    )}
-                  </div>
-                )}
-
-                <div className="h-full w-full relative">
-                  {book.coverImage ? (
-                    <img
-                      src={book.coverImage}
-                      alt={book.title}
-                      className="object-fit w-full h-full group-hover:scale-105 transition-transform duration-200"
-                    />
-                  ) : (
-                    <div className="h-full w-full bg-gray-200 flex items-center justify-center">
-                      <span className="text-2xl font-bold text-gray-500">
-                        {book.title.substring(0, 2).toUpperCase()}
-                      </span>
-                    </div>
-                  )}
-
-                  <div className="absolute bottom-0 left-0 right-0 rounded-t-md bg-black/70 p-3 text-white">
-                    <h3 className="font-medium text-sm line-clamp-1">
-                      {book.title}
-                    </h3>
-                    <p className="text-xs text-gray-200 line-clamp-1">
-                      {book.author}
-                    </p>
-
-                    <div className="flex items-center justify-between mt-1">
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-xs ${book.stock <= 0
-                          ? "bg-red-500/80 text-white"
-                          : book.stock < 5
-                            ? "bg-yellow-500/80 text-white"
-                            : "bg-green-500/80 text-white"
-                          }`}
-                      >
-                        {book.stock} in stock
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-start gap-1 mt-2">
-                      <Button
-                        variant="default"
-                        size="sm"
-                        onClick={() => navigate(`/book/${book.id}`)}
-                        className="h-7 bg-gray-800 hover:bg-gray-700 rounded-md px-2 py-0 text-xs border-none"
-                      >
-                        <Eye className="h-3.5 w-3.5 text-white mr-1" />
-                        <span className="text-white">View</span>
-                      </Button>
-                      <Button
-                        variant="default"
-                        size="sm"
-                        onClick={() => navigate(`/books/edit/${book.id}`)}
-                        className="h-7 bg-gray-800 hover:bg-gray-700 rounded-md px-2 py-0 text-xs border-none"
-                      >
-                        <FileEdit className="h-3.5 w-3.5 text-white mr-1" />
-                        <span className="text-white">Edit</span>
-                      </Button>
-                      <Button
-                        variant="default"
-                        size="icon"
-                        onClick={() => handleDelete(book)}
-                        className="h-7 w-7 bg-gray-800 hover:bg-red-900 rounded-md p-0 border-none"
-                      >
-                        <Trash2 className="h-3.5 w-3.5 text-red-500" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </Card>
+                book={book}
+                selectionMode={selectionMode}
+                isSelected={selectedBooks.includes(book.id)}
+                userRole={userRole}
+                onToggleSelection={toggleBookSelection}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
             ))
           )}
         </div>
@@ -856,19 +780,13 @@ export default function BooksPage() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={bookFormDialogOpen} onOpenChange={setBookFormDialogOpen}>
-        <DialogContent className="sm:max-w-[800px]">
-          <DialogHeader>
-            <DialogTitle>Add New Book</DialogTitle>
-          </DialogHeader>
-          <BookForm
-            book={null}
-            onSuccess={handleBookFormSuccess}
-            onCancel={() => setBookFormDialogOpen(false)}
-            userRole={userRole}
-          />
-        </DialogContent>
-      </Dialog>
+      <AddBookModal
+        open={bookFormDialogOpen}
+        onOpenChange={setBookFormDialogOpen}
+        book={bookToEdit}
+        userRole={userRole}
+        onSuccess={handleBookFormSuccess}
+      />
     </div>
   );
 }
