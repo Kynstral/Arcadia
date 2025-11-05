@@ -12,27 +12,39 @@ import {
 import { ThemeProvider } from "@/lib/theme-provider";
 import { AuthStatusProvider, useAuth } from "./components/AuthStatusProvider";
 import { ScrollbarStyles } from "@/components/ScrollbarStyles.tsx";
-import { useState } from "react";
-import Checkout from "./pages/Checkout.tsx";
+import { useState, lazy, Suspense } from "react";
 import Sidebar from "./components/Sidebar";
-import LandingPage from "./pages/LandingPage";
-import Index from "./pages/Index";
-import Catalog from "./pages/Catalog";
-import BookDetail from "./pages/BookDetail";
-import NotFound from "./pages/NotFound";
-import Members from "./pages/Members";
-import Settings from "./pages/Settings";
-import BookCirculation from "./pages/BookCirculation.tsx";
-import Books from "./pages/Books";
-import EditBook from "./pages/EditBook";
-import EditMember from "./pages/EditMember";
-import Auth from "./pages/Auth";
-import AuthCallback from "./pages/AuthCallback";
-import Onboarding from "./pages/Onboarding";
-import Transactions from "./pages/Transactions.tsx";
 import { CartProvider } from "@/hooks/use-cart.tsx";
 
+// Lazy load all page components
+const LandingPage = lazy(() => import("./pages/LandingPage"));
+const Auth = lazy(() => import("./pages/Auth"));
+const AuthCallback = lazy(() => import("./pages/AuthCallback"));
+const Onboarding = lazy(() => import("./pages/Onboarding"));
+const Index = lazy(() => import("./pages/Index"));
+const Catalog = lazy(() => import("./pages/Catalog"));
+const Books = lazy(() => import("./pages/Books"));
+const BookDetail = lazy(() => import("./pages/BookDetail"));
+const EditBook = lazy(() => import("./pages/EditBook"));
+const Members = lazy(() => import("./pages/Members"));
+const EditMember = lazy(() => import("./pages/EditMember"));
+const BookCirculation = lazy(() => import("./pages/BookCirculation.tsx"));
+const Checkout = lazy(() => import("./pages/Checkout.tsx"));
+const Transactions = lazy(() => import("./pages/Transactions.tsx"));
+const Settings = lazy(() => import("./pages/Settings"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+
 const queryClient = new QueryClient();
+
+// Loading fallback component
+const PageLoader = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="animate-pulse text-center">
+      <h2 className="text-2xl font-semibold mb-2">Loading...</h2>
+      <p className="text-muted-foreground">Please wait a moment</p>
+    </div>
+  </div>
+);
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -81,109 +93,111 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <CartProvider>
-              <Routes>
-                <Route path="/" element={<LandingPage />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/auth/callback" element={<AuthCallback />} />
-                <Route
-                  path="/onboarding"
-                  element={
-                    <ProtectedRoute>
-                      <Onboarding />
-                    </ProtectedRoute>
-                  }
-                />
+              <Suspense fallback={<PageLoader />}>
+                <Routes>
+                  <Route path="/" element={<LandingPage />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/auth/callback" element={<AuthCallback />} />
+                  <Route
+                    path="/onboarding"
+                    element={
+                      <ProtectedRoute>
+                        <Onboarding />
+                      </ProtectedRoute>
+                    }
+                  />
 
-                <Route
-                  path="/dashboard"
-                  element={
-                    <ProtectedRoute>
-                      <Index />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/catalog"
-                  element={
-                    <ProtectedRoute>
-                      <Catalog />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/books"
-                  element={
-                    <ProtectedRoute>
-                      <Books />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/book/:id"
-                  element={
-                    <ProtectedRoute>
-                      <BookDetail />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/books/edit/:id"
-                  element={
-                    <ProtectedRoute>
-                      <EditBook />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/checkout"
-                  element={
-                    <ProtectedRoute>
-                      <Checkout />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/members"
-                  element={
-                    <ProtectedRoute>
-                      <Members />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/members/edit/:id"
-                  element={
-                    <ProtectedRoute>
-                      <EditMember />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/settings"
-                  element={
-                    <ProtectedRoute>
-                      <Settings />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/book-circulation"
-                  element={
-                    <ProtectedRoute>
-                      <BookCirculation />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/transactions"
-                  element={
-                    <ProtectedRoute>
-                      <Transactions />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+                  <Route
+                    path="/dashboard"
+                    element={
+                      <ProtectedRoute>
+                        <Index />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/catalog"
+                    element={
+                      <ProtectedRoute>
+                        <Catalog />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/books"
+                    element={
+                      <ProtectedRoute>
+                        <Books />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/book/:id"
+                    element={
+                      <ProtectedRoute>
+                        <BookDetail />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/books/edit/:id"
+                    element={
+                      <ProtectedRoute>
+                        <EditBook />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/checkout"
+                    element={
+                      <ProtectedRoute>
+                        <Checkout />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/members"
+                    element={
+                      <ProtectedRoute>
+                        <Members />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/members/edit/:id"
+                    element={
+                      <ProtectedRoute>
+                        <EditMember />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/settings"
+                    element={
+                      <ProtectedRoute>
+                        <Settings />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/book-circulation"
+                    element={
+                      <ProtectedRoute>
+                        <BookCirculation />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/transactions"
+                    element={
+                      <ProtectedRoute>
+                        <Transactions />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
             </CartProvider>
           </BrowserRouter>
         </AuthStatusProvider>
