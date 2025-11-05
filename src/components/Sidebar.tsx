@@ -41,6 +41,7 @@ const Sidebar = ({
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut, userRole, userId } = useAuth();
+  const { theme, setTheme } = useTheme();
 
   const [directAvatarUrl, setDirectAvatarUrl] = useState<string | null>(null);
   const [hasAvatarError, setHasAvatarError] = useState(false);
@@ -223,7 +224,7 @@ const Sidebar = ({
                   alt="arcadia-logo"
                   className="h-10 w-10 ml-2"
                 />
-                <h1 className="text-xl font-bold">Arcadia</h1>
+                <h1 className="text-xl font-bold text-primary">Arcadia</h1>
               </Link>
 
               <Tooltip>
@@ -337,7 +338,7 @@ const Sidebar = ({
           {user && (
             <div className="flex flex-col space-y-4">
               {collapsed ? (
-                <div className="flex flex-col items-center space-y-4">
+                <div className="flex flex-col items-center gap-4">
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <div className="h-7 w-7 rounded-full overflow-hidden flex items-center justify-center bg-primary text-primary-foreground cursor-pointer hover:opacity-80">
@@ -382,6 +383,26 @@ const Sidebar = ({
                     </TooltipTrigger>
                     <TooltipContent side="right">
                       <p>Settings</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-10 w-10 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground"
+                        onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                      >
+                        {theme === "dark" ? (
+                          <Sun className="h-5 w-5" />
+                        ) : (
+                          <Moon className="h-5 w-5" />
+                        )}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">
+                      <p>{theme === "dark" ? "Light Mode" : "Dark Mode"}</p>
                     </TooltipContent>
                   </Tooltip>
 
@@ -442,6 +463,19 @@ const Sidebar = ({
                     <Settings className="h-5 w-5 mr-3" />
                     <span>Settings</span>
                   </Link>
+
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start px-3"
+                    onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                  >
+                    {theme === "dark" ? (
+                      <Sun className="h-5 w-5 mr-3" />
+                    ) : (
+                      <Moon className="h-5 w-5 mr-3" />
+                    )}
+                    <span>{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
+                  </Button>
 
                   <Button
                     variant="ghost"

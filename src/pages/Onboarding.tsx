@@ -86,7 +86,7 @@ const Onboarding = () => {
               alt="arcadia-logo"
               className="h-12 w-12 text-primary mb-2"
             />
-            <h1 className="text-2xl font-bold">Welcome to Arcadia</h1>
+            <h1 className="text-2xl font-bold text-primary">Welcome to Arcadia</h1>
             <p className="text-sm text-muted-foreground mt-2 text-center">
               Let's set up your profile to get started
             </p>

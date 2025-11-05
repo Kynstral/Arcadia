@@ -200,7 +200,7 @@ const Auth = () => {
                 alt="arcadia-logo"
                 className="h-12 w-12 text-primary mb-2"
               />
-              <h1 className="text-2xl font-bold">Arcadia</h1>
+              <h1 className="text-2xl font-bold text-primary">Arcadia</h1>
               <p className="text-sm text-muted-foreground mt-1">
                 {isSignUp ? "Create a new account" : "Sign in to your account"}
               </p>

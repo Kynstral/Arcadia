@@ -14,7 +14,7 @@ export const Footer = () => {
                   className="h-5 w-5"
                 />
               </div>
-              <span className="text-xl font-bold">Arcadia</span>
+              <span className="text-xl font-bold text-primary">Arcadia</span>
             </div>
             <p className="text-sm text-muted-foreground max-w-xs">
               The modern way to manage your library's resources and patrons.
