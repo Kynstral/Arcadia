@@ -1,6 +1,6 @@
 // noinspection ExceptionCaughtLocallyJS
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -112,7 +112,7 @@ const BookForm = ({
     description: book?.description || "",
     publisher: book?.publisher || "",
     publicationYear: book?.publicationYear?.toString() || "",
-    price: book?.price?.toString() || "0.00",
+    price: book?.price?.toString() || "",
     stock: book?.stock?.toString() || "0",
     status: book?.status || ("Available" as BookStatus),
     coverImage: book?.coverImage || "",
@@ -126,24 +126,12 @@ const BookForm = ({
 
   const isEditing = !!book;
 
-  useEffect(() => {
-    if (userRole === "library") {
-      setFormData((current) => ({
-        ...current,
-        price: "0.00",
-      }));
-    }
-  }, [userRole]);
+  // Removed auto-reset of price for libraries - they may need it for replacement costs
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { id, value } = e.target;
-
-    if (id === "price" && userRole === "library") {
-      return;
-    }
-
     setFormData((prev) => ({ ...prev, [id]: value }));
   };
 
@@ -210,7 +198,7 @@ const BookForm = ({
         description: formData.description,
         publisher: formData.publisher,
         publication_year: parseInt(formData.publicationYear),
-        price: userRole === "library" ? 0 : parseFloat(formData.price || "0"),
+        price: parseFloat(formData.price || "0"),
         stock: parseInt(formData.stock),
         status: formData.status,
         cover_image: formData.coverImage,
@@ -379,13 +367,9 @@ const BookForm = ({
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label
-                htmlFor="price"
-                className={
-                  userRole === "library" ? "text-muted-foreground" : ""
-                }
-              >
-                {userRole === "library" ? "Price (Not Applicable)" : "Price *"}
+              <Label htmlFor="price">
+                {userRole === "library" ? "Price / Replacement Cost" : "Price"}{" "}
+                {userRole !== "library" && <span className="text-red-500">*</span>}
               </Label>
               <Input
                 id="price"
@@ -393,18 +377,13 @@ const BookForm = ({
                 step="0.01"
                 value={formData.price}
                 onChange={handleChange}
-                required
+                required={userRole !== "library"}
                 min="0"
-                disabled={userRole === "library"}
-                className={
-                  userRole === "library"
-                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    : ""
-                }
+                placeholder={userRole === "library" ? "Optional" : "0.00"}
               />
               {userRole === "library" && (
-                <p className="text-xs text-muted-foreground">
-                  Not applicable for libraries
+                <p className="text-xs text-secondary-text">
+                  For replacement costs and late fees
                 </p>
               )}
             </div>
@@ -509,8 +488,8 @@ const BookForm = ({
             </div>
           </div>
         </form>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 };
 

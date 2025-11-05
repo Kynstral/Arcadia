@@ -97,10 +97,17 @@ export function BookCard({
             >
               {book.stock} in stock
             </span>
-            {userRole !== "Library" && book.price > 0 && (
-              <span className="text-sm font-bold text-primary bg-primary/10 px-2 py-0.5 rounded">
-                ${book.price.toFixed(2)}
-              </span>
+            {book.price > 0 && (
+              <Tooltip delayDuration={300}>
+                <TooltipTrigger asChild>
+                  <span className="text-sm font-bold text-primary bg-primary/10 px-2 py-0.5 rounded cursor-help">
+                    ${book.price.toFixed(2)}
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="top" align="end" sideOffset={5}>
+                  <p>{userRole === "Library" ? "Replacement cost" : "Sale price"}</p>
+                </TooltipContent>
+              </Tooltip>
             )}
           </div>
 
@@ -114,14 +121,15 @@ export function BookCard({
           )}
 
           {/* Action buttons - hidden by default, shown on hover with smooth animation */}
-          <div className="flex items-center justify-start gap-1 mt-0 max-h-0 opacity-0 overflow-hidden transition-all duration-300 ease-in-out group-hover:mt-2 group-hover:max-h-12 group-hover:opacity-100">
+          <div className="flex items-center gap-1 mt-0 max-h-0 opacity-0 overflow-hidden transition-all duration-300 ease-in-out group-hover:mt-2 group-hover:max-h-12 group-hover:opacity-100">
             <Tooltip delayDuration={300}>
               <TooltipTrigger asChild>
                 <Button
                   variant="secondary"
                   size="sm"
                   onClick={() => navigate(`/book/${book.id}`)}
-                  className="h-7 rounded-md px-2 py-0 text-xs"
+                  className="h-7 rounded-md px-2 py-0 text-xs flex-1"
+                  aria-label={`View details for ${book.title}`}
                 >
                   <Eye className="h-3.5 w-3.5 mr-1" />
                   <span>View</span>
@@ -138,7 +146,8 @@ export function BookCard({
                   variant="secondary"
                   size="sm"
                   onClick={() => onEdit(book)}
-                  className="h-7 rounded-md px-2 py-0 text-xs"
+                  className="h-7 rounded-md px-2 py-0 text-xs flex-1"
+                  aria-label={`Edit ${book.title}`}
                 >
                   <FileEdit className="h-3.5 w-3.5 mr-1" />
                   <span>Edit</span>
@@ -156,6 +165,7 @@ export function BookCard({
                   size="icon"
                   onClick={() => onDelete(book)}
                   className="h-7 w-7 rounded-md p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                  aria-label={`Delete ${book.title}`}
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>

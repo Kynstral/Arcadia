@@ -477,3 +477,109 @@
     - Add "Select all X books" option
     - Clear selection on page change
     - _Requirements: 7.2_
+
+
+- [x] 14. Book card redesign and visual improvements
+  - [x] 14.1 Extract BookCard component
+    - Create BookCard.tsx in components/books/
+    - Move card rendering logic from Books.tsx
+    - Add props for book, selection, user role, callbacks
+    - Export from index.ts
+    - _Requirements: 1.2, 1.3, 3.1_
+
+  - [x] 14.2 Redesign card overlay
+    - Lower overlay opacity to 70% for better cover visibility
+    - Add smooth transition on hover (increase to 90%)
+    - Compact layout by default showing title, author, stock
+    - Hide action buttons by default
+    - _Requirements: 1.2, 1.3_
+
+  - [x] 14.3 Add smooth expand animation
+    - Use max-height and opacity transitions
+    - Add ease-in-out timing for smooth motion
+    - Expand overlay padding on hover
+    - Show action buttons with fade-in effect
+    - _Requirements: 1.2_
+
+  - [x] 14.4 Add price badge for bookstore users
+    - Show price when userRole is not "Library"
+    - Style with primary color and background highlight
+    - Position next to stock badge
+    - Make font bold and larger for visibility
+    - _Requirements: 1.2, 3.2_
+
+  - [x] 14.5 Add status badge display
+    - Show status badge when book is not "Available"
+    - Use muted colors for status
+    - Position below stock/price row
+    - _Requirements: 1.3, 9.1_
+
+  - [x] 14.6 Improve selection visual feedback
+    - Add ring-2 ring-primary when selected
+    - Animate checkbox with zoom-in effect
+    - Use primary color for selected checkbox
+    - Add hover scale effect on checkbox
+    - Improve checkbox styling with backdrop blur
+    - _Requirements: 7.1, 7.2_
+
+  - [x] 14.7 Add tooltips to action buttons
+    - Add Tooltip wrapper to View, Edit, Delete buttons
+    - Set tooltips to appear on top with proper offset
+    - Add delay duration to prevent instant appearance
+    - Shorten tooltip text for cleaner look
+    - _Requirements: 1.5, 6.4_
+
+  - [x] 14.8 Fix tooltip rendering issues
+    - Wrap TooltipContent in Portal
+    - Remove overflow-hidden from Card component
+    - Add overflow-hidden to image container instead
+    - Ensure tooltips render at document body level
+    - _Requirements: 1.5_
+
+  - [x] 14.9 Apply design system colors
+    - Use bg-card for overlay background
+    - Use text-foreground and text-muted-foreground
+    - Use bg-secondary for in-stock badge
+    - Use bg-destructive for out-of-stock
+    - Ensure proper light/dark mode support
+    - _Requirements: 1.3, 9.1_
+
+- [x] 15. Replace edit page with modal
+  - [x] 15.1 Create AddBookModal component
+    - Create AddBookModal.tsx in components/books/
+    - Accept open, onOpenChange, book, userRole, onSuccess props
+    - Render Dialog with BookForm inside
+    - Show "Edit Book" or "Add New Book" title based on book prop
+    - Add max-height and overflow for long forms
+    - _Requirements: 3.1, 4.1_
+
+  - [x] 15.2 Update BookCard to use modal
+    - Change onEdit prop to accept callback instead of navigation
+    - Call onEdit(book) instead of navigate
+    - Remove navigation import if not needed elsewhere
+    - _Requirements: 4.1_
+
+  - [x] 15.3 Update Books.tsx for modal workflow
+    - Add bookToEdit state
+    - Create handleEdit function to set book and open modal
+    - Create handleAddNew function to clear book and open modal
+    - Pass bookToEdit to AddBookModal
+    - Update handleBookFormSuccess to clear bookToEdit
+    - _Requirements: 3.1, 4.1_
+
+  - [x] 15.4 Update table view edit button
+    - Change onClick to call handleEdit(book)
+    - Remove navigation to /books/edit/:id
+    - _Requirements: 3.2, 4.1_
+
+  - [x] 15.5 Remove EditBook page and route
+    - Delete src/pages/EditBook.tsx file
+    - Remove EditBook import from App.tsx
+    - Remove /books/edit/:id route from App.tsx
+    - _Requirements: 4.1_
+
+  - [x] 15.6 Clean up Books.tsx imports
+    - Remove BookForm import (now in AddBookModal)
+    - Remove unused Dialog imports
+    - Import AddBookModal component
+    - _Requirements: 3.1_

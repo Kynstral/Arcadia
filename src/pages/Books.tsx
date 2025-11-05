@@ -659,6 +659,7 @@ export default function BooksPage() {
                           variant="ghost"
                           size="icon"
                           onClick={() => navigate(`/book/${book.id}`)}
+                          aria-label={`View ${book.title}`}
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
@@ -666,6 +667,7 @@ export default function BooksPage() {
                           variant="ghost"
                           size="icon"
                           onClick={() => handleEdit(book)}
+                          aria-label={`Edit ${book.title}`}
                         >
                           <FileEdit className="h-4 w-4" />
                         </Button>
@@ -674,6 +676,7 @@ export default function BooksPage() {
                           size="icon"
                           onClick={() => handleDelete(book)}
                           className="text-red-500"
+                          aria-label={`Delete ${book.title}`}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
