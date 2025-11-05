@@ -1,24 +1,39 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { isProfileComplete } from "@/lib/auth-utils";
 
 const AuthCallback = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN" && session) {
-        navigate("/dashboard");
-      }
-    });
-
     const processOAuthCallback = async () => {
-      const { error } = await supabase.auth.getSession();
-      if (error) {
-        console.error("Error processing auth callback:", error);
+      try {
+        const { data, error } = await supabase.auth.getSession();
+
+        if (error) {
+          console.error("Error processing auth callback:", error);
+          navigate("/auth");
+          return;
+        }
+
+        const session = data.session;
+        const user = session?.user;
+
+        if (!session || !user) {
+          navigate("/auth");
+          return;
+        }
+
+        // Check if user profile is complete
+        if (isProfileComplete(user)) {
+          navigate("/dashboard");
+        } else {
+          navigate("/onboarding");
+        }
+      } catch (error) {
+        console.error("Unexpected error in auth callback:", error);
         navigate("/auth");
-      } else {
-        navigate("/dashboard");
       }
     };
 

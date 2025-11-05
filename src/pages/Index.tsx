@@ -1,11 +1,12 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Book, DashboardStats } from "@/lib/types";
 import { getBooks, getDashboardStats } from "@/lib/data-service";
 import LibraryDashboard from "@/components/LibraryDashboard";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthStatusProvider";
+import { isProfileComplete } from "@/lib/auth-utils";
 import {
   Card,
   CardContent,
@@ -55,7 +56,15 @@ const COLORS = [
 
 const Index = () => {
   const navigate = useNavigate();
-  const { userRole, userId } = useAuth();
+  const location = useLocation();
+  const { userRole, userId, user } = useAuth();
+
+  // Redirect to onboarding if profile is incomplete
+  useEffect(() => {
+    if (user && !isProfileComplete(user) && location.pathname !== "/onboarding") {
+      navigate("/onboarding");
+    }
+  }, [user, navigate, location.pathname]);
   const [recentlyBorrowed, setRecentlyBorrowed] = useState<
     Record<string, unknown>[]
   >([]);
@@ -249,8 +258,8 @@ const Index = () => {
         <pre className="mt-4 p-4 bg-card rounded text-xs overflow-auto">
           {String(
             (statsError as Error)?.message ||
-              (booksError as Error)?.message ||
-              (borrowingsError as Error)?.message,
+            (booksError as Error)?.message ||
+            (borrowingsError as Error)?.message,
           )}
         </pre>
       </div>
@@ -451,8 +460,8 @@ const Index = () => {
                           outerRadius={80}
                           fill="#8884d8"
                           dataKey="value"
-                          label={({ name, percent }) =>
-                            `${name} ${(percent * 100).toFixed(0)}%`
+                          label={(props: any) =>
+                            `${props.name} ${(props.percent * 100).toFixed(0)}%`
                           }
                         >
                           {categoryData.map((entry, index) => (
@@ -540,7 +549,7 @@ const Index = () => {
               </CardHeader>
               <CardContent>
                 {dashboardStats?.recentTransactions &&
-                dashboardStats.recentTransactions.length > 0 ? (
+                  dashboardStats.recentTransactions.length > 0 ? (
                   <div className="space-y-4">
                     {dashboardStats.recentTransactions.map((transaction) => (
                       <div
@@ -608,8 +617,8 @@ const Index = () => {
                         outerRadius={100}
                         fill="#8884d8"
                         dataKey="value"
-                        label={({ name, percent }) =>
-                          `${name} ${(percent * 100).toFixed(0)}%`
+                        label={(props: any) =>
+                          `${props.name} ${(props.percent * 100).toFixed(0)}%`
                         }
                       >
                         {paymentMethodData.map((entry, index) => (

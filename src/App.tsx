@@ -28,6 +28,7 @@ import EditBook from "./pages/EditBook";
 import EditMember from "./pages/EditMember";
 import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
+import Onboarding from "./pages/Onboarding";
 import Transactions from "./pages/Transactions.tsx";
 import { CartProvider } from "@/hooks/use-cart.tsx";
 
@@ -84,6 +85,14 @@ const App = () => (
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/auth/callback" element={<AuthCallback />} />
+                <Route
+                  path="/onboarding"
+                  element={
+                    <ProtectedRoute>
+                      <Onboarding />
+                    </ProtectedRoute>
+                  }
+                />
 
                 <Route
                   path="/dashboard"
