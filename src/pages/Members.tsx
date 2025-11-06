@@ -1,15 +1,15 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   AlertTriangle,
   Ban,
   Check,
-  ExternalLink,
-  MoreHorizontal,
   Search,
   Trash2,
   UserPlus,
   Users,
   X,
+  Download,
+  Upload,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,23 +21,23 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Card, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Member, MemberStatus } from "@/lib/types";
-import MemberForm from "@/components/MemberForm";
-import MemberDetail from "@/components/MemberDetail";
+import {
+  MemberForm,
+  MemberDetail,
+  MemberStats,
+  MemberFilters,
+  MemberEmptyState,
+  MemberPagination,
+  BulkMemberActions,
+  MemberTable,
+  Import,
+  Export,
+} from "@/components/members";
 import {
   Drawer,
   DrawerContent,
@@ -48,9 +48,7 @@ import { useMediaQuery } from "@/hooks/use-media-query";
 import { useNavigate } from "react-router-dom";
 
 const fetchMembers = async (userId: string | null): Promise<Member[]> => {
-  if (!userId) {
-    return [];
-  }
+  if (!userId) return [];
 
   const { data, error } = await supabase
     .from("members")
@@ -58,13 +56,8 @@ const fetchMembers = async (userId: string | null): Promise<Member[]> => {
     .eq("user_id", userId)
     .order("name");
 
-  if (error) {
-    throw new Error(`Error fetching members: ${error.message}`);
-  }
-
-  if (!data || data.length === 0) {
-    return [];
-  }
+  if (error) throw new Error(`Error fetching members: ${error.message}`);
+  if (!data || data.length === 0) return [];
 
   return await Promise.all(
     data.map(async (member) => {
@@ -81,6 +74,18 @@ const fetchMembers = async (userId: string | null): Promise<Member[]> => {
       } as Member;
     }),
   );
+};
+
+const fetchOverdueCount = async (userId: string | null): Promise<number> => {
+  if (!userId) return 0;
+
+  const { count } = await supabase
+    .from("borrowings")
+    .select("*", { count: "exact", head: true })
+    .eq("status", "Borrowed")
+    .lt("due_date", new Date().toISOString());
+
+  return count || 0;
 };
 
 const validateMemberStatus = (status: string): MemberStatus => {
@@ -104,9 +109,7 @@ const updateMemberStatus = async ({
   status: MemberStatus;
   userId: string | null;
 }) => {
-  if (!userId) {
-    throw new Error("User not authenticated");
-  }
+  if (!userId) throw new Error("User not authenticated");
 
   const { data, error } = await supabase
     .from("members")
@@ -116,17 +119,12 @@ const updateMemberStatus = async ({
     .select()
     .single();
 
-  if (error) {
-    throw new Error(`Error updating member status: ${error.message}`);
-  }
-
+  if (error) throw new Error(`Error updating member status: ${error.message}`);
   return data;
 };
 
 const deleteMember = async (memberId: string, userId: string | null) => {
-  if (!userId) {
-    throw new Error("User not authenticated");
-  }
+  if (!userId) throw new Error("User not authenticated");
 
   const { error } = await supabase
     .from("members")
@@ -134,31 +132,38 @@ const deleteMember = async (memberId: string, userId: string | null) => {
     .eq("id", memberId)
     .eq("user_id", userId);
 
-  if (error) {
-    throw new Error(`Error deleting member: ${error.message}`);
-  }
-
+  if (error) throw new Error(`Error deleting member: ${error.message}`);
   return memberId;
 };
 
 const Members = () => {
   const { toast } = useToast();
   const { userId } = useAuth();
+  const navigate = useNavigate();
+  const isDesktop = useMediaQuery("(min-width: 768px)");
+  const queryClient = useQueryClient();
+
+  // State
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<MemberStatus | null>(null);
+  const [dateFilter, setDateFilter] = useState("all");
+  const [booksFilter, setBooksFilter] = useState("all");
+  const [overdueFilter, setOverdueFilter] = useState(false);
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
+  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [confirmAction, setConfirmAction] = useState<
     "activate" | "deactivate" | "suspend" | "ban" | "delete" | null
   >(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [isImportOpen, setIsImportOpen] = useState(false);
+  const [isExportOpen, setIsExportOpen] = useState(false);
   const [selectedMemberId, setSelectedMemberId] = useState<string>("");
-  const isDesktop = useMediaQuery("(min-width: 768px)");
-  const navigate = useNavigate();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(25);
 
-  const queryClient = useQueryClient();
-
+  // Queries
   const {
     data: members = [],
     isLoading,
@@ -169,17 +174,79 @@ const Members = () => {
     enabled: !!userId,
   });
 
-  const filteredMembers = members.filter((member) => {
-    const matchesSearch =
-      !searchQuery ||
-      member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      member.email.toLowerCase().includes(searchQuery.toLowerCase());
-
-    const matchesStatus = !statusFilter || member.status === statusFilter;
-
-    return matchesSearch && matchesStatus;
+  const { data: overdueCount = 0 } = useQuery({
+    queryKey: ["overdueCount", userId],
+    queryFn: () => fetchOverdueCount(userId),
+    enabled: !!userId,
   });
 
+  // Filtering logic
+  const filteredMembers = useMemo(() => {
+    return members.filter((member) => {
+      // Search filter
+      const matchesSearch =
+        !searchQuery ||
+        member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        member.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        member.phone?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        member.address?.toLowerCase().includes(searchQuery.toLowerCase());
+
+      // Status filter
+      const matchesStatus = !statusFilter || member.status === statusFilter;
+
+      // Date filter
+      let matchesDate = true;
+      if (dateFilter !== "all") {
+        const joinedDate = new Date(member.joined_date);
+        const now = new Date();
+        const daysDiff = Math.floor(
+          (now.getTime() - joinedDate.getTime()) / (1000 * 60 * 60 * 24),
+        );
+
+        if (dateFilter === "week") matchesDate = daysDiff <= 7;
+        else if (dateFilter === "month") matchesDate = daysDiff <= 30;
+        else if (dateFilter === "year") matchesDate = daysDiff <= 365;
+      }
+
+      // Books filter
+      let matchesBooks = true;
+      if (booksFilter === "none") matchesBooks = member.booksCheckedOut === 0;
+      else if (booksFilter === "some") matchesBooks = member.booksCheckedOut > 0;
+      else if (booksFilter === "many") matchesBooks = member.booksCheckedOut >= 3;
+
+      // Overdue filter (simplified - would need actual overdue data)
+      const matchesOverdue = !overdueFilter;
+
+      return (
+        matchesSearch &&
+        matchesStatus &&
+        matchesDate &&
+        matchesBooks &&
+        matchesOverdue
+      );
+    });
+  }, [
+    members,
+    searchQuery,
+    statusFilter,
+    dateFilter,
+    booksFilter,
+    overdueFilter,
+  ]);
+
+  // Pagination
+  const totalPages = Math.ceil(filteredMembers.length / itemsPerPage);
+  const paginatedMembers = filteredMembers.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage,
+  );
+
+  const totalBorrowed = members.reduce(
+    (sum, m) => sum + m.booksCheckedOut,
+    0,
+  );
+
+  // Mutations
   const updateStatusMutation = useMutation({
     mutationFn: (params: { memberId: string; status: MemberStatus }) =>
       updateMemberStatus({ ...params, userId }),
@@ -187,7 +254,7 @@ const Members = () => {
       queryClient.invalidateQueries({ queryKey: ["members", userId] });
       toast({
         title: "Status updated",
-        description: `Member status has been updated successfully.`,
+        description: "Member status has been updated successfully.",
       });
       setConfirmDialogOpen(false);
     },
@@ -206,7 +273,7 @@ const Members = () => {
       queryClient.invalidateQueries({ queryKey: ["members", userId] });
       toast({
         title: "Member deleted",
-        description: `Member has been deleted successfully.`,
+        description: "Member has been deleted successfully.",
       });
       setConfirmDialogOpen(false);
     },
@@ -219,6 +286,7 @@ const Members = () => {
     },
   });
 
+  // Handlers
   const handleFormSuccess = () => {
     setIsFormOpen(false);
     setSelectedMember(null);
@@ -235,77 +303,31 @@ const Members = () => {
     setSelectedMember(null);
   };
 
-  const getActionConfig = () => {
-    if (!confirmAction || !selectedMember)
-      return { title: "", description: "", confirmLabel: "", icon: null };
-
-    switch (confirmAction) {
-      case "activate":
-        return {
-          title: "Activate Membership",
-          description: `Are you sure you want to activate ${selectedMember.name}'s membership? This will grant them full library access.`,
-          confirmLabel: "Activate",
-          icon: <Check className="h-6 w-6 text-green-500" />,
-        };
-      case "deactivate":
-        return {
-          title: "Deactivate Membership",
-          description: `Are you sure you want to deactivate ${selectedMember.name}'s membership? They will not be able to check out books until reactivated.`,
-          confirmLabel: "Deactivate",
-          icon: <AlertTriangle className="h-6 w-6 text-amber-500" />,
-        };
-      case "suspend":
-        return {
-          title: "Suspend Membership",
-          description: `Are you sure you want to suspend ${selectedMember.name}'s membership? This is a temporary measure that can be reversed.`,
-          confirmLabel: "Suspend",
-          icon: <AlertTriangle className="h-6 w-6 text-amber-500" />,
-        };
-      case "ban":
-        return {
-          title: "Ban Member",
-          description: `Are you sure you want to ban ${selectedMember.name}? This is a serious action for policy violations.`,
-          confirmLabel: "Ban",
-          icon: <Ban className="h-6 w-6 text-red-500" />,
-        };
-      case "delete":
-        return {
-          title: "Delete Member",
-          description: `Are you sure you want to permanently delete ${selectedMember.name}'s record? This action cannot be undone.`,
-          confirmLabel: "Delete",
-          icon: <Trash2 className="h-6 w-6 text-red-500" />,
-        };
-      default:
-        return { title: "", description: "", confirmLabel: "", icon: null };
-    }
-  };
-
-  const getStatusColor = (status: MemberStatus) => {
-    switch (status) {
-      case "Active":
-        return "bg-emerald-100 text-emerald-800";
-      case "Inactive":
-        return "bg-zinc-100 text-zinc-800";
-      case "Suspended":
-        return "bg-amber-100 text-amber-800";
-      case "Banned":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-blue-100 text-blue-800";
-    }
-  };
-
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase();
-  };
-
   const handleViewDetails = (member: Member) => {
     setSelectedMemberId(member.id);
     setIsDetailOpen(true);
+  };
+
+  const handleSelectMember = (id: string) => {
+    setSelectedMembers((prev) =>
+      prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id],
+    );
+  };
+
+  const handleSelectAll = (selected: boolean) => {
+    setSelectedMembers(selected ? paginatedMembers.map((m) => m.id) : []);
+  };
+
+  const handleStatusChange = (member: Member, action: string) => {
+    setSelectedMember(member);
+    setConfirmAction(action as typeof confirmAction);
+    setConfirmDialogOpen(true);
+  };
+
+  const handleDelete = (member: Member) => {
+    setSelectedMember(member);
+    setConfirmAction("delete");
+    setConfirmDialogOpen(true);
   };
 
   const handleConfirmAction = () => {
@@ -342,6 +364,84 @@ const Members = () => {
     }
   };
 
+  const handleBulkStatusUpdate = async (status: MemberStatus) => {
+    if (selectedMembers.length === 0) return;
+
+    try {
+      await Promise.all(
+        selectedMembers.map((id) =>
+          updateMemberStatus({ memberId: id, status, userId }),
+        ),
+      );
+
+      queryClient.invalidateQueries({ queryKey: ["members", userId] });
+      toast({
+        title: "Bulk update successful",
+        description: `Updated ${selectedMembers.length} member${selectedMembers.length !== 1 ? "s" : ""}`,
+      });
+      setSelectedMembers([]);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Unknown error",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleClearFilters = () => {
+    setStatusFilter(null);
+    setDateFilter("all");
+    setBooksFilter("all");
+    setOverdueFilter(false);
+    setSearchQuery("");
+  };
+
+  const getActionConfig = () => {
+    if (!confirmAction || !selectedMember)
+      return { title: "", description: "", confirmLabel: "", icon: null };
+
+    switch (confirmAction) {
+      case "activate":
+        return {
+          title: "Activate Membership",
+          description: `Are you sure you want to activate ${selectedMember.name}'s membership?`,
+          confirmLabel: "Activate",
+          icon: <Check className="h-6 w-6 text-green-500" />,
+        };
+      case "deactivate":
+        return {
+          title: "Deactivate Membership",
+          description: `Are you sure you want to deactivate ${selectedMember.name}'s membership?`,
+          confirmLabel: "Deactivate",
+          icon: <AlertTriangle className="h-6 w-6 text-amber-500" />,
+        };
+      case "suspend":
+        return {
+          title: "Suspend Membership",
+          description: `Are you sure you want to suspend ${selectedMember.name}'s membership?`,
+          confirmLabel: "Suspend",
+          icon: <AlertTriangle className="h-6 w-6 text-amber-500" />,
+        };
+      case "ban":
+        return {
+          title: "Ban Member",
+          description: `Are you sure you want to ban ${selectedMember.name}?`,
+          confirmLabel: "Ban",
+          icon: <Ban className="h-6 w-6 text-red-500" />,
+        };
+      case "delete":
+        return {
+          title: "Delete Member",
+          description: `Are you sure you want to permanently delete ${selectedMember.name}'s record?`,
+          confirmLabel: "Delete",
+          icon: <Trash2 className="h-6 w-6 text-red-500" />,
+        };
+      default:
+        return { title: "", description: "", confirmLabel: "", icon: null };
+    }
+  };
+
   const actionConfig = getActionConfig();
 
   if (!userId) {
@@ -375,8 +475,16 @@ const Members = () => {
     );
   }
 
+  const hasFilters =
+    searchQuery ||
+    statusFilter ||
+    dateFilter !== "all" ||
+    booksFilter !== "all" ||
+    overdueFilter;
+
   return (
-    <div className="space-y-8 page-transition">
+    <div className="space-y-6 page-transition">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-3xl font-bold tracking-tight flex items-center gap-2">
@@ -388,200 +496,103 @@ const Members = () => {
           </p>
         </div>
 
-        <Button onClick={() => handleOpenForm()}>
-          <UserPlus className="h-4 w-4 mr-2" />
-          Add Member
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setIsImportOpen(true)}>
+            <Upload className="h-4 w-4 mr-2" />
+            Import
+          </Button>
+          <Button variant="outline" onClick={() => setIsExportOpen(true)}>
+            <Download className="h-4 w-4 mr-2" />
+            Export
+          </Button>
+          <Button onClick={() => handleOpenForm()}>
+            <UserPlus className="h-4 w-4 mr-2" />
+            Add Member
+          </Button>
+        </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4">
+      {/* Stats */}
+      <MemberStats
+        members={members}
+        totalBorrowed={totalBorrowed}
+        overdueCount={overdueCount}
+      />
+
+      {/* Search and Filters */}
+      <div className="flex flex-col gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search members..."
+            placeholder="Search members by name, email, phone, or address..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9"
           />
         </div>
-        <div className="flex gap-2 overflow-x-auto pb-1">
-          <Button
-            variant={statusFilter === null ? "default" : "outline-solid"}
-            size="sm"
-            onClick={() => setStatusFilter(null)}
-          >
-            All
-          </Button>
-          <Button
-            variant={statusFilter === "Active" ? "default" : "outline-solid"}
-            size="sm"
-            onClick={() => setStatusFilter("Active")}
-          >
-            Active
-          </Button>
-          <Button
-            variant={statusFilter === "Inactive" ? "default" : "outline-solid"}
-            size="sm"
-            onClick={() => setStatusFilter("Inactive")}
-          >
-            Inactive
-          </Button>
-          <Button
-            variant={statusFilter === "Suspended" ? "default" : "outline-solid"}
-            size="sm"
-            onClick={() => setStatusFilter("Suspended")}
-          >
-            Suspended
-          </Button>
-          <Button
-            variant={statusFilter === "Banned" ? "default" : "outline-solid"}
-            size="sm"
-            onClick={() => setStatusFilter("Banned")}
-          >
-            Banned
-          </Button>
-        </div>
+
+        <MemberFilters
+          statusFilter={statusFilter}
+          dateFilter={dateFilter}
+          booksFilter={booksFilter}
+          overdueFilter={overdueFilter}
+          onStatusChange={setStatusFilter}
+          onDateChange={setDateFilter}
+          onBooksChange={setBooksFilter}
+          onOverdueChange={setOverdueFilter}
+          onClearFilters={handleClearFilters}
+        />
       </div>
 
-      <div className="space-y-4">
-        {filteredMembers.length > 0 ? (
-          filteredMembers.map((member) => (
-            <Card key={member.id} className="overflow-hidden">
-              <CardContent className="p-0">
-                <div className="flex flex-col sm:flex-row sm:items-center p-6 gap-4">
-                  <Avatar className="h-12 w-12">
-                    <AvatarFallback>{getInitials(member.name)}</AvatarFallback>
-                  </Avatar>
+      {/* Bulk Actions */}
+      {selectedMembers.length > 0 && (
+        <BulkMemberActions
+          selectedCount={selectedMembers.length}
+          onClearSelection={() => setSelectedMembers([])}
+          onBulkStatusUpdate={handleBulkStatusUpdate}
+          onBulkExport={() => setIsExportOpen(true)}
+          onBulkImport={() => setIsImportOpen(true)}
+        />
+      )}
 
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium">{member.name}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {member.email}
-                    </p>
-                  </div>
+      {/* Table or Empty State */}
+      {filteredMembers.length > 0 ? (
+        <>
+          <MemberTable
+            members={paginatedMembers}
+            selectedMembers={selectedMembers}
+            onSelectMember={handleSelectMember}
+            onSelectAll={handleSelectAll}
+            onViewDetails={handleViewDetails}
+            onEdit={(member) => navigate(`/members/edit/${member.id}`)}
+            onStatusChange={handleStatusChange}
+            onDelete={handleDelete}
+            onAssignBook={handleViewDetails}
+          />
 
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-6">
-                    <div className="text-sm">
-                      <p className="text-muted-foreground">Joined</p>
-                      <p>{new Date(member.joined_date).toLocaleDateString()}</p>
-                    </div>
+          {totalPages > 1 && (
+            <MemberPagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              itemsPerPage={itemsPerPage}
+              totalItems={filteredMembers.length}
+              onPageChange={setCurrentPage}
+              onItemsPerPageChange={(items) => {
+                setItemsPerPage(items);
+                setCurrentPage(1);
+              }}
+            />
+          )}
+        </>
+      ) : (
+        <MemberEmptyState
+          hasFilters={!!hasFilters}
+          onAddMember={() => handleOpenForm()}
+          onClearFilters={handleClearFilters}
+        />
+      )}
 
-                    <div className="text-sm">
-                      <p className="text-muted-foreground">Books</p>
-                      <p>{member.booksCheckedOut}</p>
-                    </div>
-
-                    <Badge className={getStatusColor(member.status)}>
-                      {member.status}
-                    </Badge>
-
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleViewDetails(member)}
-                      className="sm:ml-2"
-                    >
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                      View Details
-                    </Button>
-
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => navigate(`/members/edit/${member.id}`)}
-                        >
-                          Edit Details
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        {member.status !== "Active" && (
-                          <DropdownMenuItem
-                            className="text-green-600"
-                            onClick={() => {
-                              setSelectedMember(member);
-                              setConfirmAction("activate");
-                              setConfirmDialogOpen(true);
-                            }}
-                          >
-                            Activate
-                          </DropdownMenuItem>
-                        )}
-                        {member.status === "Active" && (
-                          <DropdownMenuItem
-                            onClick={() => {
-                              setSelectedMember(member);
-                              setConfirmAction("deactivate");
-                              setConfirmDialogOpen(true);
-                            }}
-                          >
-                            Deactivate
-                          </DropdownMenuItem>
-                        )}
-                        <DropdownMenuItem
-                          className="text-amber-600"
-                          onClick={() => {
-                            setSelectedMember(member);
-                            setConfirmAction("suspend");
-                            setConfirmDialogOpen(true);
-                          }}
-                        >
-                          Suspend
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-red-600"
-                          onClick={() => {
-                            setSelectedMember(member);
-                            setConfirmAction("ban");
-                            setConfirmDialogOpen(true);
-                          }}
-                        >
-                          Ban
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          className="text-red-700"
-                          onClick={() => {
-                            setSelectedMember(member);
-                            setConfirmAction("delete");
-                            setConfirmDialogOpen(true);
-                          }}
-                        >
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        ) : (
-          <div className="text-center py-12">
-            <Users className="h-12 w-12 mx-auto text-muted-foreground" />
-            <h3 className="mt-4 text-lg font-medium">No members found</h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {searchQuery || statusFilter
-                ? "Try adjusting your search criteria"
-                : "Start by adding your first member"}
-            </p>
-            {!searchQuery && !statusFilter && (
-              <Button
-                variant="outline"
-                className="mt-4"
-                onClick={() => handleOpenForm()}
-              >
-                <UserPlus className="h-4 w-4 mr-2" />
-                Add Member
-              </Button>
-            )}
-          </div>
-        )}
-      </div>
-
+      {/* Dialogs */}
       <Dialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -617,6 +628,7 @@ const Members = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Form Dialog/Drawer */}
       {isDesktop ? (
         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
           <DialogContent className="sm:max-w-[500px]">
@@ -659,6 +671,7 @@ const Members = () => {
         </Drawer>
       )}
 
+      {/* Detail Dialog/Drawer */}
       {isDesktop ? (
         <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
           <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -698,6 +711,23 @@ const Members = () => {
           </DrawerContent>
         </Drawer>
       )}
+
+      {/* Import/Export */}
+      <Import
+        open={isImportOpen}
+        onOpenChange={setIsImportOpen}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ["members", userId] });
+        }}
+        userId={userId}
+      />
+
+      <Export
+        open={isExportOpen}
+        onOpenChange={setIsExportOpen}
+        members={members}
+        selectedMembers={selectedMembers}
+      />
     </div>
   );
 };

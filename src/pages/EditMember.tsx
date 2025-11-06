@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import MemberForm from "@/components/MemberForm";
+import { MemberForm } from "@/components/members";
 import { Member } from "@/lib/types";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft } from "lucide-react";
