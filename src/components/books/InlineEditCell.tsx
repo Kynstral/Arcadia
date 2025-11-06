@@ -110,6 +110,7 @@ export function InlineEditCell({
         onDoubleClick={() => setIsEditing(true)}
         title="Double-click to edit"
       >
+        {field === "price" && "$"}
         {value || <span className="text-muted-foreground italic">Empty</span>}
       </div>
     );
@@ -151,6 +152,9 @@ export function InlineEditCell({
 
   return (
     <div className="flex items-center gap-1">
+      {field === "price" && (
+        <span className="text-muted-foreground">$</span>
+      )}
       <input
         ref={inputRef}
         type={type}
@@ -159,9 +163,11 @@ export function InlineEditCell({
         onBlur={handleSave}
         onKeyDown={handleKeyDown}
         disabled={isSaving}
-        className="flex h-8 w-full rounded-md border border-input bg-background px-2 py-1 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        className="flex h-8 rounded-md border border-input bg-background px-2 py-1 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        style={{ width: field === "price" || field === "stock" ? "70px" : "100%" }}
         min={type === "number" ? "0" : undefined}
         step={field === "price" ? "0.01" : "1"}
+        maxLength={4}
       />
       {isSaving ? (
         <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
