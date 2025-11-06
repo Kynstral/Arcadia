@@ -4,3 +4,6 @@ export { BookEmptyState } from "./BookEmptyState";
 export { BookFilters } from "./BookFilters";
 export { BookCard } from "./BookCard";
 export { AddBookModal } from "./AddBookModal";
+export { Import } from "./Import";
+export { Export } from "./Export";
+export { DuplicateDetectionDialog } from "./DuplicateDetectionDialog";

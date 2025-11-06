@@ -34,20 +34,25 @@ export function BookCard({
   return (
     <Card
       className={`h-[300px] relative group transition-all ${isSelected ? "ring-2 ring-primary ring-offset-2" : ""
-        }`}
+        } ${selectionMode ? "cursor-pointer" : ""}`}
+      onClick={() => {
+        if (selectionMode) {
+          onToggleSelection(book.id);
+        }
+      }}
     >
       {/* Favorite button - top right */}
       {!selectionMode && (
         <div className="absolute top-2 right-2 z-20">
-          <FavoriteButton bookId={book.id} className="bg-background/80 backdrop-blur-sm hover:bg-background" />
+          <FavoriteButton
+            bookId={book.id}
+            className="bg-background/80 backdrop-blur-sm hover:bg-background"
+          />
         </div>
       )}
 
       {selectionMode && (
-        <div
-          className="absolute top-2 left-2 z-20 cursor-pointer transition-transform hover:scale-110"
-          onClick={() => onToggleSelection(book.id)}
-        >
+        <div className="absolute top-2 left-2 z-20 pointer-events-none transition-transform group-hover:scale-110">
           {isSelected ? (
             <div className="w-6 h-6 bg-primary rounded-md flex items-center justify-center border-2 border-white shadow-lg animate-in zoom-in-50 duration-200">
               <svg
@@ -65,12 +70,20 @@ export function BookCard({
               </svg>
             </div>
           ) : (
-            <div className="w-6 h-6 bg-background/80 backdrop-blur-sm rounded-md flex items-center justify-center border-2 border-muted shadow-md hover:border-primary hover:bg-background"></div>
+            <div className="w-6 h-6 bg-background/80 backdrop-blur-sm rounded-md flex items-center justify-center border-2 border-muted shadow-md group-hover:border-primary group-hover:bg-background"></div>
           )}
         </div>
       )}
 
-      <div className="h-full w-full relative overflow-hidden rounded-lg">
+      <div
+        className="h-full w-full relative overflow-hidden rounded-lg"
+        onClick={(e) => {
+          // Prevent card click when clicking action buttons in non-selection mode
+          if (!selectionMode) {
+            e.stopPropagation();
+          }
+        }}
+      >
         {book.coverImage ? (
           <img
             src={book.coverImage}
@@ -127,60 +140,71 @@ export function BookCard({
           </div>
 
           {/* Action buttons - hidden by default, shown on hover with smooth animation */}
-          <div className="flex items-center gap-1 mt-0 max-h-0 opacity-0 overflow-hidden transition-all duration-300 ease-in-out group-hover:mt-2 group-hover:max-h-12 group-hover:opacity-100">
-            <Tooltip delayDuration={300}>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => navigate(`/book/${book.id}`)}
-                  className="h-7 rounded-md px-2 py-0 text-xs flex-1"
-                  aria-label={`View details for ${book.title}`}
-                >
-                  <Eye className="h-3.5 w-3.5 mr-1" />
-                  <span>View</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="top" align="center" sideOffset={5}>
-                <p>View Book Details</p>
-              </TooltipContent>
-            </Tooltip>
+          {!selectionMode && (
+            <div className="flex items-center gap-1 mt-0 max-h-0 opacity-0 overflow-hidden transition-all duration-300 ease-in-out group-hover:mt-2 group-hover:max-h-12 group-hover:opacity-100">
+              <Tooltip delayDuration={300}>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/book/${book.id}`);
+                    }}
+                    className="h-7 rounded-md px-2 py-0 text-xs flex-1"
+                    aria-label={`View details for ${book.title}`}
+                  >
+                    <Eye className="h-3.5 w-3.5 mr-1" />
+                    <span>View</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top" align="center" sideOffset={5}>
+                  <p>View Book Details</p>
+                </TooltipContent>
+              </Tooltip>
 
-            <Tooltip delayDuration={300}>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => onEdit(book)}
-                  className="h-7 rounded-md px-2 py-0 text-xs flex-1"
-                  aria-label={`Edit ${book.title}`}
-                >
-                  <FileEdit className="h-3.5 w-3.5 mr-1" />
-                  <span>Edit</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="top" align="center" sideOffset={5}>
-                <p>Edit book</p>
-              </TooltipContent>
-            </Tooltip>
+              <Tooltip delayDuration={300}>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEdit(book);
+                    }}
+                    className="h-7 rounded-md px-2 py-0 text-xs flex-1"
+                    aria-label={`Edit ${book.title}`}
+                  >
+                    <FileEdit className="h-3.5 w-3.5 mr-1" />
+                    <span>Edit</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top" align="center" sideOffset={5}>
+                  <p>Edit book</p>
+                </TooltipContent>
+              </Tooltip>
 
-            <Tooltip delayDuration={300}>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => onDelete(book)}
-                  className="h-7 w-7 rounded-md p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-                  aria-label={`Delete ${book.title}`}
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="top" align="center" sideOffset={5}>
-                <p>Delete</p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
+              <Tooltip delayDuration={300}>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(book);
+                    }}
+                    className="h-7 w-7 rounded-md p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    aria-label={`Delete ${book.title}`}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top" align="center" sideOffset={5}>
+                  <p>Delete</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          )}
         </div>
       </div>
     </Card>

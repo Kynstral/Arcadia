@@ -16,7 +16,7 @@ export const FAQSection = () => {
     {
       question: "Can I import my existing library data?",
       answer:
-        "Yes! Arcadia supports bulk import via CSV files. You can easily migrate your existing book catalog, member information, and borrowing history. Our support team is available to help with the migration process.",
+        "Yes! Arcadia supports bulk import via CSV, JSON or Excel files. You can easily migrate your existing book catalog, member information, and borrowing history. Our support team is available to help with the migration process.",
     },
     {
       question: "Is my library data secure?",

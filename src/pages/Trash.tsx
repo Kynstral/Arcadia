@@ -10,18 +10,17 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Trash2, RotateCcw, AlertTriangle, Loader2 } from "lucide-react";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Trash2, RotateCcw, AlertTriangle } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { Loader } from "@/components/ui/loader";
 
 export default function TrashPage() {
   const { user } = useAuth();
@@ -29,6 +28,8 @@ export default function TrashPage() {
   const { toast } = useToast();
   const [bookToDelete, setBookToDelete] = useState<string | null>(null);
   const [showEmptyTrashDialog, setShowEmptyTrashDialog] = useState(false);
+  const [showRestoreAllDialog, setShowRestoreAllDialog] = useState(false);
+  const [restoringBookId, setRestoringBookId] = useState<string | null>(null);
 
   // Fetch deleted books
   const { data: deletedBooks = [], isLoading } = useQuery({
@@ -47,6 +48,7 @@ export default function TrashPage() {
         title: "Success",
         description: "Book restored successfully",
       });
+      setRestoringBookId(null);
     },
     onError: (error: Error) => {
       toast({
@@ -54,6 +56,7 @@ export default function TrashPage() {
         description: `Failed to restore book: ${error.message}`,
         variant: "destructive",
       });
+      setRestoringBookId(null);
     },
   });
 
@@ -97,7 +100,54 @@ export default function TrashPage() {
     },
   });
 
+  // Restore all mutation
+  const restoreAllMutation = useMutation({
+    mutationFn: async () => {
+      let successCount = 0;
+      let failCount = 0;
+
+      for (const book of deletedBooks) {
+        try {
+          await restoreBook(book.id, user?.id);
+          successCount++;
+        } catch (error) {
+          failCount++;
+          console.error(`Failed to restore book ${book.id}:`, error);
+        }
+      }
+
+      return { successCount, failCount };
+    },
+    onSuccess: ({ successCount, failCount }) => {
+      queryClient.invalidateQueries({ queryKey: ["deletedBooks"] });
+      queryClient.invalidateQueries({ queryKey: ["books"] });
+
+      if (failCount > 0) {
+        toast({
+          title: "Partial Success",
+          description: `${successCount} book(s) restored, ${failCount} failed`,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: `${successCount} book(s) restored successfully`,
+        });
+      }
+      setShowRestoreAllDialog(false);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: `Failed to restore books: ${error.message}`,
+        variant: "destructive",
+      });
+      setShowRestoreAllDialog(false);
+    },
+  });
+
   const handleRestore = (bookId: string) => {
+    setRestoringBookId(bookId);
     restoreMutation.mutate(bookId);
   };
 
@@ -119,10 +169,18 @@ export default function TrashPage() {
     emptyTrashMutation.mutate();
   };
 
+  const handleRestoreAll = () => {
+    setShowRestoreAllDialog(true);
+  };
+
+  const confirmRestoreAll = () => {
+    restoreAllMutation.mutate();
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Loader size={48} variant="accent" />
       </div>
     );
   }
@@ -140,30 +198,49 @@ export default function TrashPage() {
           </p>
         </div>
         {deletedBooks.length > 0 && (
-          <Button
-            variant="destructive"
-            onClick={handleEmptyTrash}
-            disabled={emptyTrashMutation.isPending}
-          >
-            {emptyTrashMutation.isPending ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Emptying...
-              </>
-            ) : (
-              <>
-                <Trash2 className="h-4 w-4 mr-2" />
-                Empty Trash
-              </>
-            )}
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="secondary"
+              onClick={handleRestoreAll}
+              disabled={restoreAllMutation.isPending}
+            >
+              {restoreAllMutation.isPending ? (
+                <>
+                  <Loader size={16} className="mr-2" />
+                  Restoring...
+                </>
+              ) : (
+                <>
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  Restore All
+                </>
+              )}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleEmptyTrash}
+              disabled={emptyTrashMutation.isPending}
+            >
+              {emptyTrashMutation.isPending ? (
+                <>
+                  <Loader size={16} variant="white" className="mr-2" />
+                  Emptying...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Empty Trash
+                </>
+              )}
+            </Button>
+          </div>
         )}
       </div>
 
       {/* Warning Banner */}
       {deletedBooks.length > 0 && (
         <div className="bg-warning/10 border border-warning/20 rounded-lg p-4 mb-6 flex items-start gap-3">
-          <AlertTriangle className="h-5 w-5 text-warning flex-shrink-0 mt-0.5" />
+          <AlertTriangle className="h-5 w-5 text-warning shrink-0 mt-0.5" />
           <div>
             <p className="font-semibold text-primary-text">
               Items are automatically deleted after 30 days
@@ -248,10 +325,19 @@ export default function TrashPage() {
                         size="sm"
                         className="flex-1 h-7 text-xs"
                         onClick={() => handleRestore(book.id)}
-                        disabled={restoreMutation.isPending}
+                        disabled={restoreMutation.isPending && restoringBookId === book.id}
                       >
-                        <RotateCcw className="h-3 w-3 mr-1" />
-                        Restore
+                        {restoreMutation.isPending && restoringBookId === book.id ? (
+                          <>
+                            <Loader size={12} className="mr-1" />
+                            Restoring...
+                          </>
+                        ) : (
+                          <>
+                            <RotateCcw className="h-3 w-3 mr-1" />
+                            Restore
+                          </>
+                        )}
                       </Button>
                       <Button
                         variant="destructive"
@@ -272,54 +358,120 @@ export default function TrashPage() {
       )}
 
       {/* Permanent Delete Confirmation Dialog */}
-      <AlertDialog
+      <Dialog
         open={!!bookToDelete}
         onOpenChange={(open) => !open && setBookToDelete(null)}
       >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Permanently Delete Book?</AlertDialogTitle>
-            <AlertDialogDescription>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Permanently Delete Book?</DialogTitle>
+            <DialogDescription>
               This action cannot be undone. This will permanently delete the
               book from the database.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmPermanentDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setBookToDelete(null)}
+              disabled={deleteMutation.isPending}
             >
-              Delete Forever
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmPermanentDelete}
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? (
+                <>
+                  <Loader size={16} variant="white" className="mr-2" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete Forever"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Empty Trash Confirmation Dialog */}
-      <AlertDialog
+      <Dialog
         open={showEmptyTrashDialog}
         onOpenChange={setShowEmptyTrashDialog}
       >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Empty Trash?</AlertDialogTitle>
-            <AlertDialogDescription>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Empty Trash?</DialogTitle>
+            <DialogDescription>
               This will permanently delete all {deletedBooks.length} book(s) in
               the trash. This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmEmptyTrash}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowEmptyTrashDialog(false)}
+              disabled={emptyTrashMutation.isPending}
             >
-              Empty Trash
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmEmptyTrash}
+              disabled={emptyTrashMutation.isPending}
+            >
+              {emptyTrashMutation.isPending ? (
+                <>
+                  <Loader size={16} variant="white" className="mr-2" />
+                  Emptying...
+                </>
+              ) : (
+                "Empty Trash"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Restore All Confirmation Dialog */}
+      <Dialog
+        open={showRestoreAllDialog}
+        onOpenChange={setShowRestoreAllDialog}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Restore All Books?</DialogTitle>
+            <DialogDescription>
+              This will restore all {deletedBooks.length} book(s) from the trash
+              back to your library.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowRestoreAllDialog(false)}
+              disabled={restoreAllMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={confirmRestoreAll}
+              disabled={restoreAllMutation.isPending}
+            >
+              {restoreAllMutation.isPending ? (
+                <>
+                  <Loader size={16} variant="white" className="mr-2" />
+                  Restoring...
+                </>
+              ) : (
+                "Restore All"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

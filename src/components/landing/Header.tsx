@@ -9,7 +9,7 @@ export const Header = () => {
   const { theme, setTheme } = useTheme();
 
   return (
-    <header className="border-b bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60 sticky top-0 z-50">
+    <header className="border-b border-sidebar-border bg-sidebar backdrop-blur-sm sticky top-0 z-50">
       <div className="container flex h-16 items-center justify-between px-4 md:px-6">
         <Link
           to="/"

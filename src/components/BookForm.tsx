@@ -15,6 +15,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { checkDuplicates } from "@/lib/duplicate-detection";
+import { DuplicateWarningDialog } from "@/components/books/DuplicateWarningDialog";
 
 interface BookFormProps {
   book?: Book | null;
@@ -123,6 +125,13 @@ const BookForm = ({
 
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
+  const [duplicateCheckResult, setDuplicateCheckResult] = useState<{
+    exactISBN: Book[];
+    similarTitle: Book[];
+    titleAndAuthor: Book[];
+  }>({ exactISBN: [], similarTitle: [], titleAndAuthor: [] });
+  const [bypassDuplicateCheck, setBypassDuplicateCheck] = useState(false);
 
   const isEditing = !!book;
 
@@ -188,6 +197,25 @@ const BookForm = ({
         });
         setLoading(false);
         return;
+      }
+
+      // Check for duplicates (only for new books or if not bypassing)
+      if (!isEditing && !bypassDuplicateCheck) {
+        const duplicates = await checkDuplicates(
+          {
+            isbn: formData.isbn,
+            title: formData.title,
+            author: formData.author,
+          },
+          book?.id,
+        );
+
+        if (duplicates.hasDuplicates) {
+          setDuplicateCheckResult(duplicates);
+          setShowDuplicateDialog(true);
+          setLoading(false);
+          return;
+        }
       }
 
       const bookData = {
@@ -488,8 +516,25 @@ const BookForm = ({
             </div>
           </div>
         </form>
-      </div >
-    </div >
+      </div>
+
+      {/* Duplicate Warning Dialog */}
+      <DuplicateWarningDialog
+        open={showDuplicateDialog}
+        onOpenChange={setShowDuplicateDialog}
+        exactISBN={duplicateCheckResult.exactISBN}
+        similarTitle={duplicateCheckResult.similarTitle}
+        titleAndAuthor={duplicateCheckResult.titleAndAuthor}
+        onProceed={() => {
+          setBypassDuplicateCheck(true);
+          // Re-submit the form
+          const form = document.querySelector("form");
+          if (form) {
+            form.requestSubmit();
+          }
+        }}
+      />
+    </div>
   );
 };
 

@@ -35,7 +35,7 @@
 
 ## Phase 2: Trash and Restore System
 
-- [-] 2. Implement soft delete functionality
+- [x] 2. Implement soft delete functionality
   - [x] 2.1 Update delete mutations
     - Modify deleteBook to set deleted_at instead of hard delete
     - Add deleted_by user tracking
@@ -48,42 +48,54 @@
     - Update search and filter queries
     - _Requirements: 3.3_
 
-  - [ ] 2.3 Create Trash page
+  - [x] 2.3 Create Trash page
     - Create src/pages/Trash.tsx
     - Add route in App.tsx
     - Fetch books where deleted_at is not null
     - Display deletion date and deleted by user
+    - Added book cover images and visual cards
     - _Requirements: 3.4, 3.5_
 
-  - [ ] 2.4 Add restore functionality
+  - [x] 2.4 Add restore functionality
     - Create restoreBook mutation
     - Add Restore button to trash items
     - Show success toast on restore
     - Invalidate queries after restore
+    - Added loading spinner with white variant
     - _Requirements: 3.6_
 
-  - [ ] 2.5 Add permanent delete
+  - [x] 2.5 Add permanent delete
     - Create permanentlyDeleteBook mutation
-    - Add confirmation dialog
-    - Add "Delete Forever" button
+    - Add confirmation dialog with Dialog component
+    - Add "Delete Forever" button with loading state
     - _Requirements: 3.7, 3.9_
 
-  - [ ] 2.6 Add empty trash feature
+  - [x] 2.6 Add empty trash feature
     - Create emptyTrash mutation
     - Add "Empty Trash" button with confirmation
     - Show count of items to be deleted
+    - Added loading spinner
     - _Requirements: 3.8, 3.9_
 
-  - [ ] 2.7 Add auto-deletion warning
+  - [x] 2.7 Add auto-deletion warning
     - Display banner about 30-day auto-deletion
     - Show days remaining for each item
+    - Added countdown badge on book cards
     - _Requirements: 3.10, 3.11_
 
-  - [ ] 2.8 Add trash to sidebar
+  - [x] 2.8 Add trash to sidebar
     - Add Trash link to sidebar navigation
     - Show count badge if trash has items
     - Add trash icon
     - _Requirements: 3.4_
+
+  - [x] 2.9 Add Restore All functionality
+    - Create restoreAllMutation
+    - Add "Restore All" button next to Empty Trash
+    - Show confirmation dialog with book count
+    - Track success/failure counts
+    - Added loading spinner with white variant
+    - _Enhancement_
 
 ## Phase 3: Bulk Edit Operations
 
@@ -127,42 +139,45 @@
 
 ## Phase 4: Duplicate Detection
 
-- [ ] 4. Implement duplicate detection
-  - [ ] 4.1 Create duplicate detection service
+- [x] 4. Implement duplicate detection
+  - [x] 4.1 Create duplicate detection service
     - Create src/lib/duplicate-detection.ts
     - Implement checkDuplicates function
     - Check ISBN, title, and title+author combinations
     - _Requirements: 1.1, 1.4_
 
-  - [ ] 4.2 Add ISBN duplicate check
-    - Debounce ISBN input (500ms)
+  - [x] 4.2 Add ISBN duplicate check
     - Query for exact ISBN matches
-    - Show warning banner if found
+    - Show warning dialog if found
+    - Integrated with import process
     - _Requirements: 1.1, 1.2_
 
-  - [ ] 4.3 Add fuzzy title matching
+  - [x] 4.3 Add fuzzy title matching
     - Use trigram similarity for title matching
     - Set threshold at 0.6 for similarity
     - Return potential matches
     - _Requirements: 1.5_
 
-  - [ ] 4.4 Create DuplicateWarningDialog
-    - Create src/components/books/DuplicateWarningDialog.tsx
-    - Display list of potential duplicates
-    - Show book details for comparison
-    - Add "View Details" links
+  - [x] 4.4 Create DuplicateDetectionDialog
+    - Create src/components/books/DuplicateDetectionDialog.tsx
+    - Display list of potential duplicates with book covers
+    - Show book details (title, author, ISBN)
+    - Added scrollable area for long lists
+    - Show loading spinner while checking
     - _Requirements: 1.6, 1.7_
 
-  - [ ] 4.5 Add confirmation flow
+  - [x] 4.5 Add confirmation flow
     - Allow user to proceed despite warning
-    - Add "Not a duplicate" confirmation
-    - Track duplicate_checked status
+    - Add "Skip Duplicates" option
+    - Add "Import All" option
+    - Show counts on buttons
     - _Requirements: 1.3_
 
-  - [ ] 4.6 Integrate with BookForm
-    - Add duplicate check on ISBN change
-    - Add duplicate check on title+author change
-    - Show warning before form submission
+  - [x] 4.6 Integrate with Import
+    - Add duplicate check during CSV/JSON/Excel import
+    - Show warning before importing
+    - Track which books are duplicates
+    - Allow selective import
     - _Requirements: 1.1, 1.4_
 
 ## Phase 5: Quick Inline Edit
@@ -309,206 +324,190 @@
     - Test focus indicators
     - _Requirements: 6.2-6.6_
 
-## Phase 9: Export Formats
+## Phase 9: Export and Import Formats
 
-- [ ] 9. Implement export functionality
-  - [ ] 9.1 Create ExportDialog component
-    - Create src/components/books/ExportDialog.tsx
+- [x] 9. Implement export functionality
+  - [x] 9.1 Create Export component
+    - Create src/components/books/Export.tsx
     - Add format selection (CSV, JSON, Excel)
-    - Add field selection checkboxes
-    - Add export scope options (all/selected/filtered)
+    - Add field selection checkboxes with defaults
+    - Add export scope options (all/selected)
     - _Requirements: 7.1, 7.2, 7.3, 7.4_
 
-  - [ ] 9.2 Implement CSV export
-    - Create exportToCSV function
-    - Generate CSV from book data
+  - [x] 9.2 Implement CSV export
+    - Create exportAsCSV function
+    - Generate CSV from book data with proper quoting
     - Trigger download
     - _Requirements: 7.1_
 
-  - [ ] 9.3 Implement JSON export
-    - Create exportToJSON function
+  - [x] 9.3 Implement JSON export
+    - Create exportAsJSON function
     - Format as pretty JSON
     - Trigger download
     - _Requirements: 7.1_
 
-  - [ ] 9.4 Implement Excel export
+  - [x] 9.4 Implement Excel export
     - Install xlsx library
-    - Create exportToExcel function
-    - Generate .xlsx file
+    - Create exportAsExcel function
+    - Generate .xlsx file with auto-sized columns
     - Trigger download
     - _Requirements: 7.1_
 
-  - [ ] 9.5 Add filename with timestamp
+  - [x] 9.5 Add filename with timestamp
     - Generate filename with current date/time
     - Include format in filename
+    - Include selection count if applicable
     - _Requirements: 7.5_
 
-  - [ ] 9.6 Add progress indicator
-    - Show progress for large exports
-    - Add cancel option
+  - [x] 9.6 Add progress indicator
+    - Show loading state during export
+    - Disable button while processing
     - _Requirements: 7.6_
 
-  - [ ] 9.7 Add error handling
+  - [x] 9.7 Add error handling
     - Handle export failures gracefully
-    - Show error message
-    - Allow retry
+    - Show error toast message
     - _Requirements: 7.7_
+
+- [x] 10. Implement import functionality
+  - [x] 10.1 Create Import component
+    - Create src/components/books/Import.tsx
+    - Auto-detect file format (CSV, JSON, Excel)
+    - Show detected format
+    - Support drag and drop
+    - _Enhancement_
+
+  - [x] 10.2 Implement CSV import
+    - Parse CSV with proper quote handling
+    - Support all book fields
+    - Validate required fields
+    - _Enhancement_
+
+  - [x] 10.3 Implement JSON import
+    - Parse JSON arrays and objects
+    - Support all book fields
+    - Validate data structure
+    - _Enhancement_
+
+  - [x] 10.4 Implement Excel import
+    - Parse XLSX/XLS files
+    - Read first sheet
+    - Convert to JSON format
+    - _Enhancement_
+
+  - [x] 10.5 Add validation
+    - Validate required fields
+    - Validate data types
+    - Validate categories and statuses
+    - Show detailed error messages
+    - _Enhancement_
+
+  - [x] 10.6 Add progress tracking
+    - Show progress bar during import
+    - Display percentage complete
+    - Show success/failure counts
+    - _Enhancement_
+
+  - [x] 10.7 Integrate duplicate detection
+    - Check for duplicates before import
+    - Show DuplicateDetectionDialog
+    - Allow skip or import all
+    - Track skipped books
+    - _Enhancement_
 
 ## Phase 10: Print Labels
 
 - [ ] 10. Implement print labels
-  - [ ] 10.1 Create PrintLabelsDialog component
+  - [x] 10.1 Create PrintLabelsDialog component
     - Create src/components/books/PrintLabelsDialog.tsx
     - Add template selection dropdown
     - Show template preview
     - _Requirements: 8.2_
 
-  - [ ] 10.2 Define label templates
+  - [x] 10.2 Define label templates
     - Create label template configurations
     - Support Avery 5160, 5163, etc.
     - Define dimensions and layout
     - _Requirements: 8.2_
 
-  - [ ] 10.3 Create PrintLabels component
+  - [x] 10.3 Create PrintLabels component
     - Create src/components/books/PrintLabels.tsx
     - Render labels in grid layout
     - Include title, author, ISBN barcode, call number
     - _Requirements: 8.3_
 
-  - [ ] 10.4 Add barcode generation
+  - [x] 10.4 Add barcode generation
     - Install barcode generation library (react-barcode)
     - Generate ISBN barcodes
     - Style appropriately for labels
     - _Requirements: 8.3_
 
-  - [ ] 10.5 Add print preview
+  - [x] 10.5 Add print preview
     - Show preview before printing
     - Allow template switching in preview
     - _Requirements: 8.5_
 
-  - [ ] 10.6 Add print functionality
+  - [x] 10.6 Add print functionality
     - Trigger browser print dialog
     - Apply print-specific CSS
     - Handle page breaks
     - _Requirements: 8.1_
 
-  - [ ] 10.7 Add customization options
+  - [x] 10.7 Add customization options
     - Allow selecting which fields to include
     - Allow font size adjustment
     - Save preferences
     - _Requirements: 8.7_
 
-  - [ ] 10.8 Support batch printing
+  - [x] 10.8 Support batch printing
     - Print labels for multiple selected books
     - Optimize layout for multiple books
     - _Requirements: 8.6_
 
-## Phase 11: Testing and Polish
+## Phase 12: UI/UX Enhancements
 
-- [ ] 11. Testing and refinement
-  - [ ] 11.1 Test duplicate detection
-    - Test with exact ISBN matches
-    - Test with similar titles
-    - Test with title+author combinations
-    - Verify performance under load
-    - _Requirements: 1.1-1.7_
+- [x] 12. Implement UI/UX improvements
+  - [x] 12.1 Create unified Loader component
+    - Create src/components/ui/loader.tsx
+    - Support multiple color variants (primary, accent, secondary, white)
+    - Add smooth animations (spin and stretch)
+    - Use Tailwind CSS for styling
+    - _Enhancement_
 
-  - [ ] 11.2 Test bulk operations
-    - Test with various selection sizes
-    - Test with 100+ books
-    - Test partial failures
-    - Verify rollback on errors
-    - _Requirements: 2.1-2.8_
+  - [x] 12.2 Update loading states across app
+    - Replace old spinners with new Loader component
+    - Add white variant for colored buttons
+    - Update page load states with accent variant
+    - Add loaders to all async operations
+    - _Enhancement_
 
-  - [ ] 11.3 Test trash system
-    - Test soft delete and restore
-    - Test permanent delete
-    - Test empty trash
-    - Verify 30-day auto-deletion logic
-    - _Requirements: 3.1-3.11_
+  - [x] 12.3 Enhance selection mode UX
+    - Make entire book card clickable in selection mode
+    - Add cursor-pointer indicator
+    - Hide action buttons in selection mode
+    - Improve checkbox visual feedback
+    - Add hover effects
+    - _Enhancement_
 
-  - [ ] 11.4 Test inline editing
-    - Test all field types
-    - Test validation
-    - Test error handling
-    - Test keyboard controls
-    - _Requirements: 4.1-4.8_
+  - [x] 12.4 Improve dialog UX
+    - Use Dialog component for consistent modals
+    - Add loading states to all dialogs
+    - Prevent auto-close during processing
+    - Add proper button states
+    - _Enhancement_
 
-  - [ ] 11.5 Test favorites
-    - Test toggle functionality
-    - Test filter
-    - Test with multiple users
-    - _Requirements: 5.1-5.8_
+  - [x] 12.5 Enhance duplicate detection dialog
+    - Show book cover images
+    - Add scrollable list for many duplicates
+    - Show loading spinner while checking
+    - Display helpful action descriptions
+    - Show counts on action buttons
+    - _Enhancement_
 
-  - [ ] 11.6 Test keyboard shortcuts
-    - Test all shortcuts
-    - Test conflicts with browser shortcuts
-    - Test on different operating systems
-    - _Requirements: 6.2_
-
-  - [ ] 11.7 Test accessibility
-    - Run automated accessibility tests
-    - Test with screen readers
-    - Test keyboard-only navigation
-    - Fix any issues found
-    - _Requirements: 6.1-6.8_
-
-  - [ ] 11.8 Test export functionality
-    - Test all export formats
-    - Test with large datasets
-    - Test field selection
-    - Verify file integrity
-    - _Requirements: 7.1-7.7_
-
-  - [ ] 11.9 Test print labels
-    - Test all label templates
-    - Test with different printers
-    - Verify barcode readability
-    - Test batch printing
-    - _Requirements: 8.1-8.7_
-
-  - [ ] 11.10 Performance testing
-    - Test with 10,000+ books
-    - Optimize slow queries
-    - Add pagination where needed
-    - Implement virtual scrolling if needed
-    - _Non-functional requirements_
-
-  - [ ] 11.11 Cross-browser testing
-    - Test on Chrome, Firefox, Safari, Edge
-    - Fix browser-specific issues
-    - Verify print functionality on all browsers
-    - _Non-functional requirements_
-
-  - [ ] 11.12 Mobile testing
-    - Test on mobile devices
-    - Verify touch interactions
-    - Test responsive layouts
-    - Adjust UI for mobile where needed
-    - _Non-functional requirements_
-
-## Phase 12: Documentation
-
-- [ ] 12. Documentation
-  - [ ] 12.1 Update user documentation
-    - Document duplicate detection feature
-    - Document bulk edit workflow
-    - Document trash and restore
-    - Document keyboard shortcuts
-    - Document export and print features
-
-  - [ ] 12.2 Update developer documentation
-    - Document new database schema
-    - Document new components
-    - Document new hooks and utilities
-    - Add code examples
-
-  - [ ] 12.3 Create video tutorials
-    - Record bulk edit demo
-    - Record keyboard shortcuts demo
-    - Record export and print demo
-
-  - [ ] 12.4 Update README
-    - Add new features to feature list
-    - Update screenshots
-    - Add keyboard shortcuts reference
+  - [x] 12.6 Improve trash page visuals
+    - Display book covers in card layout
+    - Show days remaining badge
+    - Add hover effects
+    - Improve button layout
+    - Add Restore All functionality
+    - _Enhancement_

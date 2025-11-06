@@ -15,6 +15,7 @@ import {
   Eye,
   FileEdit,
   PlusCircle,
+  Printer,
   Search,
   Trash2,
   X,
@@ -39,8 +40,9 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
-import BulkBookImport from "@/components/BulkBookImport";
-import BulkBookExport from "@/components/BulkBookExport";
+import { Import } from "@/components/books/Import";
+import { Export } from "@/components/books/Export";
+import { PrintLabels } from "@/components/books/PrintLabels";
 import { deleteBook, bulkUpdateBooks } from "@/lib/data-service";
 import {
   BookPagination,
@@ -51,6 +53,8 @@ import {
 import { BulkEditModal, BulkEditData } from "@/components/books/BulkEditModal";
 import { BookCard } from "@/components/books/BookCard";
 import { AddBookModal } from "@/components/books/AddBookModal";
+import { InlineEditCell } from "@/components/books/InlineEditCell";
+import { Loader } from "@/components/ui/loader";
 
 const bookCategories: BookCategory[] = [
   "Action & Adventure",
@@ -168,6 +172,7 @@ export default function BooksPage() {
         .from("books")
         .select("*")
         .eq("user_id", userId)
+        .is("deleted_at", null)
         .order(sorting.column, { ascending: sorting.direction === "asc" });
 
       if (error) {
@@ -284,6 +289,45 @@ export default function BooksPage() {
       });
     },
   });
+
+  const handleInlineEdit = async (
+    bookId: string,
+    field: string,
+    value: any,
+  ) => {
+    try {
+      const { error } = await supabase
+        .from("books")
+        .update({ [field]: value, updated_at: new Date().toISOString() })
+        .eq("id", bookId)
+        .eq("user_id", userId || "");
+
+      if (error) throw error;
+
+      // Update local cache
+      queryClient.setQueryData(
+        ["books", userId, sorting],
+        (old: Book[] | undefined) =>
+          old
+            ? old.map((book) =>
+              book.id === bookId ? { ...book, [field]: value } : book,
+            )
+            : [],
+      );
+
+      toast({
+        title: "Updated",
+        description: "Book updated successfully",
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Failed to update book",
+      });
+      throw error;
+    }
+  };
 
   const handleDelete = (book: Book) => {
     setBookToDelete(book);
@@ -433,7 +477,7 @@ export default function BooksPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        <Loader size={48} variant="accent" />
       </div>
     );
   }
@@ -712,9 +756,25 @@ export default function BooksPage() {
                       {book.category}
                     </TableCell>
                     {userRole !== "library" && (
-                      <TableCell>${book.price.toFixed(2)}</TableCell>
+                      <TableCell>
+                        <InlineEditCell
+                          value={book.price}
+                          bookId={book.id}
+                          field="price"
+                          type="number"
+                          onSave={handleInlineEdit}
+                        />
+                      </TableCell>
                     )}
-                    <TableCell>{book.stock}</TableCell>
+                    <TableCell>
+                      <InlineEditCell
+                        value={book.stock}
+                        bookId={book.id}
+                        field="stock"
+                        type="number"
+                        onSave={handleInlineEdit}
+                      />
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-2">
                         <Button
@@ -810,7 +870,14 @@ export default function BooksPage() {
               onClick={confirmDelete}
               disabled={deleteMutation.isPending}
             >
-              {deleteMutation.isPending ? "Deleting..." : "Delete"}
+              {deleteMutation.isPending ? (
+                <>
+                  <Loader size={16} variant="white" className="mr-2" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -825,19 +892,27 @@ export default function BooksPage() {
             <DialogTitle>Import/Export Books</DialogTitle>
           </DialogHeader>
           <Tabs defaultValue="import" className="mt-2">
-            <TabsList className="mb-4">
+            <TabsList className="mb-4 grid w-full grid-cols-3">
               <TabsTrigger value="import">
-                <CircleArrowDown className="mr-2 h-4 w-4" /> Import Books
+                <CircleArrowDown className="mr-2 h-4 w-4" /> Import
               </TabsTrigger>
               <TabsTrigger value="export">
-                <CircleArrowUp className="mr-2 h-4 w-4" /> Export Books
+                <CircleArrowUp className="mr-2 h-4 w-4" /> Export
+              </TabsTrigger>
+              <TabsTrigger value="print">
+                <Printer className="mr-2 h-4 w-4" /> Print Labels
               </TabsTrigger>
             </TabsList>
             <TabsContent value="import">
-              <BulkBookImport />
+              <Import />
             </TabsContent>
             <TabsContent value="export">
-              <BulkBookExport
+              <Export
+                selectedBooks={selectionMode ? selectedBooks : undefined}
+              />
+            </TabsContent>
+            <TabsContent value="print">
+              <PrintLabels
                 selectedBooks={selectionMode ? selectedBooks : undefined}
               />
             </TabsContent>

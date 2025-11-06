@@ -15,6 +15,8 @@ import { ScrollbarStyles } from "@/components/ScrollbarStyles.tsx";
 import { useState, lazy, Suspense } from "react";
 import Sidebar from "./components/Sidebar";
 import { CartProvider } from "@/hooks/use-cart.tsx";
+import { KeyboardShortcutsProvider } from "@/components/KeyboardShortcutsProvider";
+import { Loader } from "@/components/ui/loader";
 
 // Lazy load all page components
 const LandingPage = lazy(() => import("./pages/LandingPage"));
@@ -39,9 +41,10 @@ const queryClient = new QueryClient();
 // Loading fallback component
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-screen">
-    <div className="animate-pulse text-center">
-      <h2 className="text-2xl font-semibold mb-2">Loading...</h2>
-      <p className="text-muted-foreground">Please wait a moment</p>
+    <div className="text-center">
+      <Loader size={48} variant="accent" className="mx-auto mb-4" />
+      <h2 className="text-xl font-semibold mb-2">Loading...</h2>
+      <p className="text-sm text-muted-foreground">Please wait a moment</p>
     </div>
   </div>
 );
@@ -66,9 +69,10 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-pulse text-center">
-          <h2 className="text-2xl font-semibold mb-2">Loading...</h2>
-          <p className="text-muted-foreground">
+        <div className="text-center">
+          <Loader size={48} variant="accent" className="mx-auto mb-4" />
+          <h2 className="text-xl font-semibold mb-2">Loading...</h2>
+          <p className="text-sm text-muted-foreground">
             Please wait while we prepare your dashboard
           </p>
         </div>
@@ -92,113 +96,115 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <CartProvider>
-              <Suspense fallback={<PageLoader />}>
-                <Routes>
-                  <Route path="/" element={<LandingPage />} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/auth/callback" element={<AuthCallback />} />
-                  <Route
-                    path="/onboarding"
-                    element={
-                      <ProtectedRoute>
-                        <Onboarding />
-                      </ProtectedRoute>
-                    }
-                  />
+            <KeyboardShortcutsProvider>
+              <CartProvider>
+                <Suspense fallback={<PageLoader />}>
+                  <Routes>
+                    <Route path="/" element={<LandingPage />} />
+                    <Route path="/auth" element={<Auth />} />
+                    <Route path="/auth/callback" element={<AuthCallback />} />
+                    <Route
+                      path="/onboarding"
+                      element={
+                        <ProtectedRoute>
+                          <Onboarding />
+                        </ProtectedRoute>
+                      }
+                    />
 
-                  <Route
-                    path="/dashboard"
-                    element={
-                      <ProtectedRoute>
-                        <Index />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/catalog"
-                    element={
-                      <ProtectedRoute>
-                        <Catalog />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/books"
-                    element={
-                      <ProtectedRoute>
-                        <Books />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/book/:id"
-                    element={
-                      <ProtectedRoute>
-                        <BookDetail />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/checkout"
-                    element={
-                      <ProtectedRoute>
-                        <Checkout />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/members"
-                    element={
-                      <ProtectedRoute>
-                        <Members />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/members/edit/:id"
-                    element={
-                      <ProtectedRoute>
-                        <EditMember />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/settings"
-                    element={
-                      <ProtectedRoute>
-                        <Settings />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/book-circulation"
-                    element={
-                      <ProtectedRoute>
-                        <BookCirculation />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/transactions"
-                    element={
-                      <ProtectedRoute>
-                        <Transactions />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/trash"
-                    element={
-                      <ProtectedRoute>
-                        <Trash />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </Suspense>
-            </CartProvider>
+                    <Route
+                      path="/dashboard"
+                      element={
+                        <ProtectedRoute>
+                          <Index />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/catalog"
+                      element={
+                        <ProtectedRoute>
+                          <Catalog />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/books"
+                      element={
+                        <ProtectedRoute>
+                          <Books />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/book/:id"
+                      element={
+                        <ProtectedRoute>
+                          <BookDetail />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/checkout"
+                      element={
+                        <ProtectedRoute>
+                          <Checkout />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/members"
+                      element={
+                        <ProtectedRoute>
+                          <Members />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/members/edit/:id"
+                      element={
+                        <ProtectedRoute>
+                          <EditMember />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/settings"
+                      element={
+                        <ProtectedRoute>
+                          <Settings />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/book-circulation"
+                      element={
+                        <ProtectedRoute>
+                          <BookCirculation />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/transactions"
+                      element={
+                        <ProtectedRoute>
+                          <Transactions />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/trash"
+                      element={
+                        <ProtectedRoute>
+                          <Trash />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </Suspense>
+              </CartProvider>
+            </KeyboardShortcutsProvider>
           </BrowserRouter>
         </AuthStatusProvider>
       </TooltipProvider>

@@ -7,6 +7,7 @@ import {
   Boxes,
   ChevronLeft,
   ChevronRight,
+  Keyboard,
   LayoutDashboard,
   Library,
   LogOut,
@@ -217,7 +218,7 @@ const Sidebar = ({
       <aside
         ref={sidebarRef}
         className={cn(
-          "flex h-screen flex-col bg-background border-r transition-all duration-300 ease-in-out z-10",
+          "flex h-screen flex-col bg-sidebar border-r border-sidebar-border transition-all duration-300 ease-in-out z-10",
           collapsed ? "w-16" : "w-64",
         )}
       >
@@ -398,6 +399,29 @@ const Sidebar = ({
                         variant="ghost"
                         size="icon"
                         className="h-10 w-10 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground"
+                        onClick={() => {
+                          // Trigger keyboard shortcuts dialog
+                          window.dispatchEvent(new KeyboardEvent('keydown', {
+                            key: '/',
+                            ctrlKey: true,
+                            metaKey: true
+                          }));
+                        }}
+                      >
+                        <Keyboard className="h-5 w-5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">
+                      <p>Keyboard Shortcuts</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-10 w-10 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground"
                         onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
                       >
                         {theme === "dark" ? (
@@ -469,6 +493,21 @@ const Sidebar = ({
                     <Settings className="h-5 w-5 mr-3" />
                     <span>Settings</span>
                   </Link>
+
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start px-3"
+                    onClick={() => {
+                      window.dispatchEvent(new KeyboardEvent('keydown', {
+                        key: '/',
+                        ctrlKey: true,
+                        metaKey: true
+                      }));
+                    }}
+                  >
+                    <Keyboard className="h-5 w-5 mr-3" />
+                    <span>Keyboard Shortcuts</span>
+                  </Button>
 
                   <Button
                     variant="ghost"
