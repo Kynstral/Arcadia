@@ -7,6 +7,7 @@ import {
   Search,
   SlidersHorizontal,
   X,
+  Heart,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,6 +41,9 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Loader } from "@/components/ui/loader";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 
 const ALL_CATEGORIES = "all_categories";
 const ALL_PUBLISHERS = "all_publishers";
@@ -54,6 +58,7 @@ const fetchBooks = async (userId: string | null): Promise<Book[]> => {
     .from("books")
     .select("*")
     .eq("user_id", userId)
+    .is("deleted_at", null)
     .order("title");
 
   if (error) {
@@ -83,6 +88,8 @@ const fetchBooks = async (userId: string | null): Promise<Book[]> => {
   }));
 };
 
+const ITEMS_PER_PAGE = 24;
+
 const Catalog = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<BookCategory | string>(
@@ -98,16 +105,19 @@ const Catalog = () => {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [isFilterActive, setIsFilterActive] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   const navigate = useNavigate();
   const { userId } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     setIsFilterActive(
       categoryFilter !== ALL_CATEGORIES ||
-        publisherFilter !== ALL_PUBLISHERS ||
-        yearFilter !== ALL_YEARS ||
-        !!priceRange ||
-        !!searchQuery,
+      publisherFilter !== ALL_PUBLISHERS ||
+      yearFilter !== ALL_YEARS ||
+      !!priceRange ||
+      !!searchQuery,
     );
   }, [categoryFilter, publisherFilter, yearFilter, priceRange, searchQuery]);
 
@@ -118,6 +128,23 @@ const Catalog = () => {
   } = useQuery({
     queryKey: ["catalog-books", userId],
     queryFn: () => fetchBooks(userId),
+    enabled: !!userId,
+  });
+
+  // Fetch favorites
+  const { data: favoritesSet = new Set<string>() } = useQuery({
+    queryKey: ["favorites", userId],
+    queryFn: async () => {
+      if (!userId) return [];
+      const { data, error } = await supabase
+        .from("favorites" as any)
+        .select("book_id")
+        .eq("user_id", userId);
+
+      if (error) throw error;
+      return data.map((f: any) => f.book_id);
+    },
+    select: (data) => new Set(data),
     enabled: !!userId,
   });
 
@@ -164,7 +191,55 @@ const Catalog = () => {
     setYearFilter(ALL_YEARS);
     setPriceRange(null);
     setSearchQuery("");
+    setCurrentPage(1);
     setDrawerOpen(false);
+  };
+
+  // Toggle favorite mutation
+  const toggleFavoriteMutation = useMutation({
+    mutationFn: async (bookId: string) => {
+      const isFavorite = favoritesSet.has(bookId);
+
+      if (isFavorite) {
+        const { error } = await supabase
+          .from("favorites" as any)
+          .delete()
+          .eq("user_id", userId)
+          .eq("book_id", bookId);
+
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("favorites" as any)
+          .insert({ user_id: userId, book_id: bookId });
+
+        if (error) throw error;
+      }
+
+      return { bookId, isFavorite };
+    },
+    onSuccess: ({ isFavorite }) => {
+      queryClient.invalidateQueries({ queryKey: ["favorites", userId] });
+
+      toast({
+        title: isFavorite ? "Removed from favorites" : "Added to favorites",
+        description: isFavorite
+          ? "Book removed from your favorites"
+          : "Book added to your favorites",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Failed to update favorites",
+      });
+    },
+  });
+
+  const handleToggleFavorite = (e: React.MouseEvent, bookId: string) => {
+    e.stopPropagation();
+    toggleFavoriteMutation.mutate(bookId);
   };
 
   const getStockStatusColor = (book: Book) => {
@@ -196,15 +271,22 @@ const Catalog = () => {
     return colors[category] || "text-gray-600 bg-gray-50 border-gray-200";
   };
 
+  // Pagination
+  const totalPages = Math.ceil(filteredBooks.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedBooks = filteredBooks.slice(startIndex, endIndex);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, categoryFilter, publisherFilter, yearFilter, priceRange]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="relative w-20 h-20 mx-auto mb-4">
-            <div className="absolute top-0 w-full h-full rounded-md border-4 border-primary/40 border-t-primary animate-spin"></div>
-            <BookOpen className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 h-10 w-10 text-primary/70" />
-          </div>
-          <p className="text-muted-foreground animate-pulse">
+          <Loader size={48} variant="accent" className="mx-auto mb-4" />
+          <p className="text-muted-foreground">
             Loading your catalog...
           </p>
         </div>
@@ -364,7 +446,6 @@ const Catalog = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-            <BookMarked className="h-7 w-7" />
             Catalog
           </h2>
           <p className="text-muted-foreground mt-1">
@@ -379,7 +460,7 @@ const Catalog = () => {
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  variant={viewMode === "grid" ? "default" : "outline-solid"}
+                  variant={viewMode === "grid" ? "default" : "outline"}
                   size="icon"
                   onClick={() => setViewMode("grid")}
                   className="h-9 w-9"
@@ -395,7 +476,7 @@ const Catalog = () => {
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  variant={viewMode === "list" ? "default" : "outline-solid"}
+                  variant={viewMode === "list" ? "default" : "outline"}
                   size="icon"
                   onClick={() => setViewMode("list")}
                   className="h-9 w-9"
@@ -506,82 +587,16 @@ const Catalog = () => {
           </div>
 
           {viewMode === "grid" ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-              {filteredBooks.map((book) => (
-                <Card
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
+              {paginatedBooks.map((book) => (
+                <div
                   key={book.id}
-                  className="overflow-hidden cursor-pointer hover:shadow-md transition-all group border"
+                  className="group cursor-pointer"
                   onClick={() => handleViewBook(book)}
                 >
-                  <div className="aspect-2/3 relative overflow-hidden bg-muted">
-                    {book.coverImage ? (
-                      <img
-                        src={book.coverImage}
-                        alt={book.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        onError={(e) => {
-                          e.currentTarget.src = "/placeholder.svg";
-                        }}
-                      />
-                    ) : (
-                      <div className="flex items-center justify-center h-full">
-                        <BookOpen className="h-12 w-12 text-muted-foreground/50" />
-                      </div>
-                    )}
-                    <div className="absolute top-2 right-2">
-                      <Badge
-                        variant="outline"
-                        className={`text-[10px] ${getStockStatusColor(book)}`}
-                      >
-                        {getStockStatusText(book)}
-                      </Badge>
-                    </div>
-                  </div>
-                  <CardContent className="p-3">
-                    <div className="space-y-2">
-                      <Badge
-                        variant="outline"
-                        className={`text-[10px] ${getCategoryColor(book.category)}`}
-                      >
-                        {book.category}
-                      </Badge>
-                      <h3 className="font-medium text-sm line-clamp-1 leading-tight mt-1">
-                        {book.title}
-                      </h3>
-                      <p className="text-xs text-muted-foreground line-clamp-1">
-                        {book.author}
-                      </p>
-                      <div className="flex justify-between items-center pt-1">
-                        <div className="text-sm font-bold">
-                          ${book.price.toFixed(2)}
-                        </div>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="h-7 px-2 rounded-full hover:bg-primary/10 hover:text-primary"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleViewBook(book);
-                          }}
-                        >
-                          View
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {filteredBooks.map((book) => (
-                <Card
-                  key={book.id}
-                  className="overflow-hidden hover:shadow-xs transition-shadow group"
-                  onClick={() => handleViewBook(book)}
-                >
-                  <div className="flex flex-row">
-                    <div className="w-24 sm:w-32 h-auto aspect-2/3 relative overflow-hidden bg-muted shrink-0">
+                  {/* Book Cover */}
+                  <div className="relative mb-3">
+                    <div className="aspect-[2/3] relative overflow-hidden rounded-lg bg-muted shadow-md group-hover:shadow-xl transition-shadow duration-300">
                       {book.coverImage ? (
                         <img
                           src={book.coverImage}
@@ -592,51 +607,166 @@ const Catalog = () => {
                           }}
                         />
                       ) : (
-                        <div className="flex items-center justify-center h-full">
-                          <BookOpen className="h-8 w-8 text-muted-foreground/50" />
+                        <div className="flex items-center justify-center h-full bg-gradient-to-br from-muted to-muted/50">
+                          <BookOpen className="h-12 w-12 text-muted-foreground/30" />
                         </div>
                       )}
-                    </div>
-                    <CardContent className="flex-1 p-3 sm:p-4 flex flex-col h-full">
-                      <div className="flex items-center justify-between mb-1">
+
+                      {/* Favorite Button */}
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className={`absolute top-2 right-2 h-8 w-8 rounded-full backdrop-blur-sm shadow-sm ${favoritesSet.has(book.id)
+                          ? "bg-red-500/90 hover:bg-red-600 text-white"
+                          : "bg-background/80 hover:bg-background"
+                          }`}
+                        onClick={(e) => handleToggleFavorite(e, book.id)}
+                      >
+                        <Heart
+                          className={`h-4 w-4 ${favoritesSet.has(book.id) ? "fill-current" : ""
+                            }`}
+                        />
+                      </Button>
+
+                      {/* Stock Badge */}
+                      <div className="absolute bottom-2 left-2">
                         <Badge
                           variant="outline"
-                          className={`text-xs ${getCategoryColor(book.category)}`}
-                        >
-                          {book.category}
-                        </Badge>
-                        <Badge
-                          variant="outline"
-                          className={`text-xs ${getStockStatusColor(book)}`}
+                          className={`text-[10px] backdrop-blur-sm bg-background/90 ${getStockStatusColor(book)}`}
                         >
                           {getStockStatusText(book)}
                         </Badge>
                       </div>
+                    </div>
+                  </div>
 
+                  {/* Book Info */}
+                  <div className="space-y-1">
+                    <Badge
+                      variant="outline"
+                      className={`text-[10px] ${getCategoryColor(book.category)}`}
+                    >
+                      {book.category}
+                    </Badge>
+
+                    <h3 className="font-semibold text-sm line-clamp-2 leading-tight group-hover:text-primary transition-colors">
+                      {book.title}
+                    </h3>
+
+                    <p className="text-xs text-muted-foreground line-clamp-1">
+                      {book.author}
+                    </p>
+
+                    <div className="flex items-center justify-between pt-1">
+                      <span className="text-lg font-bold text-primary">
+                        ${book.price.toFixed(2)}
+                      </span>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 px-2 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleViewBook(book);
+                        }}
+                      >
+                        View
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {paginatedBooks.map((book) => (
+                <div
+                  key={book.id}
+                  className="group cursor-pointer bg-card border rounded-lg p-4 hover:shadow-lg transition-all"
+                  onClick={() => handleViewBook(book)}
+                >
+                  <div className="flex gap-4">
+                    {/* Book Cover */}
+                    <div className="relative shrink-0">
+                      <div className="w-28 sm:w-36 aspect-[2/3] relative overflow-hidden rounded-md bg-muted shadow-md">
+                        {book.coverImage ? (
+                          <img
+                            src={book.coverImage}
+                            alt={book.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            onError={(e) => {
+                              e.currentTarget.src = "/placeholder.svg";
+                            }}
+                          />
+                        ) : (
+                          <div className="flex items-center justify-center h-full bg-gradient-to-br from-muted to-muted/50">
+                            <BookOpen className="h-10 w-10 text-muted-foreground/30" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Book Info */}
+                    <div className="flex-1 flex flex-col min-w-0">
+                      {/* Header with badges and favorite */}
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge
+                            variant="outline"
+                            className={`text-xs ${getCategoryColor(book.category)}`}
+                          >
+                            {book.category}
+                          </Badge>
+                          <Badge
+                            variant="outline"
+                            className={`text-xs ${getStockStatusColor(book)}`}
+                          >
+                            {getStockStatusText(book)}
+                          </Badge>
+                        </div>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className={`h-9 w-9 rounded-full shrink-0 ${favoritesSet.has(book.id)
+                            ? "text-red-500 hover:text-red-600"
+                            : "hover:text-red-500"
+                            }`}
+                          onClick={(e) => handleToggleFavorite(e, book.id)}
+                        >
+                          <Heart
+                            className={`h-4 w-4 ${favoritesSet.has(book.id) ? "fill-current" : ""
+                              }`}
+                          />
+                        </Button>
+                      </div>
+
+                      {/* Title and Author */}
                       <div className="mb-2">
-                        <h3 className="font-medium text-base sm:text-lg leading-tight">
+                        <h3 className="font-semibold text-lg leading-tight group-hover:text-primary transition-colors line-clamp-2">
                           {book.title}
                         </h3>
-                        <p className="text-xs sm:text-sm text-muted-foreground">
+                        <p className="text-sm text-muted-foreground mt-1">
                           by {book.author} • {book.publicationYear}
                         </p>
                       </div>
 
-                      <div className="grow">
-                        <p className="text-xs sm:text-sm line-clamp-2 text-muted-foreground">
+                      {/* Description */}
+                      <div className="flex-1 mb-3">
+                        <p className="text-sm text-muted-foreground line-clamp-2">
                           {book.description || "No description available."}
                         </p>
                       </div>
 
-                      <div className="flex justify-between items-center mt-2 pt-2 border-t">
+                      {/* Price and Action */}
+                      <div className="flex items-center justify-between pt-3 border-t">
                         <div className="flex items-baseline gap-2">
-                          <div className="text-base sm:text-lg font-bold">
+                          <span className="text-2xl font-bold text-primary">
                             ${book.price.toFixed(2)}
-                          </div>
+                          </span>
                           {book.stock > 0 && (
-                            <div className="text-xs text-muted-foreground">
+                            <span className="text-sm text-muted-foreground">
                               {book.stock} in stock
-                            </div>
+                            </span>
                           )}
                         </div>
                         <Button
@@ -645,15 +775,67 @@ const Catalog = () => {
                             e.stopPropagation();
                             handleViewBook(book);
                           }}
-                          className="h-8"
                         >
                           View Details
                         </Button>
                       </div>
-                    </CardContent>
+                    </div>
                   </div>
-                </Card>
+                </div>
               ))}
+            </div>
+          )}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-2 mt-8">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </Button>
+
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                  // Show first page, last page, current page, and pages around current
+                  if (
+                    page === 1 ||
+                    page === totalPages ||
+                    (page >= currentPage - 1 && page <= currentPage + 1)
+                  ) {
+                    return (
+                      <Button
+                        key={page}
+                        variant={currentPage === page ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setCurrentPage(page)}
+                        className="w-9"
+                      >
+                        {page}
+                      </Button>
+                    );
+                  } else if (page === currentPage - 2 || page === currentPage + 2) {
+                    return (
+                      <span key={page} className="px-2 text-muted-foreground">
+                        ...
+                      </span>
+                    );
+                  }
+                  return null;
+                })}
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+              >
+                Next
+              </Button>
             </div>
           )}
         </>

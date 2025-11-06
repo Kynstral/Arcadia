@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
@@ -7,6 +7,7 @@ import {
   BookText,
   Building,
   Calendar,
+  Heart,
   Languages,
   Library,
   MapPin,
@@ -19,136 +20,179 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import BookCard from "@/components/BookCard";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Book, BookCategory, BookStatus } from "@/lib/types";
-import { getRelatedBooks } from "@/lib/data";
 import { useAuth } from "@/components/AuthStatusProvider";
 import { useCart } from "@/hooks/use-cart";
-import { FavoriteButton } from "@/components/books/FavoriteButton";
+import { Loader } from "@/components/ui/loader";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const BookDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [quantity, setQuantity] = useState(1);
-  const [book, setBook] = useState<Book | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [relatedBooks, setRelatedBooks] = useState<Book[]>([]);
-  const { userRole } = useAuth();
+  const { userRole, userId } = useAuth();
   const { addToCart, cart } = useCart();
+  const queryClient = useQueryClient();
 
   const isLibraryRole = userRole === "Library";
-
   const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
-  useEffect(() => {
-    const fetchBook = async () => {
-      if (!id) return;
+  // Fetch book details
+  const { data: book, isLoading, error } = useQuery({
+    queryKey: ["book", id],
+    queryFn: async () => {
+      if (!id) throw new Error("No book ID provided");
 
-      try {
-        setLoading(true);
-        const { data, error } = await supabase
-          .from("books")
-          .select("*")
-          .eq("id", id)
-          .single();
+      const { data, error } = await supabase
+        .from("books")
+        .select("*")
+        .eq("id", id)
+        .is("deleted_at", null)
+        .single();
 
-        if (error) {
-          console.error("Error fetching book:", error);
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description: "Could not load book details.",
-          });
-          return;
-        }
+      if (error) throw error;
 
-        if (data) {
-          const formattedBook: Book = {
-            id: data.id,
-            title: data.title,
-            author: data.author,
-            isbn: data.isbn,
-            category: data.category as BookCategory,
-            publicationYear: data.publication_year,
-            publisher: data.publisher,
-            description: data.description || "",
-            price: data.price,
-            status: data.status as BookStatus,
-            coverImage: data.cover_image || "",
-            stock: data.stock,
-            location: data.location || "",
-            rating: data.rating,
-            pageCount: data.page_count,
-            language: data.language || "English",
-            tags: data.tags || [],
-            salesCount: 0,
-          };
+      return {
+        id: data.id,
+        title: data.title,
+        author: data.author,
+        isbn: data.isbn,
+        category: data.category as BookCategory,
+        publicationYear: data.publication_year,
+        publisher: data.publisher,
+        description: data.description || "",
+        price: data.price,
+        status: data.status as BookStatus,
+        coverImage: data.cover_image || "",
+        stock: data.stock,
+        location: data.location || "",
+        rating: data.rating,
+        pageCount: data.page_count,
+        language: data.language || "English",
+        tags: data.tags || [],
+        salesCount: data.sales_count || 0,
+        user_id: data.user_id,
+      } as Book;
+    },
+    enabled: !!id,
+  });
 
-          setBook(formattedBook);
+  // Fetch related books
+  const { data: relatedBooks = [] } = useQuery({
+    queryKey: ["related-books", book?.category, id],
+    queryFn: async () => {
+      if (!book) return [];
 
-          const { data: relatedData, error: relatedError } = await supabase
-            .from("books")
-            .select("*")
-            .eq("category", formattedBook.category)
-            .neq("id", id)
-            .limit(4);
+      const { data, error } = await supabase
+        .from("books")
+        .select("*")
+        .eq("category", book.category)
+        .is("deleted_at", null)
+        .neq("id", id)
+        .limit(4);
 
-          if (!relatedError && relatedData) {
-            const formattedRelated = relatedData.map((item) => ({
-              id: item.id,
-              title: item.title,
-              author: item.author,
-              isbn: item.isbn,
-              category: item.category as BookCategory,
-              publicationYear: item.publication_year,
-              publisher: item.publisher,
-              description: item.description || "",
-              price: item.price,
-              status: item.status as BookStatus,
-              coverImage: item.cover_image || "",
-              stock: item.stock,
-              location: item.location || "",
-              rating: item.rating,
-              pageCount: item.page_count,
-              language: item.language || "English",
-              tags: item.tags || [],
-              salesCount: item.sales_count || 0,
-            }));
-            setRelatedBooks(formattedRelated);
-          } else {
-            setRelatedBooks(getRelatedBooks(formattedBook));
-          }
-        }
-      } catch (err) {
-        console.error("Unexpected error:", err);
-      } finally {
-        setLoading(false);
+      if (error) throw error;
+
+      return data.map((item) => ({
+        id: item.id,
+        title: item.title,
+        author: item.author,
+        isbn: item.isbn,
+        category: item.category as BookCategory,
+        publicationYear: item.publication_year,
+        publisher: item.publisher,
+        description: item.description || "",
+        price: item.price,
+        status: item.status as BookStatus,
+        coverImage: item.cover_image || "",
+        stock: item.stock,
+        location: item.location || "",
+        rating: item.rating,
+        pageCount: item.page_count,
+        language: item.language || "English",
+        tags: item.tags || [],
+        salesCount: item.sales_count || 0,
+        user_id: item.user_id,
+      })) as Book[];
+    },
+    enabled: !!book,
+  });
+
+  // Check if book is favorited
+  const { data: isFavorite = false } = useQuery({
+    queryKey: ["is-favorite", id, userId],
+    queryFn: async () => {
+      if (!userId || !id) return false;
+
+      const { data, error } = await supabase
+        .from("favorites" as any)
+        .select("id")
+        .eq("user_id", userId)
+        .eq("book_id", id)
+        .single();
+
+      return !!data && !error;
+    },
+    enabled: !!userId && !!id,
+  });
+
+  // Toggle favorite mutation
+  const toggleFavoriteMutation = useMutation({
+    mutationFn: async () => {
+      if (!userId || !id) throw new Error("Missing user or book ID");
+
+      if (isFavorite) {
+        const { error } = await supabase
+          .from("favorites" as any)
+          .delete()
+          .eq("user_id", userId)
+          .eq("book_id", id);
+
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("favorites" as any)
+          .insert({ user_id: userId, book_id: id });
+
+        if (error) throw error;
       }
-    };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["is-favorite", id, userId] });
+      queryClient.invalidateQueries({ queryKey: ["favorites", userId] });
 
-    fetchBook();
-  }, [id, toast]);
+      toast({
+        title: isFavorite ? "Removed from favorites" : "Added to favorites",
+        description: isFavorite
+          ? "Book removed from your favorites"
+          : "Book added to your favorites",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Failed to update favorites",
+      });
+    },
+  });
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center flex-col">
-        <div className="relative">
-          <BookOpen className="h-16 w-16 text-primary/30" />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="h-8 w-8 border-4 border-primary/70 border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        </div>
-        <p className="mt-4 text-muted-foreground font-medium">
+        <Loader size={48} variant="accent" className="mb-4" />
+        <p className="text-muted-foreground font-medium">
           Loading book details...
         </p>
       </div>
     );
   }
 
-  if (!book) {
+  if (error || !book) {
     return (
       <div className="min-h-screen flex items-center justify-center flex-col">
         <div className="text-center max-w-md">
@@ -195,7 +239,7 @@ const BookDetail = () => {
     <div className="min-h-screen bg-background pb-16">
       <main className="container mx-auto px-4">
         <div className="flex justify-between items-center mb-8 animate-fade-in">
-          <Button variant="ghost" size="sm" asChild className="pl-0">
+          <Button variant="secondary" size="sm" asChild>
             <Link to="/catalog">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Catalog
@@ -251,7 +295,20 @@ const BookDetail = () => {
                 <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex-1">
                   {book.title}
                 </h1>
-                <FavoriteButton bookId={book.id} size="default" />
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className={`h-10 w-10 rounded-full ${isFavorite
+                    ? "text-red-500 hover:text-red-600"
+                    : "hover:text-red-500"
+                    }`}
+                  onClick={() => toggleFavoriteMutation.mutate()}
+                  disabled={toggleFavoriteMutation.isPending}
+                >
+                  <Heart
+                    className={`h-5 w-5 ${isFavorite ? "fill-current" : ""}`}
+                  />
+                </Button>
               </div>
               <div className="flex items-center">
                 <User className="h-4 w-4 mr-2 text-muted-foreground" />
@@ -351,7 +408,7 @@ const BookDetail = () => {
               </div>
 
               <div className="bg-muted/40 p-4 rounded-lg border border-border/50">
-                <p className="text-sm text-muted-foreground mb-1">Location</p>
+                <p className="text-sm text-muted-foreground mb-1">Shelf Location</p>
                 <div className="flex items-center">
                   <MapPin className="h-4 w-4 mr-2 text-primary/70" />
                   <p className="font-medium truncate">
@@ -361,31 +418,136 @@ const BookDetail = () => {
               </div>
             </div>
 
-            <div className="bg-card rounded-lg p-6 border shadow-xs">
-              <h3 className="font-semibold text-lg mb-3">About this book</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                {book.description}
-              </p>
-            </div>
+            {/* Tabs for Book Info */}
+            <Tabs defaultValue="about" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="about">About Book</TabsTrigger>
+                <TabsTrigger value="author">Author</TabsTrigger>
+                <TabsTrigger value="details">Details</TabsTrigger>
+              </TabsList>
 
-            {book.tags && book.tags.length > 0 && (
-              <div>
-                <h3 className="font-medium mb-2 text-sm text-muted-foreground">
-                  Tags
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {book.tags.map((tag, index) => (
-                    <Badge
-                      key={index}
-                      variant="secondary"
-                      className="px-3 py-1"
-                    >
-                      {tag}
-                    </Badge>
-                  ))}
+              <TabsContent value="about" className="space-y-4 mt-4">
+                <div className="bg-card rounded-lg p-6 border shadow-xs">
+                  <h3 className="font-semibold text-lg mb-3">Description</h3>
+                  <p className="text-muted-foreground leading-relaxed">
+                    {book.description}
+                  </p>
                 </div>
-              </div>
-            )}
+
+                {book.tags && book.tags.length > 0 && (
+                  <div className="bg-card rounded-lg p-6 border shadow-xs">
+                    <h3 className="font-semibold text-lg mb-3">Tags</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {book.tags.map((tag, index) => (
+                        <Badge
+                          key={index}
+                          variant="secondary"
+                          className="px-3 py-1"
+                        >
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="author" className="mt-4">
+                <div className="bg-card rounded-lg p-6 border shadow-xs">
+                  <div className="flex items-start gap-4 mb-6">
+                    <div className="w-20 h-20 rounded-full bg-muted shrink-0 flex items-center justify-center">
+                      <User className="h-10 w-10 text-muted-foreground" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-2xl font-semibold mb-2">{book.author}</h3>
+                      <p className="text-muted-foreground mb-4">
+                        {book.author} is the acclaimed author of {book.title}. Their
+                        work spans multiple genres and has been recognized for its
+                        depth and creativity.
+                      </p>
+                      <Button variant="outline" size="sm" asChild>
+                        <Link
+                          to={`/catalog?author=${encodeURIComponent(book.author)}`}
+                        >
+                          View all books by this author
+                        </Link>
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="details" className="mt-4">
+                <div className="bg-card rounded-lg p-6 border shadow-xs">
+                  <h3 className="font-semibold text-lg mb-4">Publication Details</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground mb-1">
+                        Publisher
+                      </p>
+                      <div className="flex items-center">
+                        <Building className="h-4 w-4 mr-2 text-primary/70" />
+                        <p className="font-medium">{book.publisher}</p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground mb-1">
+                        ISBN
+                      </p>
+                      <div className="flex items-center">
+                        <Bookmark className="h-4 w-4 mr-2 text-primary/70" />
+                        <p className="font-medium font-mono">{book.isbn}</p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground mb-1">
+                        Publication Year
+                      </p>
+                      <div className="flex items-center">
+                        <Calendar className="h-4 w-4 mr-2 text-primary/70" />
+                        <p className="font-medium">{book.publicationYear}</p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground mb-1">
+                        Language
+                      </p>
+                      <div className="flex items-center">
+                        <Languages className="h-4 w-4 mr-2 text-primary/70" />
+                        <p className="font-medium">{book.language || "English"}</p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground mb-1">
+                        Pages
+                      </p>
+                      <div className="flex items-center">
+                        <BookOpen className="h-4 w-4 mr-2 text-primary/70" />
+                        <p className="font-medium">
+                          {book.pageCount || "Not available"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground mb-1">
+                        Shelf Location
+                      </p>
+                      <div className="flex items-center">
+                        <MapPin className="h-4 w-4 mr-2 text-primary/70" />
+                        <p className="font-medium">
+                          {book.location || "Not specified"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
 
             <div className="bg-card rounded-lg p-6 border shadow-xs">
               {isLibraryRole ? (
@@ -493,149 +655,81 @@ const BookDetail = () => {
           </div>
         </div>
 
-        <div className="bg-card rounded-lg border shadow-xs p-8 mb-16 animate-fade-in">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-            <div>
-              <div className="flex items-center mb-4">
-                <User className="h-5 w-5 mr-2 text-primary" />
-                <h3 className="text-xl font-semibold">About the Author</h3>
-              </div>
 
-              <div className="flex items-start gap-4 mb-6">
-                <div className="w-16 h-16 rounded-full bg-muted shrink-0 flex items-center justify-center mt-1">
-                  <User className="h-8 w-8 text-muted-foreground" />
-                </div>
-                <div>
-                  <h4 className="text-lg font-medium mb-2">{book.author}</h4>
-                  <p className="text-muted-foreground mb-4 text-sm">
-                    {book.author} is the acclaimed author of {book.title}. Their
-                    work spans multiple genres and has been recognized for its
-                    depth and creativity.
-                  </p>
-                  <Button variant="outline" size="sm" asChild>
-                    <Link
-                      to={`/catalog?author=${encodeURIComponent(book.author)}`}
-                    >
-                      View all books by this author
-                    </Link>
-                  </Button>
-                </div>
-              </div>
+
+        {relatedBooks.length > 0 && (
+          <div className="mt-16 animate-fade-in">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold">Related Books</h2>
+              <Button variant="ghost" size="sm" asChild>
+                <Link to={`/catalog?category=${book.category}`}>
+                  View All
+                  <ArrowLeft className="h-4 w-4 ml-2 rotate-180" />
+                </Link>
+              </Button>
             </div>
 
-            <div>
-              <div className="flex items-center mb-4">
-                <BookText className="h-5 w-5 mr-2 text-primary" />
-                <h3 className="text-xl font-semibold">Publication Details</h3>
-              </div>
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
+              {relatedBooks.map((relatedBook) => (
+                <div
+                  key={relatedBook.id}
+                  className="group cursor-pointer"
+                  onClick={() => navigate(`/book/${relatedBook.id}`)}
+                >
+                  {/* Book Cover */}
+                  <div className="relative mb-2">
+                    <div className="aspect-[2/3] relative overflow-hidden rounded-md bg-muted shadow-sm group-hover:shadow-lg transition-shadow duration-300">
+                      {relatedBook.coverImage ? (
+                        <img
+                          src={relatedBook.coverImage}
+                          alt={relatedBook.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          onError={(e) => {
+                            e.currentTarget.src = "/placeholder.svg";
+                          }}
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center h-full bg-gradient-to-br from-muted to-muted/50">
+                          <BookOpen className="h-8 w-8 text-muted-foreground/30" />
+                        </div>
+                      )}
 
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">
-                    Publisher
-                  </p>
-                  <div className="flex items-center">
-                    <Building className="h-4 w-4 mr-2 text-primary/70" />
-                    <p className="font-medium">{book.publisher}</p>
+                      {/* Stock Badge */}
+                      <div className="absolute bottom-1.5 left-1.5">
+                        <Badge
+                          variant="outline"
+                          className={`text-[9px] px-1.5 py-0.5 backdrop-blur-sm bg-background/90 ${relatedBook.stock === 0
+                            ? "bg-red-100 text-red-800 border-red-200"
+                            : "bg-emerald-100 text-emerald-800 border-emerald-200"
+                            }`}
+                        >
+                          {relatedBook.stock === 0 ? "Out of Stock" : "In Stock"}
+                        </Badge>
+                      </div>
+                    </div>
                   </div>
-                </div>
 
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">
-                    ISBN
-                  </p>
-                  <div className="flex items-center">
-                    <Bookmark className="h-4 w-4 mr-2 text-primary/70" />
-                    <p className="font-medium font-mono">{book.isbn}</p>
-                  </div>
-                </div>
+                  {/* Book Info - More Compact */}
+                  <div className="space-y-0.5">
+                    <h3 className="font-semibold text-xs line-clamp-2 leading-tight group-hover:text-primary transition-colors">
+                      {relatedBook.title}
+                    </h3>
 
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">
-                    Publication Year
-                  </p>
-                  <div className="flex items-center">
-                    <Calendar className="h-4 w-4 mr-2 text-primary/70" />
-                    <p className="font-medium">{book.publicationYear}</p>
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">
-                    Language
-                  </p>
-                  <div className="flex items-center">
-                    <Languages className="h-4 w-4 mr-2 text-primary/70" />
-                    <p className="font-medium">{book.language || "English"}</p>
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">
-                    Pages
-                  </p>
-                  <div className="flex items-center">
-                    <BookOpen className="h-4 w-4 mr-2 text-primary/70" />
-                    <p className="font-medium">
-                      {book.pageCount || "Not available"}
+                    <p className="text-[10px] text-muted-foreground line-clamp-1">
+                      {relatedBook.author}
                     </p>
-                  </div>
-                </div>
 
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">
-                    Location
-                  </p>
-                  <div className="flex items-center">
-                    <MapPin className="h-4 w-4 mr-2 text-primary/70" />
-                    <p className="font-medium">
-                      {book.location || "Not specified"}
-                    </p>
+                    <div className="pt-0.5">
+                      <span className="text-sm font-bold text-primary">
+                        ${relatedBook.price.toFixed(2)}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
+              ))}
             </div>
           </div>
-        </div>
-
-        {
-          relatedBooks.length > 0 && (
-            <div className="mt-16 animate-fade-in">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold">Related Books</h2>
-                <Button variant="ghost" size="sm" asChild>
-                  <Link to={`/catalog?category=${book.category}`}>
-                    View All
-                    <ArrowLeft className="h-4 w-4 ml-2 rotate-180" />
-                  </Link>
-                </Button>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {relatedBooks.map((relatedBook) => (
-                  <BookCard
-                    key={relatedBook.id}
-                    book={relatedBook}
-                    onAddToCart={() => {
-                      addToCart({
-                        bookId: relatedBook.id,
-                        title: relatedBook.title,
-                        price: relatedBook.price,
-                        quantity: 1,
-                        coverImage: relatedBook.coverImage,
-                      });
-
-                      toast({
-                        title: "Added to cart",
-                        description: `"${relatedBook.title}" has been added to your cart.`,
-                      });
-                    }}
-                  />
-                ))}
-              </div>
-            </div>
-          )
-        }
+        )}
       </main >
     </div >
   );

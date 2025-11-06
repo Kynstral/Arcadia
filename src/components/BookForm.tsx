@@ -461,9 +461,10 @@ const BookForm = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="location">Bookshelf Location</Label>
+              <Label htmlFor="location">Shelf Location</Label>
               <Input
                 id="location"
+                placeholder="e.g., A-12, Fiction-3B"
                 value={formData.location}
                 onChange={handleChange}
               />
