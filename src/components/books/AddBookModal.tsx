@@ -4,7 +4,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import BookForm from "@/components/BookForm";
+import BookForm from "./BookForm";
 import { Book } from "@/lib/types";
 
 interface AddBookModalProps {

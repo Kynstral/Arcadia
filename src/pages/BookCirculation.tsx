@@ -45,7 +45,7 @@ import {
   X,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import MemberDetail from "@/components/MemberDetail";
+import MemberDetail from "@/components/members/MemberDetail";
 import { searchBooks } from "@/lib/data-service";
 import {
   Popover,
@@ -267,8 +267,8 @@ const BookCirculation = () => {
       const filtered =
         selectedCategory !== "all"
           ? books.filter(
-              (book) => book.category === selectedCategory && book.stock > 0,
-            )
+            (book) => book.category === selectedCategory && book.stock > 0,
+          )
           : books.filter((book) => book.stock > 0);
 
       setBookSearchResults(filtered || []);
@@ -1253,7 +1253,7 @@ const BookCirculation = () => {
                       <Button
                         type="button"
                         variant={
-                          dueDateOption === "15days" ? "default" : "outline-solid"
+                          dueDateOption === "15days" ? "default" : "outline"
                         }
                         className={cn(
                           "flex items-center justify-center",
@@ -1271,7 +1271,7 @@ const BookCirculation = () => {
                       <Button
                         type="button"
                         variant={
-                          dueDateOption === "20days" ? "default" : "outline-solid"
+                          dueDateOption === "20days" ? "default" : "outline"
                         }
                         className={cn(
                           "flex items-center justify-center",
@@ -1289,7 +1289,7 @@ const BookCirculation = () => {
                       <Button
                         type="button"
                         variant={
-                          dueDateOption === "30days" ? "default" : "outline-solid"
+                          dueDateOption === "30days" ? "default" : "outline"
                         }
                         className={cn(
                           "flex items-center justify-center",
@@ -1307,7 +1307,7 @@ const BookCirculation = () => {
                       <Button
                         type="button"
                         variant={
-                          dueDateOption === "custom" ? "default" : "outline-solid"
+                          dueDateOption === "custom" ? "default" : "outline"
                         }
                         className={cn(
                           "flex items-center justify-center",
@@ -1547,11 +1547,10 @@ const BookCirculation = () => {
                               <div className="flex items-center justify-center">
                                 <button
                                   type="button"
-                                  className={`h-5 w-5 rounded-md border border-primary ${
-                                    isSelected
-                                      ? "bg-primary text-primary-foreground"
-                                      : "bg-background"
-                                  } flex items-center justify-center`}
+                                  className={`h-5 w-5 rounded-md border border-primary ${isSelected
+                                    ? "bg-primary text-primary-foreground"
+                                    : "bg-background"
+                                    } flex items-center justify-center`}
                                   onClick={() =>
                                     toggleCheckoutSelection(checkout)
                                   }
