@@ -596,7 +596,7 @@ const Catalog = () => {
                 >
                   {/* Book Cover */}
                   <div className="relative mb-3">
-                    <div className="aspect-[2/3] relative overflow-hidden rounded-lg bg-muted shadow-md group-hover:shadow-xl transition-shadow duration-300">
+                    <div className="aspect-2/3 relative overflow-hidden rounded-lg bg-muted shadow-md group-hover:shadow-xl transition-shadow duration-300">
                       {book.coverImage ? (
                         <img
                           src={book.coverImage}
@@ -607,7 +607,7 @@ const Catalog = () => {
                           }}
                         />
                       ) : (
-                        <div className="flex items-center justify-center h-full bg-gradient-to-br from-muted to-muted/50">
+                        <div className="flex items-center justify-center h-full bg-linear-to-br from-muted to-muted/50">
                           <BookOpen className="h-12 w-12 text-muted-foreground/30" />
                         </div>
                       )}
@@ -688,7 +688,7 @@ const Catalog = () => {
                   <div className="flex gap-4">
                     {/* Book Cover */}
                     <div className="relative shrink-0">
-                      <div className="w-28 sm:w-36 aspect-[2/3] relative overflow-hidden rounded-md bg-muted shadow-md">
+                      <div className="w-28 sm:w-36 aspect-2/3 relative overflow-hidden rounded-md bg-muted shadow-md">
                         {book.coverImage ? (
                           <img
                             src={book.coverImage}
@@ -699,7 +699,7 @@ const Catalog = () => {
                             }}
                           />
                         ) : (
-                          <div className="flex items-center justify-center h-full bg-gradient-to-br from-muted to-muted/50">
+                          <div className="flex items-center justify-center h-full bg-linear-to-br from-muted to-muted/50">
                             <BookOpen className="h-10 w-10 text-muted-foreground/30" />
                           </div>
                         )}

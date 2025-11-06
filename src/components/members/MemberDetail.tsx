@@ -289,7 +289,7 @@ const MemberDetail = ({ memberId, onClose }: MemberDetailProps) => {
   }, [memberId, toast]);
 
   useEffect(() => {
-    return () => {};
+    return () => { };
   }, []);
 
   const getFilteredBooks = () => {
@@ -744,7 +744,7 @@ const MemberDetail = ({ memberId, onClose }: MemberDetailProps) => {
                             variant={
                               transaction.status === "Completed"
                                 ? "default"
-                                : "outline-solid"
+                                : "outline"
                             }
                           >
                             {transaction.status}
@@ -757,7 +757,7 @@ const MemberDetail = ({ memberId, onClose }: MemberDetailProps) => {
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {transaction.payment_method === "Borrow" &&
-                          isBookStore
+                            isBookStore
                             ? "Rent"
                             : transaction.payment_method}
                           {transaction.payment_method === "Return" && (
@@ -776,7 +776,7 @@ const MemberDetail = ({ memberId, onClose }: MemberDetailProps) => {
                     {transaction.payment_method === "Return" ? (
                       <div className="text-sm">
                         {transaction.notes &&
-                        transaction.notes.startsWith("Returned:") ? (
+                          transaction.notes.startsWith("Returned:") ? (
                           <div className="flex items-center text-emerald-700">
                             <Check className="mr-2 h-4 w-4" />
                             {transaction.notes}
@@ -1014,9 +1014,8 @@ const MemberDetail = ({ memberId, onClose }: MemberDetailProps) => {
                 filteredBooks.map((book) => (
                   <Card
                     key={book.id}
-                    className={`cursor-pointer transition-colors ${
-                      selectedBookIds.includes(book.id) ? "border-primary" : ""
-                    }`}
+                    className={`cursor-pointer transition-colors ${selectedBookIds.includes(book.id) ? "border-primary" : ""
+                      }`}
                     onClick={() => handleToggleBookSelection(book.id)}
                   >
                     <CardContent className="p-4">

@@ -678,7 +678,7 @@ const BookDetail = () => {
                 >
                   {/* Book Cover */}
                   <div className="relative mb-2">
-                    <div className="aspect-[2/3] relative overflow-hidden rounded-md bg-muted shadow-sm group-hover:shadow-lg transition-shadow duration-300">
+                    <div className="aspect-2/3 relative overflow-hidden rounded-md bg-muted shadow-sm group-hover:shadow-lg transition-shadow duration-300">
                       {relatedBook.coverImage ? (
                         <img
                           src={relatedBook.coverImage}
@@ -689,7 +689,7 @@ const BookDetail = () => {
                           }}
                         />
                       ) : (
-                        <div className="flex items-center justify-center h-full bg-gradient-to-br from-muted to-muted/50">
+                        <div className="flex items-center justify-center h-full bg-linear-to-br from-muted to-muted/50">
                           <BookOpen className="h-8 w-8 text-muted-foreground/30" />
                         </div>
                       )}
