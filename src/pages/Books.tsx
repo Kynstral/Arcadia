@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -160,6 +160,36 @@ export default function BooksPage() {
 
   // Debounce search query
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl/Cmd + K: Focus search
+      if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+        e.preventDefault();
+        document.getElementById("book-search")?.focus();
+      }
+      // N: Add new book
+      if (e.key === "n" && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        const target = e.target as HTMLElement;
+        if (target.tagName !== "INPUT" && target.tagName !== "TEXTAREA") {
+          e.preventDefault();
+          setBookFormDialogOpen(true);
+          setBookToEdit(null);
+        }
+      }
+      // Escape: Close dialogs
+      if (e.key === "Escape") {
+        setBookFormDialogOpen(false);
+        setDeleteDialogOpen(false);
+        setImportExportDialogOpen(false);
+        setBulkEditDialogOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const { data: books = [], isLoading } = useQuery({
     queryKey: ["books", userId, sorting],
@@ -545,7 +575,8 @@ export default function BooksPage() {
       <div className="relative w-full">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search by title, author, ISBN, or description..."
+          id="book-search"
+          placeholder="Search by title, author, ISBN, or description... (Ctrl+K)"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="pl-10 pr-10"
