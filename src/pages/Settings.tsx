@@ -1,13 +1,7 @@
 // noinspection ExceptionCaughtLocallyJS
 
 import React, { useCallback, useEffect, useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -84,19 +78,10 @@ const Settings = () => {
         URL.revokeObjectURL(avatarPreview);
       }
     };
-  }, [
-    avatarPreview,
-    directAvatarUrl,
-    loadSettings,
-    organizationName,
-    user,
-    userId,
-  ]);
+  }, [avatarPreview, directAvatarUrl, loadSettings, organizationName, user, userId]);
 
   const fetchUserAvatar = async (uid: string) => {
     try {
-      console.log("Fetching avatar for user:", uid);
-
       const { data, error } = await supabase.storage.from("avatars").list("", {
         limit: 100,
         search: `avatar_${uid}`,
@@ -107,27 +92,23 @@ const Settings = () => {
         throw error;
       }
 
-      console.log("Avatar files found:", data ? data.length : 0, data);
-
       if (data && data.length > 0) {
         const sortedFiles = data.sort((a, b) => {
-          return (
-            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-          );
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         });
 
         const latestAvatar = sortedFiles[0];
-        console.log("Latest avatar file:", latestAvatar);
 
         try {
-          const { data: fileData, error: downloadError } =
-            await supabase.storage.from("avatars").download(latestAvatar.name);
+          const { data: fileData, error: downloadError } = await supabase.storage
+            .from("avatars")
+            .download(latestAvatar.name);
 
           if (downloadError) {
             console.error("Download error:", downloadError);
           } else if (fileData) {
             const objectUrl = URL.createObjectURL(fileData);
-            console.log("Created object URL:", objectUrl);
+
             setDirectAvatarUrl(objectUrl);
             return;
           }
@@ -141,11 +122,8 @@ const Settings = () => {
             .getPublicUrl(latestAvatar.name);
 
           if (urlData) {
-            console.log("Public URL:", urlData.publicUrl);
-
             const testImg = new Image();
             testImg.onload = () => {
-              console.log("Image URL is valid");
               setDirectAvatarUrl(urlData.publicUrl);
             };
             testImg.onerror = () => {
@@ -159,7 +137,6 @@ const Settings = () => {
           setDirectAvatarUrl(null);
         }
       } else {
-        console.log("No avatar files found");
         setDirectAvatarUrl(null);
       }
     } catch (err) {
@@ -235,8 +212,6 @@ const Settings = () => {
         const fileExt = avatarFile.name.split(".").pop();
         const fileName = `avatar_${userId}_${Date.now()}.${fileExt}`;
 
-        console.log("Uploading file to path:", fileName);
-
         const { error: uploadError } = await supabase.storage
           .from("avatars")
           .upload(fileName, avatarFile, {
@@ -248,8 +223,6 @@ const Settings = () => {
           console.error("Upload error details:", uploadError);
           throw uploadError;
         }
-
-        console.log("File uploaded successfully, updating user metadata");
 
         const { error: updateError } = await supabase.auth.updateUser({
           data: {
@@ -290,8 +263,7 @@ const Settings = () => {
       console.error("Error updating profile:", error);
       toast({
         title: "Update failed",
-        description:
-          "There was an error updating your profile. Please try again.",
+        description: "There was an error updating your profile. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -317,8 +289,7 @@ const Settings = () => {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
         <p className="text-muted-foreground">
-          Manage your account and {isLibrary ? "library" : "book store"}{" "}
-          settings.
+          Manage your account and {isLibrary ? "library" : "book store"} settings.
         </p>
       </div>
 
@@ -326,9 +297,7 @@ const Settings = () => {
       <Card>
         <CardHeader>
           <CardTitle>Profile</CardTitle>
-          <CardDescription>
-            Manage your personal profile information
-          </CardDescription>
+          <CardDescription>Manage your personal profile information</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex flex-col items-center space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4">
@@ -337,23 +306,16 @@ const Settings = () => {
               <div className="h-24 w-24 rounded-full overflow-hidden flex items-center justify-center bg-muted">
                 {displayAvatar ? (
                   <img
-                    src={
-                      avatarPreview ||
-                      (directAvatarUrl ? `${directAvatarUrl}` : undefined)
-                    }
+                    src={avatarPreview || (directAvatarUrl ? `${directAvatarUrl}` : undefined)}
                     alt="User avatar"
                     className="h-full w-full object-cover"
                     onError={(e) => {
                       console.error("Avatar image failed to load:", e);
                       if (directAvatarUrl) {
-                        console.log("Failed URL:", directAvatarUrl);
                       }
                       e.currentTarget.style.display = "none";
 
-                      if (
-                        directAvatarUrl &&
-                        directAvatarUrl.startsWith("blob:")
-                      ) {
+                      if (directAvatarUrl && directAvatarUrl.startsWith("blob:")) {
                         URL.revokeObjectURL(directAvatarUrl);
                         setDirectAvatarUrl(null);
                       }
@@ -395,30 +357,15 @@ const Settings = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  disabled
-                  className="bg-muted"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Your email cannot be changed
-                </p>
+                <Input id="email" type="email" value={email} disabled className="bg-muted" />
+                <p className="text-xs text-muted-foreground">Your email cannot be changed</p>
               </div>
             </div>
           </div>
 
           <div className="flex justify-end">
-            <Button
-              onClick={saveProfile}
-              disabled={isUploading || isSavingProfile}
-            >
-              {isUploading
-                ? "Uploading..."
-                : isSavingProfile
-                  ? "Saving..."
-                  : "Save Profile"}
+            <Button onClick={saveProfile} disabled={isUploading || isSavingProfile}>
+              {isUploading ? "Uploading..." : isSavingProfile ? "Saving..." : "Save Profile"}
             </Button>
           </div>
         </CardContent>
@@ -427,18 +374,14 @@ const Settings = () => {
       {/* Organization Settings Section */}
       <Card>
         <CardHeader>
-          <CardTitle>
-            {isLibrary ? "Library Information" : "Book Store Information"}
-          </CardTitle>
+          <CardTitle>{isLibrary ? "Library Information" : "Book Store Information"}</CardTitle>
           <CardDescription>
             Manage your {isLibrary ? "library" : "book store"} details
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="org-name">
-              {isLibrary ? "Library Name" : "Store Name"}
-            </Label>
+            <Label htmlFor="org-name">{isLibrary ? "Library Name" : "Store Name"}</Label>
             <Input
               id="org-name"
               value={organizationName}
@@ -486,7 +429,7 @@ const Settings = () => {
             <Label>Theme</Label>
             <div className="flex items-center space-x-4">
               <Button
-                variant={theme === "light" ? "default" : "outline-solid"}
+                variant={theme === "light" ? "default" : "outline"}
                 className="w-full"
                 onClick={() => setTheme("light")}
               >
@@ -494,7 +437,7 @@ const Settings = () => {
                 Light
               </Button>
               <Button
-                variant={theme === "dark" ? "default" : "outline-solid"}
+                variant={theme === "dark" ? "default" : "outline"}
                 className="w-full"
                 onClick={() => setTheme("dark")}
               >
@@ -505,9 +448,7 @@ const Settings = () => {
                 variant="outline"
                 className="w-full"
                 onClick={() => {
-                  const prefersDark = window.matchMedia(
-                    "(prefers-color-scheme: dark)",
-                  ).matches;
+                  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
                   setTheme(prefersDark ? "dark" : "light");
                 }}
               >

@@ -12,9 +12,7 @@ export const useCounter = (end: number, duration: number = 2000) => {
       const progress = Math.min((currentTime - startTime) / duration, 1);
 
       const easeOutQuad = (t: number) => t * (2 - t);
-      const currentCount = Math.floor(
-        startValue + (end - startValue) * easeOutQuad(progress)
-      );
+      const currentCount = Math.floor(startValue + (end - startValue) * easeOutQuad(progress));
 
       setCount(currentCount);
 

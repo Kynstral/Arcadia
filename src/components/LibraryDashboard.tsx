@@ -14,13 +14,7 @@ import {
   Users,
   X,
 } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Book, DashboardStats } from "@/lib/types";
@@ -70,16 +64,11 @@ const LibraryDashboard = ({
 
     setIsClearing(true);
     try {
-      const { error } = await supabase
-        .from("borrowings")
-        .delete()
-        .eq("user_id", userId);
+      const { error } = await supabase.from("borrowings").delete().eq("user_id", userId);
 
       if (error) throw error;
 
-      setLocalBorrowings(
-        localBorrowings.filter((borrowing) => borrowing.user_id !== userId),
-      );
+      setLocalBorrowings(localBorrowings.filter((borrowing) => borrowing.user_id !== userId));
 
       toast({
         title: "Borrowings Cleared",
@@ -102,16 +91,11 @@ const LibraryDashboard = ({
     if (!borrowingId) return;
 
     try {
-      const { error } = await supabase
-        .from("borrowings")
-        .delete()
-        .eq("id", borrowingId);
+      const { error } = await supabase.from("borrowings").delete().eq("id", borrowingId);
 
       if (error) throw error;
 
-      setLocalBorrowings(
-        localBorrowings.filter((borrowing) => borrowing.id !== borrowingId),
-      );
+      setLocalBorrowings(localBorrowings.filter((borrowing) => borrowing.id !== borrowingId));
 
       toast({
         title: "Record Removed",
@@ -140,12 +124,7 @@ const LibraryDashboard = ({
         </div>
 
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-          >
+          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
             {isRefreshing ? (
               <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
             ) : (
@@ -165,9 +144,7 @@ const LibraryDashboard = ({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalBooks}</div>
-            <p className="text-xs text-muted-foreground">
-              in the library collection
-            </p>
+            <p className="text-xs text-muted-foreground">in the library collection</p>
           </CardContent>
         </Card>
 
@@ -178,9 +155,7 @@ const LibraryDashboard = ({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalUsers}</div>
-            <p className="text-xs text-muted-foreground">
-              registered library members
-            </p>
+            <p className="text-xs text-muted-foreground">registered library members</p>
           </CardContent>
         </Card>
 
@@ -191,26 +166,20 @@ const LibraryDashboard = ({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalTransactions}</div>
-            <p className="text-xs text-muted-foreground">
-              books borrowed & returned
-            </p>
+            <p className="text-xs text-muted-foreground">books borrowed & returned</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Current Activity
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Current Activity</CardTitle>
             <CalendarDays className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {userBorrowings.filter((b) => b.status === "Borrowed").length}
             </div>
-            <p className="text-xs text-muted-foreground">
-              books currently borrowed
-            </p>
+            <p className="text-xs text-muted-foreground">books currently borrowed</p>
           </CardContent>
         </Card>
       </div>
@@ -293,9 +262,7 @@ const LibraryDashboard = ({
                           >
                             {book.title}
                           </Link>
-                          <p className="text-sm text-muted-foreground truncate">
-                            {book.author}
-                          </p>
+                          <p className="text-sm text-muted-foreground truncate">{book.author}</p>
                         </div>
                       </li>
                     ))}
@@ -343,9 +310,7 @@ const LibraryDashboard = ({
                               variant="ghost"
                               size="sm"
                               className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
-                              onClick={() =>
-                                handleDeleteBorrowing(borrowing.id)
-                              }
+                              onClick={() => handleDeleteBorrowing(borrowing.id)}
                             >
                               <X className="h-3.5 w-3.5 text-muted-foreground hover:text-destructive" />
                             </Button>
@@ -360,10 +325,9 @@ const LibraryDashboard = ({
                             </Link>
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {formatDistanceToNow(
-                              new Date(borrowing.checkout_date),
-                              { addSuffix: true },
-                            )}
+                            {formatDistanceToNow(new Date(borrowing.checkout_date), {
+                              addSuffix: true,
+                            })}
                           </p>
                         </div>
                       </li>
@@ -395,10 +359,7 @@ const LibraryDashboard = ({
             <div className="divide-y">
               {recentBooks && recentBooks.length > 0 ? (
                 recentBooks.slice(0, 10).map((book) => (
-                  <div
-                    key={book.id}
-                    className="p-4 flex items-start hover:bg-muted/50"
-                  >
+                  <div key={book.id} className="p-4 flex items-start hover:bg-muted/50">
                     <div className="h-16 w-12 bg-secondary rounded overflow-hidden shrink-0">
                       {book.coverImage && (
                         <img
@@ -412,32 +373,26 @@ const LibraryDashboard = ({
                       <div className="flex items-start justify-between">
                         <div>
                           <h3 className="font-medium">
-                            <Link
-                              to={`/book/${book.id}`}
-                              className="hover:text-primary"
-                            >
+                            <Link to={`/book/${book.id}`} className="hover:text-primary">
                               {book.title}
                             </Link>
                           </h3>
-                          <p className="text-sm text-muted-foreground">
-                            {book.author}
-                          </p>
+                          <p className="text-sm text-muted-foreground">{book.author}</p>
                         </div>
                         <div className="flex items-center gap-3">
                           <span
-                            className={`rounded-full px-2 py-0.5 text-xs ${book.status === "Available"
-                              ? "bg-primary/10 text-primary"
-                              : "bg-secondary text-muted-foreground"
-                              }`}
+                            className={`rounded-full px-2 py-0.5 text-xs ${
+                              book.status === "Available"
+                                ? "bg-primary/10 text-primary"
+                                : "bg-secondary text-muted-foreground"
+                            }`}
                           >
                             {book.status}
                           </span>
                           <Button
                             size="sm"
                             onClick={() => onAddToCart(book)}
-                            disabled={
-                              book.stock <= 0 || book.status !== "Available"
-                            }
+                            disabled={book.stock <= 0 || book.status !== "Available"}
                             className="h-8"
                           >
                             <BookUp className="h-3.5 w-3.5 mr-1" />
@@ -449,24 +404,16 @@ const LibraryDashboard = ({
                         <div className="text-sm">
                           {book.category && (
                             <span className="text-muted-foreground mr-2">
-                              Genre:{" "}
-                              <span className="font-medium">
-                                {book.category}
-                              </span>
+                              Genre: <span className="font-medium">{book.category}</span>
                             </span>
                           )}
                           <span className="text-muted-foreground">
-                            ISBN:{" "}
-                            <span className="font-medium">
-                              {book.isbn || "N/A"}
-                            </span>
+                            ISBN: <span className="font-medium">{book.isbn || "N/A"}</span>
                           </span>
                         </div>
                         <div className="text-xs">
                           {book.stock > 0 && (
-                            <span className="text-muted-foreground">
-                              {book.stock} in stock
-                            </span>
+                            <span className="text-muted-foreground">{book.stock} in stock</span>
                           )}
                         </div>
                       </div>
@@ -534,12 +481,13 @@ const LibraryDashboard = ({
                           </div>
                           <div className="flex items-center gap-2">
                             <span
-                              className={`rounded-full px-2 py-0.5 text-xs ${isReturned
-                                ? "bg-muted text-muted-foreground"
-                                : borrowing.status === "Overdue"
-                                  ? "bg-destructive/10 text-destructive"
-                                  : "bg-primary/10 text-primary"
-                                }`}
+                              className={`rounded-full px-2 py-0.5 text-xs ${
+                                isReturned
+                                  ? "bg-muted text-muted-foreground"
+                                  : borrowing.status === "Overdue"
+                                    ? "bg-destructive/10 text-destructive"
+                                    : "bg-primary/10 text-primary"
+                              }`}
                             >
                               {borrowing.status}
                             </span>
@@ -547,9 +495,7 @@ const LibraryDashboard = ({
                               variant="ghost"
                               size="sm"
                               className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
-                              onClick={() =>
-                                handleDeleteBorrowing(borrowing.id)
-                              }
+                              onClick={() => handleDeleteBorrowing(borrowing.id)}
                             >
                               <X className="h-3.5 w-3.5 text-muted-foreground hover:text-destructive" />
                             </Button>
@@ -557,9 +503,7 @@ const LibraryDashboard = ({
                         </div>
                         <div className="mt-1 flex items-center justify-between">
                           <div className="text-sm">
-                            <span className="text-muted-foreground">
-                              Borrowed by:{" "}
-                            </span>
+                            <span className="text-muted-foreground">Borrowed by: </span>
                             <Link
                               to={`/members/${borrowing.member_id}`}
                               className="font-medium hover:text-primary"

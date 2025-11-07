@@ -33,18 +33,13 @@ const MemberFilters = ({
   onClearFilters,
 }: MemberFiltersProps) => {
   const hasActiveFilters =
-    statusFilter !== null ||
-    dateFilter !== "all" ||
-    booksFilter !== "all" ||
-    overdueFilter;
+    statusFilter !== null || dateFilter !== "all" || booksFilter !== "all" || overdueFilter;
 
   return (
     <div className="flex flex-wrap gap-2">
       <Select
         value={statusFilter || "all"}
-        onValueChange={(value) =>
-          onStatusChange(value === "all" ? null : (value as MemberStatus))
-        }
+        onValueChange={(value) => onStatusChange(value === "all" ? null : (value as MemberStatus))}
       >
         <SelectTrigger className="w-[140px]">
           <SelectValue placeholder="Status" />

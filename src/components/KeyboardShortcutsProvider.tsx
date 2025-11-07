@@ -25,7 +25,8 @@ export function useKeyboardShortcuts() {
 
 const KEYBOARD_SHORTCUTS = {
   "mod+k": { description: "Focus search", action: "focus-search" },
-  "mod+n": { description: "Add new book", action: "add-book" },
+  "mod+n": { description: "Add new book (Books page)", action: "add-book" },
+  n: { description: "Add new member (Members page)", action: "add-member" },
   "mod+/": { description: "Show keyboard shortcuts", action: "show-help" },
   escape: { description: "Close modal/dialog", action: "close-modal" },
   "mod+b": { description: "Go to books", action: "navigate-books" },
@@ -44,11 +45,7 @@ export function KeyboardShortcutsProvider({ children }: PropsWithChildren) {
 
       // Ignore if user is typing in an input/textarea
       const target = e.target as HTMLElement;
-      if (
-        target.tagName === "INPUT" ||
-        target.tagName === "TEXTAREA" ||
-        target.isContentEditable
-      ) {
+      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) {
         // Allow Escape to work even in inputs
         if (e.key !== "Escape") return;
       }
@@ -57,7 +54,7 @@ export function KeyboardShortcutsProvider({ children }: PropsWithChildren) {
       if (mod && e.key === "k") {
         e.preventDefault();
         const searchInput = document.querySelector(
-          'input[type="search"], input[placeholder*="Search" i]',
+          'input[type="search"], input[placeholder*="Search" i]'
         ) as HTMLInputElement;
         if (searchInput) {
           searchInput.focus();
@@ -69,11 +66,24 @@ export function KeyboardShortcutsProvider({ children }: PropsWithChildren) {
       if (mod && e.key === "n" && location.pathname === "/books") {
         e.preventDefault();
         const addButton = document.querySelector(
-          'button[aria-label*="Add" i]',
+          'button[aria-label*="Add" i]'
         ) as HTMLButtonElement;
         if (addButton) {
           addButton.click();
         }
+      }
+
+      // N (without mod): Add new member (only on members page, not in input)
+      if (
+        !mod &&
+        e.key === "n" &&
+        location.pathname === "/members" &&
+        target.tagName !== "INPUT" &&
+        target.tagName !== "TEXTAREA"
+      ) {
+        e.preventDefault();
+        // Dispatch custom event that Members page will listen to
+        window.dispatchEvent(new CustomEvent("add-member-shortcut"));
       }
 
       // Mod + /: Show keyboard shortcuts help
@@ -112,8 +122,7 @@ export function KeyboardShortcutsProvider({ children }: PropsWithChildren) {
   }, [navigate, location]);
 
   const isMac =
-    typeof window !== "undefined" &&
-    navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+    typeof window !== "undefined" && navigator.platform.toUpperCase().indexOf("MAC") >= 0;
   const modKey = isMac ? "⌘" : "Ctrl";
 
   return (
@@ -125,9 +134,7 @@ export function KeyboardShortcutsProvider({ children }: PropsWithChildren) {
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>Keyboard Shortcuts</DialogTitle>
-            <DialogDescription>
-              Use these shortcuts to navigate faster
-            </DialogDescription>
+            <DialogDescription>Use these shortcuts to navigate faster</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
@@ -138,10 +145,7 @@ export function KeyboardShortcutsProvider({ children }: PropsWithChildren) {
                 .map((k) => k.charAt(0).toUpperCase() + k.slice(1));
 
               return (
-                <div
-                  key={key}
-                  className="flex items-center justify-between py-2"
-                >
+                <div key={key} className="flex items-center justify-between py-2">
                   <span className="text-sm">{description}</span>
                   <div className="flex gap-1">
                     {displayKey.map((k, i) => (

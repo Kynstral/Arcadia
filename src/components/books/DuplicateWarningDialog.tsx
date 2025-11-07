@@ -47,8 +47,7 @@ export function DuplicateWarningDialog({
         <DialogHeader>
           <DialogTitle>Potential Duplicate Books Found</DialogTitle>
           <DialogDescription>
-            We found books that might be duplicates. Please review them before
-            proceeding.
+            We found books that might be duplicates. Please review them before proceeding.
           </DialogDescription>
         </DialogHeader>
 
@@ -58,9 +57,7 @@ export function DuplicateWarningDialog({
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <Badge variant="destructive">Exact ISBN Match</Badge>
-                <span className="text-sm text-muted-foreground">
-                  {exactISBN.length} book(s)
-                </span>
+                <span className="text-sm text-muted-foreground">{exactISBN.length} book(s)</span>
               </div>
               <div className="space-y-2">
                 {exactISBN.map((book) => (
@@ -76,21 +73,11 @@ export function DuplicateWarningDialog({
                       />
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-sm truncate">
-                        {book.title}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        by {book.author}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        ISBN: {book.isbn}
-                      </p>
+                      <p className="font-semibold text-sm truncate">{book.title}</p>
+                      <p className="text-xs text-muted-foreground">by {book.author}</p>
+                      <p className="text-xs text-muted-foreground">ISBN: {book.isbn}</p>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleViewBook(book.id)}
-                    >
+                    <Button variant="ghost" size="sm" onClick={() => handleViewBook(book.id)}>
                       <ExternalLink className="h-4 w-4" />
                     </Button>
                   </div>
@@ -104,16 +91,11 @@ export function DuplicateWarningDialog({
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <Badge variant="secondary">Similar Title</Badge>
-                <span className="text-sm text-muted-foreground">
-                  {similarTitle.length} book(s)
-                </span>
+                <span className="text-sm text-muted-foreground">{similarTitle.length} book(s)</span>
               </div>
               <div className="space-y-2">
                 {similarTitle.map((book) => (
-                  <div
-                    key={book.id}
-                    className="flex items-start gap-3 p-3 border rounded-lg"
-                  >
+                  <div key={book.id} className="flex items-start gap-3 p-3 border rounded-lg">
                     {book.coverImage && (
                       <img
                         src={book.coverImage}
@@ -122,21 +104,11 @@ export function DuplicateWarningDialog({
                       />
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-sm truncate">
-                        {book.title}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        by {book.author}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        ISBN: {book.isbn}
-                      </p>
+                      <p className="font-semibold text-sm truncate">{book.title}</p>
+                      <p className="text-xs text-muted-foreground">by {book.author}</p>
+                      <p className="text-xs text-muted-foreground">ISBN: {book.isbn}</p>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleViewBook(book.id)}
-                    >
+                    <Button variant="ghost" size="sm" onClick={() => handleViewBook(book.id)}>
                       <ExternalLink className="h-4 w-4" />
                     </Button>
                   </div>
@@ -156,10 +128,7 @@ export function DuplicateWarningDialog({
               </div>
               <div className="space-y-2">
                 {titleAndAuthor.map((book) => (
-                  <div
-                    key={book.id}
-                    className="flex items-start gap-3 p-3 border rounded-lg"
-                  >
+                  <div key={book.id} className="flex items-start gap-3 p-3 border rounded-lg">
                     {book.coverImage && (
                       <img
                         src={book.coverImage}
@@ -168,21 +137,11 @@ export function DuplicateWarningDialog({
                       />
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-sm truncate">
-                        {book.title}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        by {book.author}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        ISBN: {book.isbn}
-                      </p>
+                      <p className="font-semibold text-sm truncate">{book.title}</p>
+                      <p className="text-xs text-muted-foreground">by {book.author}</p>
+                      <p className="text-xs text-muted-foreground">ISBN: {book.isbn}</p>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleViewBook(book.id)}
-                    >
+                    <Button variant="ghost" size="sm" onClick={() => handleViewBook(book.id)}>
                       <ExternalLink className="h-4 w-4" />
                     </Button>
                   </div>
@@ -196,9 +155,7 @@ export function DuplicateWarningDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleProceed}>
-            Add Anyway (Not a Duplicate)
-          </Button>
+          <Button onClick={handleProceed}>Add Anyway (Not a Duplicate)</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

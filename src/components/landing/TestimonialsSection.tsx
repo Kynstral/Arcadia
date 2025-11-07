@@ -24,10 +24,7 @@ export const TestimonialsSection = () => {
   ];
 
   return (
-    <section
-      id="testimonials"
-      className="w-full py-16 md:py-24 lg:py-32 bg-background"
-    >
+    <section id="testimonials" className="w-full py-16 md:py-24 lg:py-32 bg-background">
       <div className="container px-4 md:px-6">
         <div className="flex flex-col items-center justify-center space-y-4 text-center max-w-3xl mx-auto mb-12">
           <div className="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold transition-colors border-transparent bg-secondary text-secondary-foreground w-fit">
@@ -35,12 +32,10 @@ export const TestimonialsSection = () => {
           </div>
           <div className="space-y-3">
             <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight">
-              Trusted by <span className="text-primary">Librarians</span>{" "}
-              Worldwide
+              Trusted by <span className="text-primary">Librarians</span> Worldwide
             </h2>
             <p className="text-muted-foreground text-lg leading-relaxed">
-              Hear what library professionals have to say about their experience
-              with Arcadia
+              Hear what library professionals have to say about their experience with Arcadia
             </p>
           </div>
         </div>
@@ -77,15 +72,11 @@ export const TestimonialsSection = () => {
               </div>
               <div className="flex items-center gap-4">
                 <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                  <span className="font-semibold text-primary">
-                    {testimonial.initials}
-                  </span>
+                  <span className="font-semibold text-primary">{testimonial.initials}</span>
                 </div>
                 <div>
                   <p className="font-semibold">{testimonial.name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {testimonial.role}
-                  </p>
+                  <p className="text-sm text-muted-foreground">{testimonial.role}</p>
                 </div>
               </div>
             </div>
@@ -98,12 +89,7 @@ export const TestimonialsSection = () => {
           </p>
           <div className="flex flex-wrap justify-center gap-8">
             {[1, 2, 3, 4, 5].map((num) => (
-              <img
-                key={num}
-                src={`/example_${num}.png`}
-                alt="Client logo"
-                className="h-12 w-12"
-              />
+              <img key={num} src={`/example_${num}.png`} alt="Client logo" className="h-12 w-12" />
             ))}
           </div>
         </div>

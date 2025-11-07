@@ -1,9 +1,9 @@
-import * as React from "react"
-import * as TabsPrimitive from "@radix-ui/react-tabs"
+import * as React from "react";
+import * as TabsPrimitive from "@radix-ui/react-tabs";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
-const Tabs = TabsPrimitive.Root
+const Tabs = TabsPrimitive.Root;
 
 const TabsList = React.forwardRef<
   React.ComponentRef<typeof TabsPrimitive.List>,
@@ -11,16 +11,13 @@ const TabsList = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <TabsPrimitive.List
     ref={ref}
-    className={cn(
-      "inline-flex items-center border-b-2 border-border",
-      className
-    )}
+    className={cn("inline-flex items-center border-b-2 border-border", className)}
     onKeyDown={(e) => {
-      if (e.key === 'Tab') {
+      if (e.key === "Tab") {
         e.preventDefault();
         const triggers = e.currentTarget.querySelectorAll('[role="tab"]');
         const currentIndex = Array.from(triggers).findIndex(
-          (trigger) => trigger.getAttribute('data-state') === 'active'
+          (trigger) => trigger.getAttribute("data-state") === "active"
         );
         const nextIndex = e.shiftKey
           ? (currentIndex - 1 + triggers.length) % triggers.length
@@ -30,8 +27,8 @@ const TabsList = React.forwardRef<
     }}
     {...props}
   />
-))
-TabsList.displayName = TabsPrimitive.List.displayName
+));
+TabsList.displayName = TabsPrimitive.List.displayName;
 
 const TabsTrigger = React.forwardRef<
   React.ComponentRef<typeof TabsPrimitive.Trigger>,
@@ -45,8 +42,8 @@ const TabsTrigger = React.forwardRef<
     )}
     {...props}
   />
-))
-TabsTrigger.displayName = TabsPrimitive.Trigger.displayName
+));
+TabsTrigger.displayName = TabsPrimitive.Trigger.displayName;
 
 const TabsContent = React.forwardRef<
   React.ComponentRef<typeof TabsPrimitive.Content>,
@@ -60,7 +57,7 @@ const TabsContent = React.forwardRef<
     )}
     {...props}
   />
-))
-TabsContent.displayName = TabsPrimitive.Content.displayName
+));
+TabsContent.displayName = TabsPrimitive.Content.displayName;
 
-export { Tabs, TabsList, TabsTrigger, TabsContent }
+export { Tabs, TabsList, TabsTrigger, TabsContent };

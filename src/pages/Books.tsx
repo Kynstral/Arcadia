@@ -44,12 +44,7 @@ import { Import } from "@/components/books/Import";
 import { Export } from "@/components/books/Export";
 import { PrintLabels } from "@/components/books/PrintLabels";
 import { deleteBook, bulkUpdateBooks } from "@/lib/data-service";
-import {
-  BookPagination,
-  BookStats,
-  BookEmptyState,
-  BookFilters,
-} from "@/components/books";
+import { BookPagination, BookStats, BookEmptyState, BookFilters } from "@/components/books";
 import { BulkEditModal, BulkEditData } from "@/components/books/BulkEditModal";
 import { BookCard } from "@/components/books/BookCard";
 import { AddBookModal } from "@/components/books/AddBookModal";
@@ -245,9 +240,7 @@ export default function BooksPage() {
   }, [books]);
 
   const uniqueYears = useMemo(() => {
-    return Array.from(new Set(books.map((book) => book.publicationYear))).sort(
-      (a, b) => b - a,
-    );
+    return Array.from(new Set(books.map((book) => book.publicationYear))).sort((a, b) => b - a);
   }, [books]);
 
   const deleteMutation = useMutation({
@@ -255,10 +248,8 @@ export default function BooksPage() {
       return await deleteBook(bookId, userId);
     },
     onSuccess: (deletedBookId: string) => {
-      queryClient.setQueryData(
-        ["books", userId, sorting],
-        (old: Book[] | undefined) =>
-          old ? old.filter((book) => book.id !== deletedBookId) : [],
+      queryClient.setQueryData(["books", userId, sorting], (old: Book[] | undefined) =>
+        old ? old.filter((book) => book.id !== deletedBookId) : []
       );
 
       toast({
@@ -269,8 +260,7 @@ export default function BooksPage() {
       setDeleteDialogOpen(false);
     },
     onError: (error: unknown) => {
-      const errorMessage =
-        error instanceof Error ? error.message : "An unknown error occurred";
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
 
       toast({
         variant: "destructive",
@@ -309,8 +299,7 @@ export default function BooksPage() {
       setSelectionMode(false);
     },
     onError: (error: unknown) => {
-      const errorMessage =
-        error instanceof Error ? error.message : "An unknown error occurred";
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
 
       toast({
         variant: "destructive",
@@ -320,11 +309,7 @@ export default function BooksPage() {
     },
   });
 
-  const handleInlineEdit = async (
-    bookId: string,
-    field: string,
-    value: any,
-  ) => {
+  const handleInlineEdit = async (bookId: string, field: string, value: any) => {
     try {
       const { error } = await supabase
         .from("books")
@@ -335,14 +320,8 @@ export default function BooksPage() {
       if (error) throw error;
 
       // Update local cache
-      queryClient.setQueryData(
-        ["books", userId, sorting],
-        (old: Book[] | undefined) =>
-          old
-            ? old.map((book) =>
-              book.id === bookId ? { ...book, [field]: value } : book,
-            )
-            : [],
+      queryClient.setQueryData(["books", userId, sorting], (old: Book[] | undefined) =>
+        old ? old.map((book) => (book.id === bookId ? { ...book, [field]: value } : book)) : []
       );
 
       toast({
@@ -385,9 +364,7 @@ export default function BooksPage() {
 
   const toggleBookSelection = (bookId: string) => {
     setSelectedBooks((prev) =>
-      prev.includes(bookId)
-        ? prev.filter((id) => id !== bookId)
-        : [...prev, bookId],
+      prev.includes(bookId) ? prev.filter((id) => id !== bookId) : [...prev, bookId]
     );
   };
 
@@ -414,8 +391,7 @@ export default function BooksPage() {
   const handleSort = (column: string) => {
     setSorting((prev) => ({
       column,
-      direction:
-        prev.column === column && prev.direction === "asc" ? "desc" : "asc",
+      direction: prev.column === column && prev.direction === "asc" ? "desc" : "asc",
     }));
   };
 
@@ -447,31 +423,14 @@ export default function BooksPage() {
         (book.description &&
           book.description.toLowerCase().includes(debouncedSearchQuery.toLowerCase()));
 
-      const matchesCategory =
-        categoryFilter === "all" || book.category === categoryFilter;
-      const matchesPublisher =
-        publisherFilter === "all" || book.publisher === publisherFilter;
-      const matchesYear =
-        yearFilter === "all" || book.publicationYear.toString() === yearFilter;
-      const matchesStatus =
-        statusFilter === "all" || book.status === statusFilter;
+      const matchesCategory = categoryFilter === "all" || book.category === categoryFilter;
+      const matchesPublisher = publisherFilter === "all" || book.publisher === publisherFilter;
+      const matchesYear = yearFilter === "all" || book.publicationYear.toString() === yearFilter;
+      const matchesStatus = statusFilter === "all" || book.status === statusFilter;
 
-      return (
-        matchesSearch &&
-        matchesCategory &&
-        matchesPublisher &&
-        matchesYear &&
-        matchesStatus
-      );
+      return matchesSearch && matchesCategory && matchesPublisher && matchesYear && matchesStatus;
     });
-  }, [
-    books,
-    debouncedSearchQuery,
-    categoryFilter,
-    publisherFilter,
-    yearFilter,
-    statusFilter,
-  ]);
+  }, [books, debouncedSearchQuery, categoryFilter, publisherFilter, yearFilter, statusFilter]);
 
   // Pagination calculations
   const totalPages = Math.ceil(filteredBooks.length / itemsPerPage);
@@ -560,11 +519,7 @@ export default function BooksPage() {
             <span className="sm:hidden">I/E</span>
           </Button>
 
-          <Button
-            onClick={handleAddNew}
-            size="sm"
-            className="whitespace-nowrap"
-          >
+          <Button onClick={handleAddNew} size="sm" className="whitespace-nowrap">
             <PlusCircle className="mr-2 h-4 w-4" />
             <span className="hidden sm:inline">Add Book</span>
             <span className="sm:hidden">Add</span>
@@ -644,15 +599,9 @@ export default function BooksPage() {
 
       {selectionMode && selectedBooks.length > 0 && (
         <div className="flex items-center gap-2 mt-2 p-2 bg-muted rounded-md">
-          <span className="text-sm font-medium">
-            {selectedBooks.length} items selected
-          </span>
+          <span className="text-sm font-medium">{selectedBooks.length} items selected</span>
           <div className="flex-1"></div>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => setBulkEditDialogOpen(true)}
-          >
+          <Button variant="secondary" size="sm" onClick={() => setBulkEditDialogOpen(true)}>
             <FileEdit className="h-4 w-4 mr-1" /> Bulk Edit
           </Button>
           <button
@@ -677,18 +626,14 @@ export default function BooksPage() {
                   <TableHead className="w-10">
                     <Checkbox
                       checked={
-                        selectedBooks.length === paginatedBooks.length &&
-                        paginatedBooks.length > 0
+                        selectedBooks.length === paginatedBooks.length && paginatedBooks.length > 0
                       }
                       onCheckedChange={selectAllBooks}
                     />
                   </TableHead>
                 )}
                 <TableHead className="w-10">Cover</TableHead>
-                <TableHead
-                  className="cursor-pointer"
-                  onClick={() => handleSort("title")}
-                >
+                <TableHead className="cursor-pointer" onClick={() => handleSort("title")}>
                   Title
                 </TableHead>
                 <TableHead
@@ -705,17 +650,11 @@ export default function BooksPage() {
                   Category {getSortIcon("category")}
                 </TableHead>
                 {userRole !== "library" && (
-                  <TableHead
-                    className="cursor-pointer"
-                    onClick={() => handleSort("price")}
-                  >
+                  <TableHead className="cursor-pointer" onClick={() => handleSort("price")}>
                     Price {getSortIcon("price")}
                   </TableHead>
                 )}
-                <TableHead
-                  className="cursor-pointer"
-                  onClick={() => handleSort("stock")}
-                >
+                <TableHead className="cursor-pointer" onClick={() => handleSort("stock")}>
                   Stock {getSortIcon("stock")}
                 </TableHead>
                 <TableHead>Actions</TableHead>
@@ -773,19 +712,11 @@ export default function BooksPage() {
                     </TableCell>
                     <TableCell>
                       <div className="font-medium">{book.title}</div>
-                      <div className="text-sm text-muted-foreground md:hidden">
-                        {book.author}
-                      </div>
+                      <div className="text-sm text-muted-foreground md:hidden">{book.author}</div>
                     </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      {book.author}
-                    </TableCell>
-                    <TableCell className="hidden lg:table-cell">
-                      {book.isbn}
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      {book.category}
-                    </TableCell>
+                    <TableCell className="hidden md:table-cell">{book.author}</TableCell>
+                    <TableCell className="hidden lg:table-cell">{book.isbn}</TableCell>
+                    <TableCell className="hidden md:table-cell">{book.category}</TableCell>
                     {userRole !== "library" && (
                       <TableCell>
                         <InlineEditCell
@@ -914,10 +845,7 @@ export default function BooksPage() {
         </DialogContent>
       </Dialog>
 
-      <Dialog
-        open={importExportDialogOpen}
-        onOpenChange={setImportExportDialogOpen}
-      >
+      <Dialog open={importExportDialogOpen} onOpenChange={setImportExportDialogOpen}>
         <DialogContent className="sm:max-w-[800px]">
           <DialogHeader>
             <DialogTitle>Import/Export Books</DialogTitle>
@@ -938,14 +866,10 @@ export default function BooksPage() {
               <Import />
             </TabsContent>
             <TabsContent value="export">
-              <Export
-                selectedBooks={selectionMode ? selectedBooks : undefined}
-              />
+              <Export selectedBooks={selectionMode ? selectedBooks : undefined} />
             </TabsContent>
             <TabsContent value="print">
-              <PrintLabels
-                selectedBooks={selectionMode ? selectedBooks : undefined}
-              />
+              <PrintLabels selectedBooks={selectionMode ? selectedBooks : undefined} />
             </TabsContent>
           </Tabs>
         </DialogContent>

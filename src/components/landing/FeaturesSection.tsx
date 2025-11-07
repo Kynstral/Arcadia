@@ -10,13 +10,11 @@ export const FeaturesSection = () => {
           </div>
           <div className="space-y-3">
             <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight">
-              Everything You Need to{" "}
-              <span className="text-primary">Transform</span> Your Library
+              Everything You Need to <span className="text-primary">Transform</span> Your Library
             </h2>
             <p className="text-muted-foreground text-lg md:text-xl leading-relaxed">
-              Our platform provides a comprehensive set of tools to streamline
-              library operations and enhance the experience for both staff and
-              patrons.
+              Our platform provides a comprehensive set of tools to streamline library operations
+              and enhance the experience for both staff and patrons.
             </p>
           </div>
         </div>
@@ -31,9 +29,8 @@ export const FeaturesSection = () => {
                 Smart Cataloging
               </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Easily manage your collection with powerful cataloging features
-                including bulk imports, custom fields, and automatic metadata
-                retrieval.
+                Easily manage your collection with powerful cataloging features including bulk
+                imports, custom fields, and automatic metadata retrieval.
               </p>
             </div>
           </div>
@@ -47,9 +44,8 @@ export const FeaturesSection = () => {
                 Member Management
               </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Keep track of members, manage subscriptions, and customize
-                access privileges with an intuitive and powerful management
-                system.
+                Keep track of members, manage subscriptions, and customize access privileges with an
+                intuitive and powerful management system.
               </p>
             </div>
           </div>
@@ -63,9 +59,8 @@ export const FeaturesSection = () => {
                 Advanced Search
               </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Powerful search capabilities with filters and suggestions make
-                finding any item in your collection fast and intuitive for both
-                staff and patrons.
+                Powerful search capabilities with filters and suggestions make finding any item in
+                your collection fast and intuitive for both staff and patrons.
               </p>
             </div>
           </div>
@@ -79,9 +74,8 @@ export const FeaturesSection = () => {
                 Real-time Analytics
               </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Get actionable insights into library usage, popular items, and
-                member activity with detailed customizable reports and
-                dashboards.
+                Get actionable insights into library usage, popular items, and member activity with
+                detailed customizable reports and dashboards.
               </p>
             </div>
           </div>
@@ -95,9 +89,8 @@ export const FeaturesSection = () => {
                 Checkout System
               </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Streamline the checkout process with automated due date
-                calculations, self-checkout options, and flexible renewal
-                settings.
+                Streamline the checkout process with automated due date calculations, self-checkout
+                options, and flexible renewal settings.
               </p>
             </div>
           </div>
@@ -126,9 +119,8 @@ export const FeaturesSection = () => {
                 Notifications & Reminders
               </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Automatically send due date reminders, overdue notices, and
-                availability notifications through email, SMS, or in-app
-                messages.
+                Automatically send due date reminders, overdue notices, and availability
+                notifications through email, SMS, or in-app messages.
               </p>
             </div>
           </div>

@@ -2,11 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Eye, FileEdit, Trash2 } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Book } from "@/lib/types";
 import { FavoriteButton } from "./FavoriteButton";
 
@@ -33,8 +29,9 @@ export function BookCard({
 
   return (
     <Card
-      className={`h-[300px] relative group transition-all ${isSelected ? "ring-2 ring-primary ring-offset-2" : ""
-        } ${selectionMode ? "cursor-pointer" : ""}`}
+      className={`h-[300px] relative group transition-all ${
+        isSelected ? "ring-2 ring-primary ring-offset-2" : ""
+      } ${selectionMode ? "cursor-pointer" : ""}`}
       onClick={() => {
         if (selectionMode) {
           onToggleSelection(book.id);
@@ -100,12 +97,8 @@ export function BookCard({
 
         {/* Compact overlay - shows by default */}
         <div className="absolute bottom-0 left-0 right-0 bg-card/70 backdrop-blur-sm border-t p-2 transition-all duration-300 ease-in-out group-hover:bg-card/90 group-hover:p-3">
-          <h3 className="font-medium text-sm line-clamp-1 text-foreground">
-            {book.title}
-          </h3>
-          <p className="text-xs text-muted-foreground line-clamp-1">
-            {book.author}
-          </p>
+          <h3 className="font-medium text-sm line-clamp-1 text-foreground">{book.title}</h3>
+          <p className="text-xs text-muted-foreground line-clamp-1">{book.author}</p>
 
           <div className="flex items-center justify-between mt-1 gap-2">
             {/* Show status badge if not available, otherwise show stock */}
@@ -115,12 +108,13 @@ export function BookCard({
               </span>
             ) : (
               <span
-                className={`px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${book.stock <= 0
-                  ? "bg-destructive text-destructive-foreground"
-                  : book.stock < 5
-                    ? "bg-yellow-500 text-white"
-                    : "bg-secondary text-secondary-foreground"
-                  }`}
+                className={`px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${
+                  book.stock <= 0
+                    ? "bg-destructive text-destructive-foreground"
+                    : book.stock < 5
+                      ? "bg-yellow-500 text-white"
+                      : "bg-secondary text-secondary-foreground"
+                }`}
               >
                 {book.stock} in stock
               </span>

@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Upload, FileText, AlertCircle, CheckCircle2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Progress } from "@/components/ui/progress";
 
 interface ImportProps {
   open: boolean;
@@ -28,13 +29,12 @@ interface ImportResult {
 
 const Import = ({ open, onOpenChange, onSuccess, userId }: ImportProps) => {
   const [importing, setImporting] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<ImportResult | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  const handleFileSelect = async (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -49,6 +49,7 @@ const Import = ({ open, onOpenChange, onSuccess, userId }: ImportProps) => {
 
     setImporting(true);
     setResult(null);
+    setProgress(0);
 
     try {
       const text = await file.text();
@@ -56,14 +57,10 @@ const Import = ({ open, onOpenChange, onSuccess, userId }: ImportProps) => {
       const headers = lines[0].split(",").map((h) => h.trim().toLowerCase());
 
       const requiredHeaders = ["name", "email"];
-      const missingHeaders = requiredHeaders.filter(
-        (h) => !headers.includes(h),
-      );
+      const missingHeaders = requiredHeaders.filter((h) => !headers.includes(h));
 
       if (missingHeaders.length > 0) {
-        throw new Error(
-          `Missing required columns: ${missingHeaders.join(", ")}`,
-        );
+        throw new Error(`Missing required columns: ${missingHeaders.join(", ")}`);
       }
 
       const importResult: ImportResult = {
@@ -71,6 +68,8 @@ const Import = ({ open, onOpenChange, onSuccess, userId }: ImportProps) => {
         failed: 0,
         errors: [],
       };
+
+      const totalRows = lines.length - 1; // Exclude header row
 
       for (let i = 1; i < lines.length; i++) {
         const values = lines[i].split(",").map((v) => v.trim());
@@ -82,9 +81,7 @@ const Import = ({ open, onOpenChange, onSuccess, userId }: ImportProps) => {
 
         if (!member.name || !member.email) {
           importResult.failed++;
-          importResult.errors.push(
-            `Row ${i + 1}: Missing name or email`,
-          );
+          importResult.errors.push(`Row ${i + 1}: Missing name or email`);
           continue;
         }
 
@@ -105,9 +102,12 @@ const Import = ({ open, onOpenChange, onSuccess, userId }: ImportProps) => {
         } catch (error) {
           importResult.failed++;
           importResult.errors.push(
-            `Row ${i + 1}: ${error instanceof Error ? error.message : "Unknown error"}`,
+            `Row ${i + 1}: ${error instanceof Error ? error.message : "Unknown error"}`
           );
         }
+
+        // Update progress
+        setProgress(Math.round((i / totalRows) * 100));
       }
 
       setResult(importResult);
@@ -123,8 +123,7 @@ const Import = ({ open, onOpenChange, onSuccess, userId }: ImportProps) => {
       toast({
         variant: "destructive",
         title: "Import failed",
-        description:
-          error instanceof Error ? error.message : "Unknown error occurred",
+        description: error instanceof Error ? error.message : "Unknown error occurred",
       });
     } finally {
       setImporting(false);
@@ -135,7 +134,8 @@ const Import = ({ open, onOpenChange, onSuccess, userId }: ImportProps) => {
   };
 
   const downloadTemplate = () => {
-    const template = "name,email,phone,address,status\nJohn Doe,john@example.com,+1234567890,123 Main St,Active";
+    const template =
+      "Name,Email,Phone,Address,Status\nJohn Doe,john@example.com,+1 (555) 123-4567,123 Main St,Active";
     const blob = new Blob([template], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -159,16 +159,14 @@ const Import = ({ open, onOpenChange, onSuccess, userId }: ImportProps) => {
           <Alert>
             <FileText className="h-4 w-4" />
             <AlertDescription>
-              CSV file must include: <strong>name</strong> and{" "}
-              <strong>email</strong>. Optional: phone, address, status
+              CSV file must include: <strong>Name</strong> and <strong>Email</strong>. Optional:
+              Phone, Address, Status
             </AlertDescription>
           </Alert>
 
           <div className="flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-8 text-center">
             <Upload className="h-12 w-12 text-muted-foreground mb-4" />
-            <p className="text-sm text-muted-foreground mb-4">
-              Click to upload or drag and drop
-            </p>
+            <p className="text-sm text-muted-foreground mb-4">Click to upload or drag and drop</p>
             <input
               ref={fileInputRef}
               type="file"
@@ -185,6 +183,16 @@ const Import = ({ open, onOpenChange, onSuccess, userId }: ImportProps) => {
               {importing ? "Importing..." : "Select CSV File"}
             </Button>
           </div>
+
+          {importing && (
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm text-muted-foreground">
+                <span>Importing members...</span>
+                <span>{progress}%</span>
+              </div>
+              <Progress value={progress} className="h-2" />
+            </div>
+          )}
 
           {result && (
             <div className="space-y-2">
@@ -206,17 +214,13 @@ const Import = ({ open, onOpenChange, onSuccess, userId }: ImportProps) => {
                     {result.failed !== 1 ? "s" : ""}
                     {result.errors.length > 0 && (
                       <details className="mt-2">
-                        <summary className="cursor-pointer">
-                          View errors
-                        </summary>
+                        <summary className="cursor-pointer">View errors</summary>
                         <ul className="mt-2 text-xs space-y-1">
                           {result.errors.slice(0, 5).map((error, i) => (
                             <li key={i}>{error}</li>
                           ))}
                           {result.errors.length > 5 && (
-                            <li>
-                              ... and {result.errors.length - 5} more errors
-                            </li>
+                            <li>... and {result.errors.length - 5} more errors</li>
                           )}
                         </ul>
                       </details>

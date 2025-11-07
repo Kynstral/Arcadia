@@ -30,13 +30,10 @@ export function BookStats({
           <span>No books in your library</span>
         ) : (
           <span>
-            Showing {startIndex + 1}-{Math.min(endIndex, filteredCount)} of{" "}
-            {filteredCount} {filteredCount === 1 ? "book" : "books"}
+            Showing {startIndex + 1}-{Math.min(endIndex, filteredCount)} of {filteredCount}{" "}
+            {filteredCount === 1 ? "book" : "books"}
             {filteredCount !== totalBooks && (
-              <span className="text-primary">
-                {" "}
-                (filtered from {totalBooks} total)
-              </span>
+              <span className="text-primary"> (filtered from {totalBooks} total)</span>
             )}
           </span>
         )}

@@ -50,7 +50,7 @@ export function useFavorites(bookId: string) {
         if (error) throw error;
       } else {
         // Add to favorites
-        const { error} = await favoritesClient
+        const { error } = await favoritesClient
           .from("favorites")
           .insert({ user_id: user.id, book_id: bookId });
 
@@ -93,7 +93,8 @@ export function useUserFavorites() {
 
       const { data, error } = await favoritesClient
         .from("favorites")
-        .select(`
+        .select(
+          `
           id,
           book_id,
           created_at,
@@ -120,7 +121,8 @@ export function useUserFavorites() {
             created_at,
             updated_at
           )
-        `)
+        `
+        )
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 

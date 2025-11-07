@@ -2,13 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import {
-  BrowserRouter,
-  Navigate,
-  Route,
-  Routes,
-  useLocation,
-} from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { ThemeProvider } from "@/lib/theme-provider";
 import { AuthStatusProvider, useAuth } from "./components/AuthStatusProvider";
 import { ScrollbarStyles } from "@/components/ScrollbarStyles.tsx";
@@ -28,7 +22,6 @@ const Catalog = lazy(() => import("./pages/Catalog"));
 const Books = lazy(() => import("./pages/Books"));
 const BookDetail = lazy(() => import("./pages/BookDetail"));
 const Members = lazy(() => import("./pages/Members"));
-const EditMember = lazy(() => import("./pages/EditMember"));
 const BookCirculation = lazy(() => import("./pages/BookCirculation.tsx"));
 const Checkout = lazy(() => import("./pages/Checkout.tsx"));
 const Transactions = lazy(() => import("./pages/Transactions.tsx"));
@@ -157,14 +150,6 @@ const App = () => (
                       element={
                         <ProtectedRoute>
                           <Members />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/members/edit/:id"
-                      element={
-                        <ProtectedRoute>
-                          <EditMember />
                         </ProtectedRoute>
                       }
                     />

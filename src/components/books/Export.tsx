@@ -43,16 +43,14 @@ export function Export({ selectedBooks }: EnhancedExportProps) {
   const [isExporting, setIsExporting] = useState(false);
   const [format, setFormat] = useState<"csv" | "json" | "excel">("csv");
   const [selectedFields, setSelectedFields] = useState<string[]>(
-    EXPORT_FIELDS.filter((f) => f.default).map((f) => f.id),
+    EXPORT_FIELDS.filter((f) => f.default).map((f) => f.id)
   );
   const { toast } = useToast();
   const { user } = useAuth();
 
   const toggleField = (fieldId: string) => {
     setSelectedFields((prev) =>
-      prev.includes(fieldId)
-        ? prev.filter((id) => id !== fieldId)
-        : [...prev, fieldId],
+      prev.includes(fieldId) ? prev.filter((id) => id !== fieldId) : [...prev, fieldId]
     );
   };
 
@@ -60,11 +58,7 @@ export function Export({ selectedBooks }: EnhancedExportProps) {
     try {
       setIsExporting(true);
 
-      let query = supabase
-        .from("books")
-        .select("*")
-        .is("deleted_at", null)
-        .order("title");
+      let query = supabase.from("books").select("*").is("deleted_at", null).order("title");
 
       if (user) {
         query = query.eq("user_id", user.id);
@@ -100,9 +94,7 @@ export function Export({ selectedBooks }: EnhancedExportProps) {
       });
 
       const timestamp = new Date().toISOString().slice(0, 10);
-      const prefix = selectedBooks?.length
-        ? `selected_${selectedBooks.length}_books`
-        : "all_books";
+      const prefix = selectedBooks?.length ? `selected_${selectedBooks.length}_books` : "all_books";
 
       if (format === "csv") {
         exportAsCSV(filteredData, `${prefix}_${timestamp}.csv`);
@@ -136,7 +128,7 @@ export function Export({ selectedBooks }: EnhancedExportProps) {
           const value = String(row[field] || "");
           return `"${value.replace(/"/g, '""')}"`;
         })
-        .join(","),
+        .join(",")
     );
 
     const csvContent = [headers, ...rows].join("\n");
@@ -158,7 +150,7 @@ export function Export({ selectedBooks }: EnhancedExportProps) {
     const colWidths = selectedFields.map((field) => {
       const maxLength = Math.max(
         field.length,
-        ...data.map((row) => String(row[field] || "").length),
+        ...data.map((row) => String(row[field] || "").length)
       );
       return { wch: Math.min(maxLength + 2, maxWidth) };
     });
@@ -215,18 +207,13 @@ export function Export({ selectedBooks }: EnhancedExportProps) {
                   checked={selectedFields.includes(field.id)}
                   onCheckedChange={() => toggleField(field.id)}
                 />
-                <label
-                  htmlFor={field.id}
-                  className="text-sm cursor-pointer select-none"
-                >
+                <label htmlFor={field.id} className="text-sm cursor-pointer select-none">
                   {field.label}
                 </label>
               </div>
             ))}
           </div>
-          <p className="text-xs text-muted-foreground">
-            {selectedFields.length} field(s) selected
-          </p>
+          <p className="text-xs text-muted-foreground">{selectedFields.length} field(s) selected</p>
         </div>
 
         <Button

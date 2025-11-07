@@ -1,12 +1,5 @@
 import { useRef, useState } from "react";
-import {
-  AlertCircle,
-  CheckCircle2,
-  FileText,
-  Info,
-  RefreshCw,
-  Upload,
-} from "lucide-react";
+import { AlertCircle, CheckCircle2, FileText, Info, RefreshCw, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -74,9 +67,7 @@ const BulkBookImport = () => {
     }
   };
 
-  const validateCsvRow = (
-    row: CsvRow,
-  ): { valid: boolean; errors: string[] } => {
+  const validateCsvRow = (row: CsvRow): { valid: boolean; errors: string[] } => {
     const errors: string[] = [];
 
     if (!row.title) errors.push("Title is required");
@@ -148,9 +139,7 @@ const BulkBookImport = () => {
   const parseCsvFile = (text: string): CsvRow[] => {
     const rows = text.split("\n");
 
-    const headers = rows[0]
-      .split(",")
-      .map((header) => header.trim().toLowerCase());
+    const headers = rows[0].split(",").map((header) => header.trim().toLowerCase());
 
     const parsedRows: CsvRow[] = [];
 
@@ -172,7 +161,7 @@ const BulkBookImport = () => {
 
   const convertToBook = (
     row: CsvRow,
-    userId: string,
+    userId: string
   ): Omit<Book, "id" | "created_at" | "updated_at"> => {
     return {
       title: row.title,
@@ -308,10 +297,9 @@ const BulkBookImport = () => {
       <div className="flex items-center space-x-2">
         <Info size={16} className="text-muted-foreground" />
         <p className="text-sm text-muted-foreground">
-          CSV file should include columns: title, author, isbn, category,
-          publication_year, publisher (required fields) and can include:
-          description, price, status, stock, language, page_count, location,
-          cover_image, tags (optional fields).
+          CSV file should include columns: title, author, isbn, category, publication_year,
+          publisher (required fields) and can include: description, price, status, stock, language,
+          page_count, location, cover_image, tags (optional fields).
         </p>
       </div>
 
@@ -328,11 +316,7 @@ const BulkBookImport = () => {
         <p className="text-sm text-muted-foreground mb-4">
           or click the button below to select a file
         </p>
-        <Button
-          onClick={handleButtonClick}
-          disabled={isProcessing}
-          className="mx-auto"
-        >
+        <Button onClick={handleButtonClick} disabled={isProcessing} className="mx-auto">
           <FileText className="h-4 w-4 mr-2" />
           Select CSV File
         </Button>
@@ -351,9 +335,7 @@ const BulkBookImport = () => {
           <CardContent className="pt-6">
             <p className="text-sm font-medium mb-2">Importing books...</p>
             <Progress value={progress} className="h-2" />
-            <p className="text-xs text-muted-foreground mt-2">
-              {progress}% complete
-            </p>
+            <p className="text-xs text-muted-foreground mt-2">{progress}% complete</p>
           </CardContent>
         </Card>
       )}
@@ -372,17 +354,11 @@ const BulkBookImport = () => {
                 {results.failed > 0 && (
                   <div className="flex items-center">
                     <AlertCircle className="h-4 w-4 text-red-500 mr-2" />
-                    <p className="text-sm font-medium">
-                      {results.failed} books failed to import
-                    </p>
+                    <p className="text-sm font-medium">{results.failed} books failed to import</p>
                   </div>
                 )}
               </div>
-              <Button
-                onClick={refreshBookList}
-                variant="outline"
-                className="ml-4"
-              >
+              <Button onClick={refreshBookList} variant="outline" className="ml-4">
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Refresh Book List
               </Button>

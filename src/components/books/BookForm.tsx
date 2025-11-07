@@ -100,12 +100,7 @@ const bookStatuses: BookStatus[] = [
   "Out of Stock",
 ];
 
-const BookForm = ({
-  book,
-  onSuccess,
-  onCancel,
-  userRole = "bookstore",
-}: BookFormProps) => {
+const BookForm = ({ book, onSuccess, onCancel, userRole = "bookstore" }: BookFormProps) => {
   const [formData, setFormData] = useState({
     title: book?.title || "",
     author: book?.author || "",
@@ -137,9 +132,7 @@ const BookForm = ({
 
   // Removed auto-reset of price for libraries - they may need it for replacement costs
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
     setFormData((prev) => ({ ...prev, [id]: value }));
   };
@@ -207,7 +200,7 @@ const BookForm = ({
             title: formData.title,
             author: formData.author,
           },
-          book?.id,
+          book?.id
         );
 
         if (duplicates.hasDuplicates) {
@@ -237,10 +230,7 @@ const BookForm = ({
       };
 
       if (isEditing && book) {
-        const { error } = await supabase
-          .from("books")
-          .update(bookData)
-          .eq("id", book.id);
+        const { error } = await supabase.from("books").update(bookData).eq("id", book.id);
 
         if (error) {
           console.error("Update error:", error);
@@ -272,8 +262,7 @@ const BookForm = ({
       }, 10);
     } catch (error: unknown) {
       console.error("Form submission error:", error);
-      const errorMessage =
-        error instanceof Error ? error.message : "An unknown error occurred";
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
 
       toast({
         variant: "destructive",
@@ -299,34 +288,19 @@ const BookForm = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="title">Title *</Label>
-              <Input
-                id="title"
-                value={formData.title}
-                onChange={handleChange}
-                required
-              />
+              <Input id="title" value={formData.title} onChange={handleChange} required />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="author">Author *</Label>
-              <Input
-                id="author"
-                value={formData.author}
-                onChange={handleChange}
-                required
-              />
+              <Input id="author" value={formData.author} onChange={handleChange} required />
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="isbn">ISBN *</Label>
-              <Input
-                id="isbn"
-                value={formData.isbn}
-                onChange={handleChange}
-                required
-              />
+              <Input id="isbn" value={formData.isbn} onChange={handleChange} required />
             </div>
 
             <div className="space-y-2">
@@ -362,12 +336,7 @@ const BookForm = ({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="publisher">Publisher *</Label>
-              <Input
-                id="publisher"
-                value={formData.publisher}
-                onChange={handleChange}
-                required
-              />
+              <Input id="publisher" value={formData.publisher} onChange={handleChange} required />
             </div>
 
             <div className="space-y-2">
@@ -385,11 +354,7 @@ const BookForm = ({
 
             <div className="space-y-2">
               <Label htmlFor="language">Language</Label>
-              <Input
-                id="language"
-                value={formData.language}
-                onChange={handleChange}
-              />
+              <Input id="language" value={formData.language} onChange={handleChange} />
             </div>
           </div>
 
@@ -410,9 +375,7 @@ const BookForm = ({
                 placeholder={userRole === "library" ? "Optional" : "0.00"}
               />
               {userRole === "library" && (
-                <p className="text-xs text-secondary-text">
-                  For replacement costs and late fees
-                </p>
+                <p className="text-xs text-secondary-text">For replacement costs and late fees</p>
               )}
             </div>
 
@@ -489,20 +452,14 @@ const BookForm = ({
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
-                      target.src =
-                        "https://placehold.co/240x360/e2e8f0/64748b?text=No+Image";
+                      target.src = "https://placehold.co/240x360/e2e8f0/64748b?text=No+Image";
                     }}
                   />
                 </div>
               </div>
             )}
             <div className="flex justify-end gap-2 pt-6 pb-4 mt-8 px-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={safeCancel}
-                disabled={loading}
-              >
+              <Button type="button" variant="outline" onClick={safeCancel} disabled={loading}>
                 Cancel
               </Button>
               <Button type="submit" disabled={loading}>

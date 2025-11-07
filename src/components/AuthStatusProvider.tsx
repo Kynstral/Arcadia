@@ -22,11 +22,7 @@ const AuthContext = createContext<AuthContextType>({
 
 export const useAuth = () => useContext(AuthContext);
 
-export const AuthStatusProvider = ({
-  children,
-}: {
-  children: React.ReactNode;
-}) => {
+export const AuthStatusProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -57,22 +53,19 @@ export const AuthStatusProvider = ({
 
     getInitialSession();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      (event, newSession) => {
-        console.log("Auth state changed:", event);
-        setSession(newSession);
-        setUser(newSession?.user ?? null);
-        setUserId(newSession?.user?.id ?? null);
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, newSession) => {
+      setSession(newSession);
+      setUser(newSession?.user ?? null);
+      setUserId(newSession?.user?.id ?? null);
 
-        if (newSession?.user?.user_metadata?.role) {
-          setUserRole(newSession.user.user_metadata.role);
-        } else {
-          setUserRole(null);
-        }
+      if (newSession?.user?.user_metadata?.role) {
+        setUserRole(newSession.user.user_metadata.role);
+      } else {
+        setUserRole(null);
+      }
 
-        setLoading(false);
-      },
-    );
+      setLoading(false);
+    });
     return () => {
       authListener.subscription.unsubscribe();
     };

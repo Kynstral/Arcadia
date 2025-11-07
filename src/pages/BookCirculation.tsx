@@ -47,11 +47,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import MemberDetail from "@/components/members/MemberDetail";
 import { searchBooks } from "@/lib/data-service";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
 const BookCirculation = () => {
@@ -156,9 +152,7 @@ const BookCirculation = () => {
 
         if (error) throw error;
 
-        const uniqueCategories = [
-          ...new Set(data.map((book) => book.category)),
-        ].filter(Boolean);
+        const uniqueCategories = [...new Set(data.map((book) => book.category))].filter(Boolean);
         setCategories(uniqueCategories);
       } catch (error) {
         console.error("Error loading categories:", error);
@@ -266,9 +260,7 @@ const BookCirculation = () => {
 
       const filtered =
         selectedCategory !== "all"
-          ? books.filter(
-            (book) => book.category === selectedCategory && book.stock > 0,
-          )
+          ? books.filter((book) => book.category === selectedCategory && book.stock > 0)
           : books.filter((book) => book.stock > 0);
 
       setBookSearchResults(filtered || []);
@@ -306,9 +298,7 @@ const BookCirculation = () => {
         .from("members")
         .select("*")
         .eq("user_id", userId)
-        .or(
-          `name.ilike.%${query}%,email.ilike.%${query}%,phone.ilike.%${query}%`,
-        )
+        .or(`name.ilike.%${query}%,email.ilike.%${query}%,phone.ilike.%${query}%`)
         .order("name");
 
       if (error) throw error;
@@ -356,17 +346,13 @@ const BookCirculation = () => {
     if (!selectedBook || !selectedMember || !dueDate) {
       toast({
         title: "Missing Information",
-        description:
-          "Please select a book, member, and due date before checking out.",
+        description: "Please select a book, member, and due date before checking out.",
         variant: "destructive",
       });
       return;
     }
 
-    const alreadyBorrowed = await checkIfAlreadyBorrowed(
-      selectedBook.id,
-      selectedMember.id,
-    );
+    const alreadyBorrowed = await checkIfAlreadyBorrowed(selectedBook.id, selectedMember.id);
     if (alreadyBorrowed) {
       toast({
         title: "Already Borrowed",
@@ -406,16 +392,14 @@ const BookCirculation = () => {
 
       if (borrowError) throw borrowError;
 
-      const { error: transactionError } = await supabase
-        .from("checkout_transactions")
-        .insert({
-          customer_id: selectedMember.id,
-          status: "Completed",
-          payment_method: "Borrow",
-          total_amount: 0,
-          date: new Date().toISOString(),
-          user_id: userId,
-        });
+      const { error: transactionError } = await supabase.from("checkout_transactions").insert({
+        customer_id: selectedMember.id,
+        status: "Completed",
+        payment_method: "Borrow",
+        total_amount: 0,
+        date: new Date().toISOString(),
+        user_id: userId,
+      });
 
       if (transactionError) throw transactionError;
 
@@ -486,8 +470,7 @@ const BookCirculation = () => {
       console.error("Error during checkout:", error);
       toast({
         title: "Checkout Failed",
-        description:
-          error.message || "There was an error processing the checkout.",
+        description: error.message || "There was an error processing the checkout.",
         variant: "destructive",
       });
     } finally {
@@ -510,9 +493,7 @@ const BookCirculation = () => {
         .from("members")
         .select("*")
         .eq("user_id", userId)
-        .or(
-          `name.ilike.%${query}%,email.ilike.%${query}%,phone.ilike.%${query}%`,
-        )
+        .or(`name.ilike.%${query}%,email.ilike.%${query}%,phone.ilike.%${query}%`)
         .order("name");
 
       if (error) throw error;
@@ -607,23 +588,19 @@ const BookCirculation = () => {
 
       if (bookUpdateError) throw bookUpdateError;
 
-      const { error: transactionError } = await supabase
-        .from("checkout_transactions")
-        .insert({
-          customer_id: selectedCheckInMember.id,
-          status: "Completed",
-          payment_method: "Return",
-          total_amount: 0,
-          date: new Date().toISOString(),
+      const { error: transactionError } = await supabase.from("checkout_transactions").insert({
+        customer_id: selectedCheckInMember.id,
+        status: "Completed",
+        payment_method: "Return",
+        total_amount: 0,
+        date: new Date().toISOString(),
 
-          user_id: userId,
-        });
+        user_id: userId,
+      });
 
       if (transactionError) throw transactionError;
 
-      setMemberCheckouts((prev) =>
-        prev.filter((checkout) => checkout.id !== borrowingId),
-      );
+      setMemberCheckouts((prev) => prev.filter((checkout) => checkout.id !== borrowingId));
 
       toast({
         description: (
@@ -638,8 +615,7 @@ const BookCirculation = () => {
       console.error("Error checking in book:", error);
       toast({
         title: "Check-in Failed",
-        description:
-          error.message || "There was an error processing the check-in.",
+        description: error.message || "There was an error processing the check-in.",
         variant: "destructive",
       });
     } finally {
@@ -711,8 +687,7 @@ const BookCirculation = () => {
       console.error("Error sending reminder:", error);
       toast({
         title: "Reminder Failed",
-        description:
-          error.message || "There was an error sending the reminder.",
+        description: error.message || "There was an error sending the reminder.",
         variant: "destructive",
       });
     }
@@ -752,10 +727,8 @@ const BookCirculation = () => {
     return members.filter(
       (member) =>
         member.name.toLowerCase().includes(memberQuery.toLowerCase()) ||
-        (member.email &&
-          member.email.toLowerCase().includes(memberQuery.toLowerCase())) ||
-        (member.phone &&
-          member.phone.toLowerCase().includes(memberQuery.toLowerCase())),
+        (member.email && member.email.toLowerCase().includes(memberQuery.toLowerCase())) ||
+        (member.phone && member.phone.toLowerCase().includes(memberQuery.toLowerCase()))
     );
   };
 
@@ -789,8 +762,7 @@ const BookCirculation = () => {
       console.error("Error processing bulk returns:", error);
       toast({
         title: "Return Failed",
-        description:
-          "There was an error processing some returns. Please try again.",
+        description: "There was an error processing some returns. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -851,10 +823,7 @@ const BookCirculation = () => {
               <CardContent className="space-y-4">
                 <div className="flex items-center space-x-2">
                   <div className="flex-1 max-w-[calc(100%-190px)]">
-                    <Popover
-                      open={bookSearchOpen}
-                      onOpenChange={setBookSearchOpen}
-                    >
+                    <Popover open={bookSearchOpen} onOpenChange={setBookSearchOpen}>
                       <PopoverTrigger asChild>
                         <Button
                           variant="outline"
@@ -864,9 +833,7 @@ const BookCirculation = () => {
                         >
                           <div className="flex-1 overflow-hidden">
                             <span className="block truncate text-left">
-                              {bookSearchQuery
-                                ? bookSearchQuery
-                                : "Search for a book..."}
+                              {bookSearchQuery ? bookSearchQuery : "Search for a book..."}
                             </span>
                           </div>
                           <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -923,12 +890,9 @@ const BookCirculation = () => {
                                             )}
                                           </div>
                                           <div className="flex-1 overflow-hidden">
-                                            <p className="truncate font-medium">
-                                              {book.title}
-                                            </p>
+                                            <p className="truncate font-medium">{book.title}</p>
                                             <p className="text-sm text-muted-foreground truncate">
-                                              by {book.author} • {book.stock}{" "}
-                                              available
+                                              by {book.author} • {book.stock} available
                                             </p>
                                           </div>
                                         </div>
@@ -971,9 +935,7 @@ const BookCirculation = () => {
                 {isLoadingCategoryBooks && page === 1 ? (
                   <div className="text-center py-6">
                     <Loader2 className="h-6 w-6 animate-spin mx-auto" />
-                    <p className="text-sm text-muted-foreground mt-2">
-                      Loading books...
-                    </p>
+                    <p className="text-sm text-muted-foreground mt-2">Loading books...</p>
                   </div>
                 ) : (
                   <>
@@ -982,12 +944,10 @@ const BookCirculation = () => {
                       bookSearchResults.length === 0 && (
                         <div className="text-center py-8 border rounded-md bg-muted/10">
                           <BookIcon className="h-12 w-12 mx-auto text-muted-foreground" />
-                          <h3 className="mt-2 font-medium">
-                            No Books Selected
-                          </h3>
+                          <h3 className="mt-2 font-medium">No Books Selected</h3>
                           <p className="text-sm text-muted-foreground mt-1 max-w-md mx-auto">
-                            Search for a book by title or author, or select a
-                            category from the dropdown to view available books.
+                            Search for a book by title or author, or select a category from the
+                            dropdown to view available books.
                           </p>
                         </div>
                       )}
@@ -1019,9 +979,7 @@ const BookCirculation = () => {
                                     )}
                                   </div>
                                   <div className="flex-1 min-w-0">
-                                    <div className="font-medium truncate">
-                                      {book.title}
-                                    </div>
+                                    <div className="font-medium truncate">{book.title}</div>
                                     <div className="text-sm text-muted-foreground truncate">
                                       {book.author}
                                     </div>
@@ -1071,23 +1029,15 @@ const BookCirculation = () => {
                               )}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <h3 className="font-medium text-lg truncate">
-                                {selectedBook.title}
-                              </h3>
+                              <h3 className="font-medium text-lg truncate">{selectedBook.title}</h3>
                               <p className="text-muted-foreground truncate">
                                 by {selectedBook.author}
                               </p>
                               <div className="flex gap-2 mt-2 flex-wrap">
-                                <Badge variant="outline">
-                                  ISBN: {selectedBook.isbn}
-                                </Badge>
-                                <Badge variant="outline">
-                                  {selectedBook.stock} available
-                                </Badge>
+                                <Badge variant="outline">ISBN: {selectedBook.isbn}</Badge>
+                                <Badge variant="outline">{selectedBook.stock} available</Badge>
                                 {selectedBook.category && (
-                                  <Badge variant="secondary">
-                                    {selectedBook.category}
-                                  </Badge>
+                                  <Badge variant="secondary">{selectedBook.category}</Badge>
                                 )}
                               </div>
                             </div>
@@ -1111,18 +1061,13 @@ const BookCirculation = () => {
             <Card>
               <CardHeader>
                 <CardTitle>Checkout Information</CardTitle>
-                <CardDescription>
-                  Select a member and set a due date
-                </CardDescription>
+                <CardDescription>Select a member and set a due date</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="memberSearch">Member</Label>
-                    <Popover
-                      open={memberSearchOpen}
-                      onOpenChange={setMemberSearchOpen}
-                    >
+                    <Popover open={memberSearchOpen} onOpenChange={setMemberSearchOpen}>
                       <PopoverTrigger asChild>
                         <Button
                           id="memberSearch"
@@ -1132,9 +1077,7 @@ const BookCirculation = () => {
                           className="justify-between w-full"
                         >
                           <span className="truncate">
-                            {memberSearchQuery
-                              ? memberSearchQuery
-                              : "Search for a member..."}
+                            {memberSearchQuery ? memberSearchQuery : "Search for a member..."}
                           </span>
                           <User className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
@@ -1174,9 +1117,7 @@ const BookCirculation = () => {
                                     {memberSearchResults.map((member) => (
                                       <div
                                         key={member.id}
-                                        onClick={() =>
-                                          handleMemberSelect(member)
-                                        }
+                                        onClick={() => handleMemberSelect(member)}
                                         className="relative flex cursor-default select-none items-center rounded-sm p-2 text-sm outline-hidden hover:bg-slate-100 data-disabled:pointer-events-none data-disabled:opacity-50 dark:hover:bg-slate-800"
                                       >
                                         <div className="flex items-center gap-2 w-full">
@@ -1184,13 +1125,9 @@ const BookCirculation = () => {
                                             <User className="h-4 w-4 text-muted-foreground" />
                                           </div>
                                           <div className="flex-1 min-w-0">
-                                            <p className="font-medium truncate">
-                                              {member.name}
-                                            </p>
+                                            <p className="font-medium truncate">{member.name}</p>
                                             <p className="text-sm text-muted-foreground truncate">
-                                              {member.email}{" "}
-                                              {member.phone &&
-                                                `• ${member.phone}`}
+                                              {member.email} {member.phone && `• ${member.phone}`}
                                             </p>
                                           </div>
                                         </div>
@@ -1210,13 +1147,10 @@ const BookCirculation = () => {
                     <div className="p-3 rounded-md bg-secondary">
                       <div className="flex justify-between">
                         <div className="min-w-0 flex-1">
-                          <h3 className="font-medium truncate">
-                            {selectedMember.name}
-                          </h3>
+                          <h3 className="font-medium truncate">{selectedMember.name}</h3>
                           <p className="text-sm text-muted-foreground truncate">
                             {selectedMember.email}
-                            {selectedMember.phone &&
-                              ` • ${selectedMember.phone}`}
+                            {selectedMember.phone && ` • ${selectedMember.phone}`}
                           </p>
                           <Badge
                             className={cn(
@@ -1225,7 +1159,7 @@ const BookCirculation = () => {
                                 ? "bg-emerald-100 text-emerald-800"
                                 : selectedMember.status === "Inactive"
                                   ? "bg-zinc-100 text-zinc-800"
-                                  : "bg-amber-100 text-amber-800",
+                                  : "bg-amber-100 text-amber-800"
                             )}
                           >
                             {selectedMember.status}
@@ -1252,12 +1186,10 @@ const BookCirculation = () => {
                     <div className="grid grid-cols-2 gap-2">
                       <Button
                         type="button"
-                        variant={
-                          dueDateOption === "15days" ? "default" : "outline"
-                        }
+                        variant={dueDateOption === "15days" ? "default" : "outline"}
                         className={cn(
                           "flex items-center justify-center",
-                          dueDateOption === "15days" && "relative font-medium",
+                          dueDateOption === "15days" && "relative font-medium"
                         )}
                         onClick={() => setDueDateOption("15days")}
                       >
@@ -1270,12 +1202,10 @@ const BookCirculation = () => {
                       </Button>
                       <Button
                         type="button"
-                        variant={
-                          dueDateOption === "20days" ? "default" : "outline"
-                        }
+                        variant={dueDateOption === "20days" ? "default" : "outline"}
                         className={cn(
                           "flex items-center justify-center",
-                          dueDateOption === "20days" && "relative font-medium",
+                          dueDateOption === "20days" && "relative font-medium"
                         )}
                         onClick={() => setDueDateOption("20days")}
                       >
@@ -1288,12 +1218,10 @@ const BookCirculation = () => {
                       </Button>
                       <Button
                         type="button"
-                        variant={
-                          dueDateOption === "30days" ? "default" : "outline"
-                        }
+                        variant={dueDateOption === "30days" ? "default" : "outline"}
                         className={cn(
                           "flex items-center justify-center",
-                          dueDateOption === "30days" && "relative font-medium",
+                          dueDateOption === "30days" && "relative font-medium"
                         )}
                         onClick={() => setDueDateOption("30days")}
                       >
@@ -1306,12 +1234,10 @@ const BookCirculation = () => {
                       </Button>
                       <Button
                         type="button"
-                        variant={
-                          dueDateOption === "custom" ? "default" : "outline"
-                        }
+                        variant={dueDateOption === "custom" ? "default" : "outline"}
                         className={cn(
                           "flex items-center justify-center",
-                          dueDateOption === "custom" && "relative font-medium",
+                          dueDateOption === "custom" && "relative font-medium"
                         )}
                         onClick={() => setDueDateOption("custom")}
                       >
@@ -1356,12 +1282,7 @@ const BookCirculation = () => {
                 <Button
                   className="w-full"
                   onClick={handleCheckout}
-                  disabled={
-                    !selectedBook ||
-                    !selectedMember ||
-                    !dueDate ||
-                    isCheckingOut
-                  }
+                  disabled={!selectedBook || !selectedMember || !dueDate || isCheckingOut}
                 >
                   {isCheckingOut ? (
                     <>
@@ -1384,17 +1305,12 @@ const BookCirculation = () => {
           <Card>
             <CardHeader>
               <CardTitle>Check In Books</CardTitle>
-              <CardDescription>
-                Return books and update library records
-              </CardDescription>
+              <CardDescription>Return books and update library records</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-4">
                 <Label htmlFor="checkInMember">Select Member</Label>
-                <Popover
-                  open={checkInMemberOpen}
-                  onOpenChange={setCheckInMemberOpen}
-                >
+                <Popover open={checkInMemberOpen} onOpenChange={setCheckInMemberOpen}>
                   <PopoverTrigger asChild>
                     <Button
                       id="checkInMember"
@@ -1404,9 +1320,7 @@ const BookCirculation = () => {
                       className="justify-between w-full"
                     >
                       <span className="truncate">
-                        {checkInMemberQuery
-                          ? checkInMemberQuery
-                          : "Search for a member..."}
+                        {checkInMemberQuery ? checkInMemberQuery : "Search for a member..."}
                       </span>
                       <User className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
@@ -1446,9 +1360,7 @@ const BookCirculation = () => {
                                 {checkInMemberResults.map((member) => (
                                   <div
                                     key={member.id}
-                                    onClick={() =>
-                                      handleCheckInMemberSelect(member)
-                                    }
+                                    onClick={() => handleCheckInMemberSelect(member)}
                                     className="relative flex cursor-default select-none items-center rounded-sm p-2 text-sm outline-hidden hover:bg-slate-100 data-disabled:pointer-events-none data-disabled:opacity-50 dark:hover:bg-slate-800"
                                   >
                                     <div className="flex items-center gap-2 w-full">
@@ -1456,12 +1368,9 @@ const BookCirculation = () => {
                                         <User className="h-4 w-4 text-muted-foreground" />
                                       </div>
                                       <div className="flex-1 min-w-0">
-                                        <p className="font-medium truncate">
-                                          {member.name}
-                                        </p>
+                                        <p className="font-medium truncate">{member.name}</p>
                                         <p className="text-sm text-muted-foreground truncate">
-                                          {member.email}{" "}
-                                          {member.phone && `• ${member.phone}`}
+                                          {member.email} {member.phone && `• ${member.phone}`}
                                         </p>
                                       </div>
                                     </div>
@@ -1480,9 +1389,7 @@ const BookCirculation = () => {
               {isLoadingCheckouts && (
                 <div className="text-center py-6">
                   <Loader2 className="h-8 w-8 animate-spin mx-auto" />
-                  <p className="text-muted-foreground mt-2">
-                    Loading checkouts...
-                  </p>
+                  <p className="text-muted-foreground mt-2">Loading checkouts...</p>
                 </div>
               )}
 
@@ -1491,8 +1398,7 @@ const BookCirculation = () => {
                   <div className="flex justify-between items-center mb-3">
                     <div>
                       <span className="text-sm text-muted-foreground">
-                        {selectedCheckouts.length} of {memberCheckouts.length}{" "}
-                        books selected
+                        {selectedCheckouts.length} of {memberCheckouts.length} books selected
                       </span>
                     </div>
 
@@ -1500,9 +1406,7 @@ const BookCirculation = () => {
                       variant="default"
                       size="sm"
                       onClick={handleBulkCheckIn}
-                      disabled={
-                        selectedCheckouts.length === 0 || isProcessingBulkReturn
-                      }
+                      disabled={selectedCheckouts.length === 0 || isProcessingBulkReturn}
                     >
                       {isProcessingBulkReturn ? (
                         <>
@@ -1535,42 +1439,32 @@ const BookCirculation = () => {
                         const isOverdue = dueDate < new Date();
                         const isReturning = returningBookIds[checkout.id];
                         const isSelected = selectedCheckouts.some(
-                          (item) => item.id === checkout.id,
+                          (item) => item.id === checkout.id
                         );
 
                         return (
-                          <TableRow
-                            key={checkout.id}
-                            className={isSelected ? "bg-muted/50" : ""}
-                          >
+                          <TableRow key={checkout.id} className={isSelected ? "bg-muted/50" : ""}>
                             <TableCell className="w-[40px]">
                               <div className="flex items-center justify-center">
                                 <button
                                   type="button"
-                                  className={`h-5 w-5 rounded-md border border-primary ${isSelected
-                                    ? "bg-primary text-primary-foreground"
-                                    : "bg-background"
-                                    } flex items-center justify-center`}
-                                  onClick={() =>
-                                    toggleCheckoutSelection(checkout)
-                                  }
+                                  className={`h-5 w-5 rounded-md border border-primary ${
+                                    isSelected
+                                      ? "bg-primary text-primary-foreground"
+                                      : "bg-background"
+                                  } flex items-center justify-center`}
+                                  onClick={() => toggleCheckoutSelection(checkout)}
                                   disabled={isReturning}
                                 >
                                   {isSelected && <Check className="h-3 w-3" />}
                                 </button>
                               </div>
                             </TableCell>
-                            <TableCell className="font-medium">
-                              {checkout.books.title}
-                            </TableCell>
+                            <TableCell className="font-medium">{checkout.books.title}</TableCell>
                             <TableCell>
-                              {new Date(
-                                checkout.checkout_date,
-                              ).toLocaleDateString()}
+                              {new Date(checkout.checkout_date).toLocaleDateString()}
                             </TableCell>
-                            <TableCell>
-                              {dueDate.toLocaleDateString()}
-                            </TableCell>
+                            <TableCell>{dueDate.toLocaleDateString()}</TableCell>
                             <TableCell>
                               {isOverdue ? (
                                 <Badge variant="destructive">Overdue</Badge>
@@ -1582,9 +1476,7 @@ const BookCirculation = () => {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() =>
-                                  handleCheckIn(checkout.id, checkout.book_id)
-                                }
+                                onClick={() => handleCheckIn(checkout.id, checkout.book_id)}
                                 disabled={isReturning}
                               >
                                 {isReturning ? (
@@ -1605,18 +1497,15 @@ const BookCirculation = () => {
                 </>
               )}
 
-              {!isLoadingCheckouts &&
-                selectedCheckInMember &&
-                memberCheckouts.length === 0 && (
-                  <div className="text-center py-6 border rounded-md bg-muted/10">
-                    <BookIcon className="h-12 w-12 mx-auto text-muted-foreground" />
-                    <h3 className="mt-2 font-medium">No Active Checkouts</h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {selectedCheckInMember.name} doesn't have any books
-                      checked out
-                    </p>
-                  </div>
-                )}
+              {!isLoadingCheckouts && selectedCheckInMember && memberCheckouts.length === 0 && (
+                <div className="text-center py-6 border rounded-md bg-muted/10">
+                  <BookIcon className="h-12 w-12 mx-auto text-muted-foreground" />
+                  <h3 className="mt-2 font-medium">No Active Checkouts</h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {selectedCheckInMember.name} doesn't have any books checked out
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -1626,17 +1515,13 @@ const BookCirculation = () => {
             <Card>
               <CardHeader>
                 <CardTitle>Books Due Soon</CardTitle>
-                <CardDescription>
-                  Books due within the next 7 days
-                </CardDescription>
+                <CardDescription>Books due within the next 7 days</CardDescription>
               </CardHeader>
               <CardContent>
                 {isLoadingDueBooks ? (
                   <div className="text-center py-6">
                     <Loader2 className="h-8 w-8 animate-spin mx-auto" />
-                    <p className="text-muted-foreground mt-2">
-                      Loading due books...
-                    </p>
+                    <p className="text-muted-foreground mt-2">Loading due books...</p>
                   </div>
                 ) : dueSoonBooks.length > 0 ? (
                   <Table>
@@ -1651,13 +1536,9 @@ const BookCirculation = () => {
                     <TableBody>
                       {dueSoonBooks.map((checkout) => (
                         <TableRow key={checkout.id}>
-                          <TableCell className="font-medium">
-                            {checkout.books.title}
-                          </TableCell>
+                          <TableCell className="font-medium">{checkout.books.title}</TableCell>
                           <TableCell>{checkout.members.name}</TableCell>
-                          <TableCell>
-                            {new Date(checkout.due_date).toLocaleDateString()}
-                          </TableCell>
+                          <TableCell>{new Date(checkout.due_date).toLocaleDateString()}</TableCell>
                           <TableCell className="text-right">
                             <Button
                               variant="outline"
@@ -1666,7 +1547,7 @@ const BookCirculation = () => {
                                 handleSendReminder(
                                   checkout.id,
                                   checkout.members.name,
-                                  checkout.books.title,
+                                  checkout.books.title
                                 )
                               }
                             >
@@ -1678,9 +1559,7 @@ const BookCirculation = () => {
                     </TableBody>
                   </Table>
                 ) : (
-                  <div className="text-center py-6 text-muted-foreground">
-                    No books due soon.
-                  </div>
+                  <div className="text-center py-6 text-muted-foreground">No books due soon.</div>
                 )}
               </CardContent>
             </Card>
@@ -1688,17 +1567,13 @@ const BookCirculation = () => {
             <Card>
               <CardHeader>
                 <CardTitle>Overdue Books</CardTitle>
-                <CardDescription>
-                  Books that are past their due date
-                </CardDescription>
+                <CardDescription>Books that are past their due date</CardDescription>
               </CardHeader>
               <CardContent>
                 {isLoadingDueBooks ? (
                   <div className="text-center py-6">
                     <Loader2 className="h-8 w-8 animate-spin mx-auto" />
-                    <p className="text-muted-foreground mt-2">
-                      Loading overdue books...
-                    </p>
+                    <p className="text-muted-foreground mt-2">Loading overdue books...</p>
                   </div>
                 ) : overdueBooks.length > 0 ? (
                   <Table>
@@ -1716,23 +1591,15 @@ const BookCirculation = () => {
                         const dueDate = new Date(checkout.due_date);
                         const today = new Date();
                         const diffTime = today.getTime() - dueDate.getTime();
-                        const daysOverdue = Math.ceil(
-                          diffTime / (1000 * 60 * 60 * 24),
-                        );
+                        const daysOverdue = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
                         return (
                           <TableRow key={checkout.id}>
-                            <TableCell className="font-medium">
-                              {checkout.books.title}
-                            </TableCell>
+                            <TableCell className="font-medium">{checkout.books.title}</TableCell>
                             <TableCell>{checkout.members.name}</TableCell>
+                            <TableCell>{dueDate.toLocaleDateString()}</TableCell>
                             <TableCell>
-                              {dueDate.toLocaleDateString()}
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant="destructive">
-                                {daysOverdue} days
-                              </Badge>
+                              <Badge variant="destructive">{daysOverdue} days</Badge>
                             </TableCell>
                             <TableCell className="text-right">
                               <Button
@@ -1742,7 +1609,7 @@ const BookCirculation = () => {
                                   handleSendReminder(
                                     checkout.id,
                                     checkout.members.name,
-                                    checkout.books.title,
+                                    checkout.books.title
                                   )
                                 }
                               >
@@ -1755,9 +1622,7 @@ const BookCirculation = () => {
                     </TableBody>
                   </Table>
                 ) : (
-                  <div className="text-center py-6 text-muted-foreground">
-                    No overdue books.
-                  </div>
+                  <div className="text-center py-6 text-muted-foreground">No overdue books.</div>
                 )}
               </CardContent>
             </Card>
@@ -1784,9 +1649,7 @@ const BookCirculation = () => {
               {isLoadingMembers ? (
                 <div className="text-center py-6">
                   <Loader2 className="h-8 w-8 animate-spin mx-auto" />
-                  <p className="text-muted-foreground mt-2">
-                    Loading members...
-                  </p>
+                  <p className="text-muted-foreground mt-2">Loading members...</p>
                 </div>
               ) : filteredMembers.length > 0 ? (
                 <Table>
@@ -1802,9 +1665,7 @@ const BookCirculation = () => {
                   <TableBody>
                     {filteredMembers.map((member) => (
                       <TableRow key={member.id}>
-                        <TableCell className="font-medium">
-                          {member.name}
-                        </TableCell>
+                        <TableCell className="font-medium">{member.name}</TableCell>
                         <TableCell>{member.email || "—"}</TableCell>
                         <TableCell>{member.phone || "—"}</TableCell>
                         <TableCell>
@@ -1814,7 +1675,7 @@ const BookCirculation = () => {
                                 ? "bg-emerald-100 text-emerald-800"
                                 : member.status === "Inactive"
                                   ? "bg-zinc-100 text-zinc-800"
-                                  : "bg-amber-100 text-amber-800",
+                                  : "bg-amber-100 text-amber-800"
                             )}
                           >
                             {member.status}
@@ -1852,10 +1713,7 @@ const BookCirculation = () => {
       <Dialog open={memberDetailOpen} onOpenChange={setMemberDetailOpen}>
         <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
           {selectedMemberId && (
-            <MemberDetail
-              memberId={selectedMemberId}
-              onClose={() => setMemberDetailOpen(false)}
-            />
+            <MemberDetail memberId={selectedMemberId} onClose={() => setMemberDetailOpen(false)} />
           )}
         </DialogContent>
       </Dialog>

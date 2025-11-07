@@ -29,7 +29,7 @@ interface PrintLabelsProps {
 
 const LABEL_TEMPLATES = {
   "avery-5160": {
-    name: "Avery 5160 (1\" x 2-5/8\")",
+    name: 'Avery 5160 (1" x 2-5/8")',
     width: 2.625,
     height: 1,
     columns: 3,
@@ -40,7 +40,7 @@ const LABEL_TEMPLATES = {
     gapY: 0.125,
   },
   "avery-5163": {
-    name: "Avery 5163 (2\" x 4\")",
+    name: 'Avery 5163 (2" x 4")',
     width: 4,
     height: 2,
     columns: 2,
@@ -51,7 +51,7 @@ const LABEL_TEMPLATES = {
     gapY: 0.14,
   },
   "avery-5167": {
-    name: "Avery 5167 (1/2\" x 1-3/4\")",
+    name: 'Avery 5167 (1/2" x 1-3/4")',
     width: 1.75,
     height: 0.5,
     columns: 4,
@@ -94,11 +94,7 @@ export function PrintLabels({ selectedBooks }: PrintLabelsProps) {
         }
       }
 
-      let query = supabase
-        .from("books")
-        .select("*")
-        .is("deleted_at", null)
-        .order("title");
+      let query = supabase.from("books").select("*").is("deleted_at", null).order("title");
 
       if (user) {
         query = query.eq("user_id", user.id);
@@ -192,9 +188,10 @@ export function PrintLabels({ selectedBooks }: PrintLabelsProps) {
 
         // Title
         pdf.setTextColor(0, 0, 0);
-        const titleText = book.title.length > (isSmallLabel ? 30 : isLargeLabel ? 50 : 35)
-          ? book.title.substring(0, isSmallLabel ? 30 : isLargeLabel ? 50 : 35) + "..."
-          : book.title;
+        const titleText =
+          book.title.length > (isSmallLabel ? 30 : isLargeLabel ? 50 : 35)
+            ? book.title.substring(0, isSmallLabel ? 30 : isLargeLabel ? 50 : 35) + "..."
+            : book.title;
 
         if (isSmallLabel) {
           pdf.setFontSize(6);
@@ -254,9 +251,10 @@ export function PrintLabels({ selectedBooks }: PrintLabelsProps) {
           pdf.setFontSize(6);
           pdf.setFont("helvetica", "normal");
           pdf.setTextColor(51, 51, 51);
-          const authorText = book.author && book.author.length > 30
-            ? book.author.substring(0, 30) + "..."
-            : book.author || "";
+          const authorText =
+            book.author && book.author.length > 30
+              ? book.author.substring(0, 30) + "..."
+              : book.author || "";
           pdf.text(authorText, currentX + 0.1, textY);
         }
 
@@ -274,10 +272,15 @@ export function PrintLabels({ selectedBooks }: PrintLabelsProps) {
             });
 
             const barcodeImg = canvas.toDataURL("image/png");
-            const barcodeWidth = isSmallLabel ? config.width - 0.15 : isLargeLabel ? config.width - 0.3 : config.width - 0.2;
+            const barcodeWidth = isSmallLabel
+              ? config.width - 0.15
+              : isLargeLabel
+                ? config.width - 0.3
+                : config.width - 0.2;
             const barcodeHeight = isSmallLabel ? 0.18 : isLargeLabel ? 0.35 : 0.22;
             const barcodeX = currentX + (config.width - barcodeWidth) / 2;
-            const barcodeY = currentY + config.height - barcodeHeight - (isSmallLabel ? 0.05 : 0.08);
+            const barcodeY =
+              currentY + config.height - barcodeHeight - (isSmallLabel ? 0.05 : 0.08);
 
             pdf.addImage(barcodeImg, "PNG", barcodeX, barcodeY, barcodeWidth, barcodeHeight);
           } catch (error) {
@@ -462,7 +465,9 @@ export function PrintLabels({ selectedBooks }: PrintLabelsProps) {
                       </div>
                     ) : (
                       // Medium/Large labels: Two column layout
-                      <div style={{ display: "flex", gap: "10px", flex: 1, alignItems: "flex-start" }}>
+                      <div
+                        style={{ display: "flex", gap: "10px", flex: 1, alignItems: "flex-start" }}
+                      >
                         {/* Left column - Book info */}
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div
@@ -575,7 +580,14 @@ export function PrintLabels({ selectedBooks }: PrintLabelsProps) {
                     )}
 
                     {book.isbn && (
-                      <div style={{ marginTop: isSmallLabel ? "1px" : "8px", display: "flex", justifyContent: "center", alignItems: "center" }}>
+                      <div
+                        style={{
+                          marginTop: isSmallLabel ? "1px" : "8px",
+                          display: "flex",
+                          justifyContent: "center",
+                          alignItems: "center",
+                        }}
+                      >
                         <Barcode
                           value={book.isbn}
                           width={isSmallLabel ? 0.8 : isLargeLabel ? 1.3 : 1}
@@ -604,7 +616,11 @@ export function PrintLabels({ selectedBooks }: PrintLabelsProps) {
           </div>
 
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setShowPreview(false)} disabled={isDownloading}>
+            <Button
+              variant="outline"
+              onClick={() => setShowPreview(false)}
+              disabled={isDownloading}
+            >
               Cancel
             </Button>
             <Button variant="outline" onClick={handleDownload} disabled={isDownloading}>

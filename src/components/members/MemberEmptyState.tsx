@@ -7,11 +7,7 @@ interface MemberEmptyStateProps {
   onClearFilters: () => void;
 }
 
-const MemberEmptyState = ({
-  hasFilters,
-  onAddMember,
-  onClearFilters,
-}: MemberEmptyStateProps) => {
+const MemberEmptyState = ({ hasFilters, onAddMember, onClearFilters }: MemberEmptyStateProps) => {
   if (hasFilters) {
     return (
       <div className="text-center py-12 border rounded-lg bg-muted/10">
@@ -32,8 +28,8 @@ const MemberEmptyState = ({
       <Users className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
       <h3 className="text-xl font-semibold mb-2">No members yet</h3>
       <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-        Start building your library community by adding your first member.
-        Members can borrow books and track their reading history.
+        Start building your library community by adding your first member. Members can borrow books
+        and track their reading history.
       </p>
       <Button onClick={onAddMember}>
         <UserPlus className="h-4 w-4 mr-2" />

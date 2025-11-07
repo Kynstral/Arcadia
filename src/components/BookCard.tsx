@@ -36,17 +36,13 @@ const BookCard = ({ book, onAddToCart, minimal = false }: BookCardProps) => {
     >
       {!minimal && (
         <div className="absolute top-2 right-2 z-10">
-          <Badge
-            variant={book.status === "Available" ? "available" : "unavailable"}
-          >
+          <Badge variant={book.status === "Available" ? "available" : "unavailable"}>
             {book.status}
           </Badge>
         </div>
       )}
 
-      <div
-        className={`${minimal ? "h-40" : "h-52"} relative overflow-hidden bg-muted`}
-      >
+      <div className={`${minimal ? "h-40" : "h-52"} relative overflow-hidden bg-muted`}>
         {!imageLoaded && (
           <div className="absolute inset-0 flex items-center justify-center bg-muted">
             <BookIcon className="h-10 w-10 text-muted-foreground/40" />
@@ -73,14 +69,10 @@ const BookCard = ({ book, onAddToCart, minimal = false }: BookCardProps) => {
           </Badge>
         )}
 
-        <h3
-          className={`font-medium line-clamp-1 ${minimal ? "text-sm" : "text-base"}`}
-        >
+        <h3 className={`font-medium line-clamp-1 ${minimal ? "text-sm" : "text-base"}`}>
           {book.title}
         </h3>
-        <p
-          className={`text-muted-foreground mb-2 ${minimal ? "text-xs" : "text-sm"}`}
-        >
+        <p className={`text-muted-foreground mb-2 ${minimal ? "text-xs" : "text-sm"}`}>
           {book.author}
         </p>
 

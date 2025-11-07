@@ -1,9 +1,4 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import BookForm from "./BookForm";
 import { Book } from "@/lib/types";
 
@@ -15,13 +10,7 @@ interface AddBookModalProps {
   onSuccess: () => void;
 }
 
-export function AddBookModal({
-  open,
-  onOpenChange,
-  book,
-  userRole,
-  onSuccess,
-}: AddBookModalProps) {
+export function AddBookModal({ open, onOpenChange, book, userRole, onSuccess }: AddBookModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">

@@ -22,12 +22,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAuth } from "./AuthStatusProvider";
 import { useTheme } from "@/lib/theme-provider";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -49,8 +44,7 @@ const Sidebar = ({
   const [hasAvatarError, setHasAvatarError] = useState(false);
 
   const [internalCollapsed, setInternalCollapsed] = useState(false);
-  const collapsed =
-    externalCollapsed !== undefined ? externalCollapsed : internalCollapsed;
+  const collapsed = externalCollapsed !== undefined ? externalCollapsed : internalCollapsed;
   const setCollapsed = setExternalCollapsed || setInternalCollapsed;
 
   const [sidebarMode] = useState("dynamic");
@@ -92,16 +86,15 @@ const Sidebar = ({
 
       if (data && data.length > 0) {
         const sortedFiles = data.sort((a, b) => {
-          return (
-            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-          );
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         });
 
         const latestAvatar = sortedFiles[0];
 
         try {
-          const { data: fileData, error: downloadError } =
-            await supabase.storage.from("avatars").download(latestAvatar.name);
+          const { data: fileData, error: downloadError } = await supabase.storage
+            .from("avatars")
+            .download(latestAvatar.name);
 
           if (downloadError) {
             console.error("Sidebar download error:", downloadError);
@@ -219,18 +212,14 @@ const Sidebar = ({
         ref={sidebarRef}
         className={cn(
           "flex h-screen flex-col bg-sidebar border-r border-sidebar-border transition-all duration-300 ease-in-out z-10",
-          collapsed ? "w-16" : "w-64",
+          collapsed ? "w-16" : "w-64"
         )}
       >
         <div className="flex items-center h-16 px-3 py-5">
           {!collapsed ? (
             <div className="flex items-center justify-between w-full py-4">
               <Link to="/dashboard" className="flex items-center gap-2">
-                <img
-                  src="/logo.svg"
-                  alt="arcadia-logo"
-                  className="h-10 w-10 ml-2"
-                />
+                <img src="/logo.svg" alt="arcadia-logo" className="h-10 w-10 ml-2" />
                 <h1 className="text-xl font-bold text-primary">Arcadia</h1>
               </Link>
 
@@ -286,7 +275,7 @@ const Sidebar = ({
                           "flex items-center justify-center h-10 w-10 rounded-md",
                           isActive
                             ? "bg-primary text-primary-foreground"
-                            : "hover:bg-muted text-muted-foreground hover:text-foreground",
+                            : "hover:bg-muted text-muted-foreground hover:text-foreground"
                         )}
                       >
                         <item.icon className="h-5 w-5" />
@@ -305,7 +294,7 @@ const Sidebar = ({
                       "flex items-center h-10 px-3 rounded-md transition-colors",
                       isActive
                         ? "bg-primary text-primary-foreground"
-                        : "hover:bg-muted text-muted-foreground hover:text-foreground",
+                        : "hover:bg-muted text-muted-foreground hover:text-foreground"
                     )}
                   >
                     <item.icon className="h-5 w-5 mr-3" />
@@ -339,9 +328,7 @@ const Sidebar = ({
           </div>
         )}
 
-        <div
-          className={cn("mt-auto py-4 px-3 space-y-4", collapsed ? "" : "pb-6")}
-        >
+        <div className={cn("mt-auto py-4 px-3 space-y-4", collapsed ? "" : "pb-6")}>
           {user && (
             <div className="flex flex-col space-y-4">
               {collapsed ? (
@@ -365,12 +352,8 @@ const Sidebar = ({
                     </TooltipTrigger>
                     <TooltipContent side="right">
                       <p>{user.user_metadata?.full_name || user.email}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {user.email}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {userRole}
-                      </p>
+                      <p className="text-xs text-muted-foreground">{user.email}</p>
+                      <p className="text-xs text-muted-foreground">{userRole}</p>
                     </TooltipContent>
                   </Tooltip>
 
@@ -382,7 +365,7 @@ const Sidebar = ({
                           "flex items-center justify-center h-10 w-10 rounded-md",
                           location.pathname === "/settings"
                             ? "bg-primary text-primary-foreground"
-                            : "hover:bg-muted text-muted-foreground hover:text-foreground",
+                            : "hover:bg-muted text-muted-foreground hover:text-foreground"
                         )}
                       >
                         <Settings className="h-5 w-5" />
@@ -401,11 +384,13 @@ const Sidebar = ({
                         className="h-10 w-10 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground"
                         onClick={() => {
                           // Trigger keyboard shortcuts dialog
-                          window.dispatchEvent(new KeyboardEvent('keydown', {
-                            key: '/',
-                            ctrlKey: true,
-                            metaKey: true
-                          }));
+                          window.dispatchEvent(
+                            new KeyboardEvent("keydown", {
+                              key: "/",
+                              ctrlKey: true,
+                              metaKey: true,
+                            })
+                          );
                         }}
                       >
                         <Keyboard className="h-5 w-5" />
@@ -471,12 +456,8 @@ const Sidebar = ({
                         )}
                       </div>
                       <div className="overflow-hidden">
-                        <p className="font-medium truncate">
-                          {user.user_metadata?.full_name}
-                        </p>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {user.email}
-                        </p>
+                        <p className="font-medium truncate">{user.user_metadata?.full_name}</p>
+                        <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                       </div>
                     </div>
                   </div>
@@ -487,7 +468,7 @@ const Sidebar = ({
                       "flex items-center h-10 px-3 rounded-md transition-colors",
                       location.pathname === "/settings"
                         ? "bg-primary text-primary-foreground"
-                        : "hover:bg-muted text-muted-foreground hover:text-foreground",
+                        : "hover:bg-muted text-muted-foreground hover:text-foreground"
                     )}
                   >
                     <Settings className="h-5 w-5 mr-3" />
@@ -498,11 +479,13 @@ const Sidebar = ({
                     variant="ghost"
                     className="w-full justify-start px-3"
                     onClick={() => {
-                      window.dispatchEvent(new KeyboardEvent('keydown', {
-                        key: '/',
-                        ctrlKey: true,
-                        metaKey: true
-                      }));
+                      window.dispatchEvent(
+                        new KeyboardEvent("keydown", {
+                          key: "/",
+                          ctrlKey: true,
+                          metaKey: true,
+                        })
+                      );
                     }}
                   >
                     <Keyboard className="h-5 w-5 mr-3" />

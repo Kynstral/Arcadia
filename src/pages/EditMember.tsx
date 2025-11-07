@@ -21,17 +21,12 @@ const EditMember = () => {
       if (!id) return;
 
       try {
-        const { data, error } = await supabase
-          .from("members")
-          .select("*")
-          .eq("id", id)
-          .single();
+        const { data, error } = await supabase.from("members").select("*").eq("id", id).single();
 
         if (error) throw error;
         setMember(data as Member);
       } catch (error: unknown) {
-        const errorMessage =
-          error instanceof Error ? error.message : "An unknown error occurred";
+        const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
 
         toast({
           title: "Error loading member",

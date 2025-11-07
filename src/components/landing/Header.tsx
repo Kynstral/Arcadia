@@ -11,14 +11,9 @@ export const Header = () => {
   return (
     <header className="border-b border-sidebar-border bg-sidebar backdrop-blur-sm sticky top-0 z-50">
       <div className="container flex h-16 items-center justify-between px-4 md:px-6">
-        <Link
-          to="/"
-          className="flex items-center gap-2.5 transition-opacity hover:opacity-90"
-        >
+        <Link to="/" className="flex items-center gap-2.5 transition-opacity hover:opacity-90">
           <img src="/logo.svg" alt="Arcadia" className="w-10 h-10" />
-          <span className="text-xl font-bold tracking-tight text-primary">
-            Arcadia
-          </span>
+          <span className="text-xl font-bold tracking-tight text-primary">Arcadia</span>
         </Link>
 
         <nav className="hidden md:flex gap-2">
@@ -58,11 +53,7 @@ export const Header = () => {
           </Button>
           {user ? (
             <Link to="/dashboard">
-              <Button
-                variant="default"
-                size="sm"
-                className="gap-2 px-4 font-medium"
-              >
+              <Button variant="default" size="sm" className="gap-2 px-4 font-medium">
                 Dashboard
                 <ArrowRight className="h-4 w-4" />
               </Button>

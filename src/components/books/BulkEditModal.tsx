@@ -187,9 +187,7 @@ export function BulkEditModal({
               </Label>
               <Select
                 value={formData.status}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, status: value as BookStatus })
-                }
+                onValueChange={(value) => setFormData({ ...formData, status: value as BookStatus })}
                 disabled={!enabledFields.status}
               >
                 <SelectTrigger id="status">
@@ -226,9 +224,7 @@ export function BulkEditModal({
                 type="number"
                 min="0"
                 value={formData.stock}
-                onChange={(e) =>
-                  setFormData({ ...formData, stock: parseInt(e.target.value) || 0 })
-                }
+                onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) || 0 })}
                 disabled={!enabledFields.stock}
                 placeholder="Enter stock quantity"
               />
@@ -253,9 +249,7 @@ export function BulkEditModal({
               <Input
                 id="publisher"
                 value={formData.publisher}
-                onChange={(e) =>
-                  setFormData({ ...formData, publisher: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, publisher: e.target.value })}
                 disabled={!enabledFields.publisher}
                 placeholder="Enter publisher name"
               />
@@ -280,9 +274,7 @@ export function BulkEditModal({
               <Input
                 id="location"
                 value={formData.location}
-                onChange={(e) =>
-                  setFormData({ ...formData, location: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                 disabled={!enabledFields.location}
                 placeholder="Enter location (e.g., Shelf A-12)"
               />
@@ -299,17 +291,10 @@ export function BulkEditModal({
         </div>
 
         <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={isLoading}
-          >
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
             Cancel
           </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={!hasEnabledFields || isLoading}
-          >
+          <Button onClick={handleSubmit} disabled={!hasEnabledFields || isLoading}>
             {isLoading ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />

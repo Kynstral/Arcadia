@@ -6,7 +6,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Check, CheckSquare, Download, Upload, X } from "lucide-react";
+import { Check, CheckSquare, Download, Upload, X, Trash2 } from "lucide-react";
 import { MemberStatus } from "@/lib/types";
 
 interface BulkMemberActionsProps {
@@ -15,6 +15,7 @@ interface BulkMemberActionsProps {
   onBulkStatusUpdate: (status: MemberStatus) => void;
   onBulkExport: () => void;
   onBulkImport: () => void;
+  onBulkDelete: () => void;
 }
 
 const BulkMemberActions = ({
@@ -23,6 +24,7 @@ const BulkMemberActions = ({
   onBulkStatusUpdate,
   onBulkExport,
   onBulkImport,
+  onBulkDelete,
 }: BulkMemberActionsProps) => {
   return (
     <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg border">
@@ -55,10 +57,7 @@ const BulkMemberActions = ({
             >
               Set as Suspended
             </DropdownMenuItem>
-            <DropdownMenuItem
-              className="text-red-600"
-              onClick={() => onBulkStatusUpdate("Banned")}
-            >
+            <DropdownMenuItem className="text-red-600" onClick={() => onBulkStatusUpdate("Banned")}>
               Set as Banned
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -72,6 +71,16 @@ const BulkMemberActions = ({
         <Button variant="outline" size="sm" onClick={onBulkImport}>
           <Upload className="h-4 w-4 mr-2" />
           Import
+        </Button>
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onBulkDelete}
+          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+        >
+          <Trash2 className="h-4 w-4 mr-2" />
+          Delete
         </Button>
 
         <Button variant="ghost" size="sm" onClick={onClearSelection}>

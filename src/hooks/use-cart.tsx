@@ -24,9 +24,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   const addToCart = (item: CartItem) => {
     setCart((prevCart) => {
-      const existingItemIndex = prevCart.findIndex(
-        (cartItem) => cartItem.bookId === item.bookId,
-      );
+      const existingItemIndex = prevCart.findIndex((cartItem) => cartItem.bookId === item.bookId);
 
       if (existingItemIndex >= 0) {
         const updatedCart = [...prevCart];
@@ -44,9 +42,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   const updateQuantity = (bookId: string, quantity: number) => {
     setCart((prevCart) =>
-      prevCart.map((item) =>
-        item.bookId === bookId ? { ...item, quantity } : item,
-      ),
+      prevCart.map((item) => (item.bookId === bookId ? { ...item, quantity } : item))
     );
   };
 

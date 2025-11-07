@@ -9,10 +9,7 @@ const NotFound = () => {
   const { user } = useAuth();
 
   useEffect(() => {
-    console.error(
-      "404 Error: User attempted to access non-existent route:",
-      location.pathname,
-    );
+    console.error("404 Error: User attempted to access non-existent route:", location.pathname);
   }, [location.pathname]);
 
   const homeLink = user ? "/dashboard" : "/";
@@ -29,8 +26,7 @@ const NotFound = () => {
           <h1 className="text-5xl font-bold tracking-tighter mt-6">404</h1>
           <h2 className="text-2xl font-semibold mt-2">Page Not Found</h2>
           <p className="text-muted-foreground mt-4">
-            The page you're looking for doesn't exist or has been moved to
-            another location.
+            The page you're looking for doesn't exist or has been moved to another location.
           </p>
         </div>
 
@@ -51,8 +47,7 @@ const NotFound = () => {
 
         <div className="pt-12 border-t border-border mt-12">
           <p className="text-sm text-muted-foreground">
-            If you believe this page should exist, please contact your
-            administrator.
+            If you believe this page should exist, please contact your administrator.
           </p>
         </div>
       </div>

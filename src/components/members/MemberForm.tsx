@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Loader } from "@/components/ui/loader";
 
 interface MemberFormProps {
   member?: Member | null;
@@ -26,9 +27,7 @@ const MemberForm = ({ member, onSuccess, onCancel }: MemberFormProps) => {
   const [email, setEmail] = useState(member?.email || "");
   const [phone, setPhone] = useState(member?.phone || "");
   const [address, setAddress] = useState(member?.address || "");
-  const [status, setStatus] = useState<MemberStatus>(
-    member?.status || "Active",
-  );
+  const [status, setStatus] = useState<MemberStatus>(member?.status || "Active");
   const [loading, setLoading] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
@@ -65,10 +64,7 @@ const MemberForm = ({ member, onSuccess, onCancel }: MemberFormProps) => {
             setStatus((data.status as MemberStatus) || "Active");
           }
         } catch (error: unknown) {
-          const errorMessage =
-            error instanceof Error
-              ? error.message
-              : "An unknown error occurred";
+          const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
 
           toast({
             variant: "destructive",
@@ -110,10 +106,7 @@ const MemberForm = ({ member, onSuccess, onCancel }: MemberFormProps) => {
 
     try {
       if (isEditing && member) {
-        const { error } = await supabase
-          .from("members")
-          .update(memberData)
-          .eq("id", member.id);
+        const { error } = await supabase.from("members").update(memberData).eq("id", member.id);
 
         if (error) throw error;
 
@@ -136,8 +129,7 @@ const MemberForm = ({ member, onSuccess, onCancel }: MemberFormProps) => {
 
       onSuccess();
     } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : "An unknown error occurred";
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
 
       toast({
         variant: "destructive",
@@ -151,8 +143,8 @@ const MemberForm = ({ member, onSuccess, onCancel }: MemberFormProps) => {
 
   if (isInitializing && isEditing) {
     return (
-      <div className="flex justify-center items-center p-4">
-        <div className="animate-pulse">Loading member details...</div>
+      <div className="flex justify-center items-center p-8">
+        <Loader size={32} variant="accent" />
       </div>
     );
   }
@@ -205,10 +197,7 @@ const MemberForm = ({ member, onSuccess, onCancel }: MemberFormProps) => {
       {isEditing && (
         <div className="space-y-2">
           <Label htmlFor="status">Status</Label>
-          <Select
-            value={status}
-            onValueChange={(value) => setStatus(value as MemberStatus)}
-          >
+          <Select value={status} onValueChange={(value) => setStatus(value as MemberStatus)}>
             <SelectTrigger>
               <SelectValue placeholder="Select status" />
             </SelectTrigger>
@@ -227,13 +216,16 @@ const MemberForm = ({ member, onSuccess, onCancel }: MemberFormProps) => {
           Cancel
         </Button>
         <Button type="submit" disabled={loading}>
-          {loading
-            ? isEditing
-              ? "Updating..."
-              : "Adding..."
-            : isEditing
-              ? "Update Member"
-              : "Add Member"}
+          {loading ? (
+            <>
+              <Loader size={16} variant="white" className="mr-2" />
+              {isEditing ? "Updating..." : "Adding..."}
+            </>
+          ) : isEditing ? (
+            "Update Member"
+          ) : (
+            "Add Member"
+          )}
         </Button>
       </div>
     </form>

@@ -42,7 +42,11 @@ const BookDetail = () => {
   const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   // Fetch book details
-  const { data: book, isLoading, error } = useQuery({
+  const {
+    data: book,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["book", id],
     queryFn: async () => {
       if (!id) throw new Error("No book ID provided");
@@ -185,9 +189,7 @@ const BookDetail = () => {
     return (
       <div className="min-h-screen flex items-center justify-center flex-col">
         <Loader size={48} variant="accent" className="mb-4" />
-        <p className="text-muted-foreground font-medium">
-          Loading book details...
-        </p>
+        <p className="text-muted-foreground font-medium">Loading book details...</p>
       </div>
     );
   }
@@ -199,8 +201,8 @@ const BookDetail = () => {
           <BookOpen className="h-16 w-16 text-muted-foreground/50 mx-auto mb-4" />
           <h2 className="text-2xl font-bold mb-2">Book not found</h2>
           <p className="text-muted-foreground mb-6">
-            We couldn't find the book you're looking for. It may have been
-            removed or the link might be incorrect.
+            We couldn't find the book you're looking for. It may have been removed or the link might
+            be incorrect.
           </p>
           <Button onClick={() => navigate("/catalog")} size="lg">
             Browse Catalog
@@ -251,10 +253,7 @@ const BookDetail = () => {
               <Link to="/checkout" className="flex items-center">
                 <ShoppingCart className="h-4 w-4 mr-2" />
                 View Cart
-                <Badge
-                  variant="secondary"
-                  className="ml-2 rounded-full h-5 px-2"
-                >
+                <Badge variant="secondary" className="ml-2 rounded-full h-5 px-2">
                   {cartItemCount}
                 </Badge>
               </Link>
@@ -282,9 +281,7 @@ const BookDetail = () => {
                   {book.category}
                 </Badge>
                 <Badge
-                  variant={
-                    book.status === "Available" ? "default" : "secondary"
-                  }
+                  variant={book.status === "Available" ? "default" : "secondary"}
                   className="px-3 py-1"
                 >
                   {book.status}
@@ -298,23 +295,18 @@ const BookDetail = () => {
                 <Button
                   size="icon"
                   variant="ghost"
-                  className={`h-10 w-10 rounded-full ${isFavorite
-                    ? "text-red-500 hover:text-red-600"
-                    : "hover:text-red-500"
-                    }`}
+                  className={`h-10 w-10 rounded-full ${
+                    isFavorite ? "text-red-500 hover:text-red-600" : "hover:text-red-500"
+                  }`}
                   onClick={() => toggleFavoriteMutation.mutate()}
                   disabled={toggleFavoriteMutation.isPending}
                 >
-                  <Heart
-                    className={`h-5 w-5 ${isFavorite ? "fill-current" : ""}`}
-                  />
+                  <Heart className={`h-5 w-5 ${isFavorite ? "fill-current" : ""}`} />
                 </Button>
               </div>
               <div className="flex items-center">
                 <User className="h-4 w-4 mr-2 text-muted-foreground" />
-                <p className="text-lg text-muted-foreground">
-                  by {book.author}
-                </p>
+                <p className="text-lg text-muted-foreground">by {book.author}</p>
               </div>
 
               {book.rating && (
@@ -322,15 +314,14 @@ const BookDetail = () => {
                   {[...Array(5)].map((_, i) => (
                     <Star
                       key={i}
-                      className={`h-4 w-4 ${i < Math.floor(book.rating || 0)
-                        ? "text-yellow-500 fill-yellow-500"
-                        : "text-muted"
-                        }`}
+                      className={`h-4 w-4 ${
+                        i < Math.floor(book.rating || 0)
+                          ? "text-yellow-500 fill-yellow-500"
+                          : "text-muted"
+                      }`}
                     />
                   ))}
-                  <span className="ml-2 text-sm font-medium">
-                    {book.rating}
-                  </span>
+                  <span className="ml-2 text-sm font-medium">{book.rating}</span>
                 </div>
               )}
             </div>
@@ -344,22 +335,16 @@ const BookDetail = () => {
                   {book.category}
                 </Badge>
                 <Badge
-                  variant={
-                    book.status === "Available" ? "default" : "secondary"
-                  }
+                  variant={book.status === "Available" ? "default" : "secondary"}
                   className="px-3 py-1"
                 >
                   {book.status}
                 </Badge>
               </div>
-              <h1 className="text-4xl font-bold tracking-tight mb-2">
-                {book.title}
-              </h1>
+              <h1 className="text-4xl font-bold tracking-tight mb-2">{book.title}</h1>
               <div className="flex items-center mb-3">
                 <User className="h-4 w-4 mr-2 text-muted-foreground" />
-                <p className="text-xl text-muted-foreground">
-                  by {book.author}
-                </p>
+                <p className="text-xl text-muted-foreground">by {book.author}</p>
               </div>
 
               {book.rating && (
@@ -367,24 +352,21 @@ const BookDetail = () => {
                   {[...Array(5)].map((_, i) => (
                     <Star
                       key={i}
-                      className={`h-5 w-5 ${i < Math.floor(book.rating || 0)
-                        ? "text-yellow-500 fill-yellow-500"
-                        : "text-muted"
-                        }`}
+                      className={`h-5 w-5 ${
+                        i < Math.floor(book.rating || 0)
+                          ? "text-yellow-500 fill-yellow-500"
+                          : "text-muted"
+                      }`}
                     />
                   ))}
-                  <span className="ml-2 text-sm font-medium">
-                    {book.rating}
-                  </span>
+                  <span className="ml-2 text-sm font-medium">{book.rating}</span>
                 </div>
               )}
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="bg-muted/40 p-4 rounded-lg border border-border/50">
-                <p className="text-sm text-muted-foreground mb-1">
-                  Publication
-                </p>
+                <p className="text-sm text-muted-foreground mb-1">Publication</p>
                 <div className="flex items-center">
                   <Calendar className="h-4 w-4 mr-2 text-primary/70" />
                   <p className="font-medium">{book.publicationYear}</p>
@@ -411,9 +393,7 @@ const BookDetail = () => {
                 <p className="text-sm text-muted-foreground mb-1">Shelf Location</p>
                 <div className="flex items-center">
                   <MapPin className="h-4 w-4 mr-2 text-primary/70" />
-                  <p className="font-medium truncate">
-                    {book.location || "Not specified"}
-                  </p>
+                  <p className="font-medium truncate">{book.location || "Not specified"}</p>
                 </div>
               </div>
             </div>
@@ -429,9 +409,7 @@ const BookDetail = () => {
               <TabsContent value="about" className="space-y-4 mt-4">
                 <div className="bg-card rounded-lg p-6 border shadow-xs">
                   <h3 className="font-semibold text-lg mb-3">Description</h3>
-                  <p className="text-muted-foreground leading-relaxed">
-                    {book.description}
-                  </p>
+                  <p className="text-muted-foreground leading-relaxed">{book.description}</p>
                 </div>
 
                 {book.tags && book.tags.length > 0 && (
@@ -439,11 +417,7 @@ const BookDetail = () => {
                     <h3 className="font-semibold text-lg mb-3">Tags</h3>
                     <div className="flex flex-wrap gap-2">
                       {book.tags.map((tag, index) => (
-                        <Badge
-                          key={index}
-                          variant="secondary"
-                          className="px-3 py-1"
-                        >
+                        <Badge key={index} variant="secondary" className="px-3 py-1">
                           {tag}
                         </Badge>
                       ))}
@@ -461,14 +435,11 @@ const BookDetail = () => {
                     <div className="flex-1">
                       <h3 className="text-2xl font-semibold mb-2">{book.author}</h3>
                       <p className="text-muted-foreground mb-4">
-                        {book.author} is the acclaimed author of {book.title}. Their
-                        work spans multiple genres and has been recognized for its
-                        depth and creativity.
+                        {book.author} is the acclaimed author of {book.title}. Their work spans
+                        multiple genres and has been recognized for its depth and creativity.
                       </p>
                       <Button variant="outline" size="sm" asChild>
-                        <Link
-                          to={`/catalog?author=${encodeURIComponent(book.author)}`}
-                        >
+                        <Link to={`/catalog?author=${encodeURIComponent(book.author)}`}>
                           View all books by this author
                         </Link>
                       </Button>
@@ -482,9 +453,7 @@ const BookDetail = () => {
                   <h3 className="font-semibold text-lg mb-4">Publication Details</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground mb-1">
-                        Publisher
-                      </p>
+                      <p className="text-sm font-medium text-muted-foreground mb-1">Publisher</p>
                       <div className="flex items-center">
                         <Building className="h-4 w-4 mr-2 text-primary/70" />
                         <p className="font-medium">{book.publisher}</p>
@@ -492,9 +461,7 @@ const BookDetail = () => {
                     </div>
 
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground mb-1">
-                        ISBN
-                      </p>
+                      <p className="text-sm font-medium text-muted-foreground mb-1">ISBN</p>
                       <div className="flex items-center">
                         <Bookmark className="h-4 w-4 mr-2 text-primary/70" />
                         <p className="font-medium font-mono">{book.isbn}</p>
@@ -512,9 +479,7 @@ const BookDetail = () => {
                     </div>
 
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground mb-1">
-                        Language
-                      </p>
+                      <p className="text-sm font-medium text-muted-foreground mb-1">Language</p>
                       <div className="flex items-center">
                         <Languages className="h-4 w-4 mr-2 text-primary/70" />
                         <p className="font-medium">{book.language || "English"}</p>
@@ -522,14 +487,10 @@ const BookDetail = () => {
                     </div>
 
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground mb-1">
-                        Pages
-                      </p>
+                      <p className="text-sm font-medium text-muted-foreground mb-1">Pages</p>
                       <div className="flex items-center">
                         <BookOpen className="h-4 w-4 mr-2 text-primary/70" />
-                        <p className="font-medium">
-                          {book.pageCount || "Not available"}
-                        </p>
+                        <p className="font-medium">{book.pageCount || "Not available"}</p>
                       </div>
                     </div>
 
@@ -539,9 +500,7 @@ const BookDetail = () => {
                       </p>
                       <div className="flex items-center">
                         <MapPin className="h-4 w-4 mr-2 text-primary/70" />
-                        <p className="font-medium">
-                          {book.location || "Not specified"}
-                        </p>
+                        <p className="font-medium">{book.location || "Not specified"}</p>
                       </div>
                     </div>
                   </div>
@@ -564,19 +523,13 @@ const BookDetail = () => {
                     <div>
                       <p className="text-sm text-muted-foreground">Inventory</p>
                       <p className="text-lg font-medium">
-                        {book.stock > 0
-                          ? `${book.stock} copies available`
-                          : "Out of stock"}
+                        {book.stock > 0 ? `${book.stock} copies available` : "Out of stock"}
                       </p>
                     </div>
                   </div>
 
                   {book.stock > 0 && (
-                    <Button
-                      className="w-full"
-                      size="lg"
-                      onClick={handleBorrowBook}
-                    >
+                    <Button className="w-full" size="lg" onClick={handleBorrowBook}>
                       <Library className="h-5 w-5 mr-2" />
                       Borrow Book
                     </Button>
@@ -587,20 +540,14 @@ const BookDetail = () => {
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <p className="text-sm text-muted-foreground">Price</p>
-                      <p className="text-3xl font-bold">
-                        ${book.price.toFixed(2)}
-                      </p>
+                      <p className="text-3xl font-bold">${book.price.toFixed(2)}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground">
-                        Availability
-                      </p>
+                      <p className="text-sm text-muted-foreground">Availability</p>
                       <p
                         className={`text-lg font-medium ${book.stock > 0 ? "text-green-600 dark:text-green-500" : "text-red-600 dark:text-red-500"}`}
                       >
-                        {book.stock > 0
-                          ? `${book.stock} in stock`
-                          : "Out of stock"}
+                        {book.stock > 0 ? `${book.stock} in stock` : "Out of stock"}
                       </p>
                     </div>
                   </div>
@@ -617,15 +564,11 @@ const BookDetail = () => {
                         >
                           <Minus className="h-4 w-4" />
                         </Button>
-                        <div className="w-12 text-center font-medium">
-                          {quantity}
-                        </div>
+                        <div className="w-12 text-center font-medium">{quantity}</div>
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() =>
-                            setQuantity(Math.min(book.stock, quantity + 1))
-                          }
+                          onClick={() => setQuantity(Math.min(book.stock, quantity + 1))}
                           disabled={quantity >= book.stock}
                           className="rounded-l-none h-10"
                         >
@@ -633,11 +576,7 @@ const BookDetail = () => {
                         </Button>
                       </div>
 
-                      <Button
-                        className="flex-1"
-                        size="lg"
-                        onClick={handleAddToCart}
-                      >
+                      <Button className="flex-1" size="lg" onClick={handleAddToCart}>
                         <ShoppingCart className="h-5 w-5 mr-2" />
                         Add to Cart
                       </Button>
@@ -654,8 +593,6 @@ const BookDetail = () => {
             </div>
           </div>
         </div>
-
-
 
         {relatedBooks.length > 0 && (
           <div className="mt-16 animate-fade-in">
@@ -698,10 +635,11 @@ const BookDetail = () => {
                       <div className="absolute bottom-1.5 left-1.5">
                         <Badge
                           variant="outline"
-                          className={`text-[9px] px-1.5 py-0.5 backdrop-blur-sm bg-background/90 ${relatedBook.stock === 0
-                            ? "bg-red-100 text-red-800 border-red-200"
-                            : "bg-emerald-100 text-emerald-800 border-emerald-200"
-                            }`}
+                          className={`text-[9px] px-1.5 py-0.5 backdrop-blur-sm bg-background/90 ${
+                            relatedBook.stock === 0
+                              ? "bg-red-100 text-red-800 border-red-200"
+                              : "bg-emerald-100 text-emerald-800 border-emerald-200"
+                          }`}
                         >
                           {relatedBook.stock === 0 ? "Out of Stock" : "In Stock"}
                         </Badge>
@@ -730,8 +668,8 @@ const BookDetail = () => {
             </div>
           </div>
         )}
-      </main >
-    </div >
+      </main>
+    </div>
   );
 };
 

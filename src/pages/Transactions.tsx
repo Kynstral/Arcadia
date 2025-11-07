@@ -2,13 +2,7 @@
 // noinspection ExceptionCaughtLocallyJS
 
 import React, { useEffect, useRef, useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -28,11 +22,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import {
   BookOpen,
@@ -101,9 +91,7 @@ const Transactions = () => {
   const searchInputRef = useRef(null);
 
   const [transactions, setTransactions] = useState<CheckoutTransaction[]>([]);
-  const [filteredTransactions, setFilteredTransactions] = useState<
-    CheckoutTransaction[]
-  >([]);
+  const [filteredTransactions, setFilteredTransactions] = useState<CheckoutTransaction[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(0);
@@ -119,8 +107,7 @@ const Transactions = () => {
   const [isSearchingMembers, setIsSearchingMembers] = useState(false);
   const [memberSearchOpen, setMemberSearchOpen] = useState(false);
 
-  const [selectedTransaction, setSelectedTransaction] =
-    useState<CheckoutTransaction | null>(null);
+  const [selectedTransaction, setSelectedTransaction] = useState<CheckoutTransaction | null>(null);
   const [transactionItems, setTransactionItems] = useState<CheckoutItem[]>([]);
   const [isLoadingItems, setIsLoadingItems] = useState(false);
   const [transactionDialogOpen, setTransactionDialogOpen] = useState(false);
@@ -218,9 +205,7 @@ const Transactions = () => {
   };
 
   const fetchMemberData = async (transactions: CheckoutTransaction[]) => {
-    const customerIds = [
-      ...new Set(transactions.map((t) => t.customer_id)),
-    ].filter((id) => id);
+    const customerIds = [...new Set(transactions.map((t) => t.customer_id))].filter((id) => id);
 
     if (customerIds.length === 0) return transactions;
 
@@ -238,9 +223,7 @@ const Transactions = () => {
       });
 
       return transactions.map((transaction) => {
-        const member = transaction.customer_id
-          ? memberMap[transaction.customer_id]
-          : null;
+        const member = transaction.customer_id ? memberMap[transaction.customer_id] : null;
         return {
           ...transaction,
           memberName: member?.name || "Unknown",
@@ -260,15 +243,10 @@ const Transactions = () => {
     try {
       let query = supabase
         .from("checkout_transactions")
-        .select(
-          "id, customer_id, status, payment_method, total_amount, date, user_id",
-        )
+        .select("id, customer_id, status, payment_method, total_amount, date, user_id")
         .eq("user_id", user.id)
         .order("date", { ascending: false })
-        .range(
-          pageNumber * TRANSACTIONS_PER_PAGE,
-          (pageNumber + 1) * TRANSACTIONS_PER_PAGE - 1,
-        );
+        .range(pageNumber * TRANSACTIONS_PER_PAGE, (pageNumber + 1) * TRANSACTIONS_PER_PAGE - 1);
 
       if (startDate) {
         query = query.gte("date", startDate + "T00:00:00");
@@ -325,9 +303,7 @@ const Transactions = () => {
       const { data, error } = await supabase
         .from("members")
         .select("id, name, email, phone")
-        .or(
-          `name.ilike.%${query}%,email.ilike.%${query}%,phone.ilike.%${query}%`,
-        )
+        .or(`name.ilike.%${query}%,email.ilike.%${query}%,phone.ilike.%${query}%`)
         .order("name");
 
       if (error) throw error;
@@ -397,10 +373,7 @@ const Transactions = () => {
 
     if (method === "Borrow" || method === "Rent") {
       return (
-        <Badge
-          variant="outline"
-          className="bg-blue-50 text-blue-600 border-blue-200"
-        >
+        <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200">
           {formattedMethod}
         </Badge>
       );
@@ -421,10 +394,7 @@ const Transactions = () => {
     }
 
     return (
-      <Badge
-        variant="outline"
-        className={`${bgColor} ${textColor} border-transparent font-medium`}
-      >
+      <Badge variant="outline" className={`${bgColor} ${textColor} border-transparent font-medium`}>
         {formattedMethod}
       </Badge>
     );
@@ -435,9 +405,7 @@ const Transactions = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Transactions</h1>
-          <p className="text-muted-foreground">
-            View and manage all sales and rental transactions
-          </p>
+          <p className="text-muted-foreground">View and manage all sales and rental transactions</p>
         </div>
 
         <div>
@@ -452,9 +420,7 @@ const Transactions = () => {
       <Card>
         <CardHeader>
           <CardTitle>Filter Transactions</CardTitle>
-          <CardDescription>
-            Filter transactions by date range and member.
-          </CardDescription>
+          <CardDescription>Filter transactions by date range and member.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -463,45 +429,35 @@ const Transactions = () => {
                 <Label>Date Range</Label>
                 <div className="flex flex-wrap gap-2 mt-2">
                   <Button
-                    variant={
-                      selectedDateRange === "all" ? "default" : "outline-solid"
-                    }
+                    variant={selectedDateRange === "all" ? "default" : "outline-solid"}
                     size="sm"
                     onClick={() => handleDateRangeChange("all")}
                   >
                     All Time
                   </Button>
                   <Button
-                    variant={
-                      selectedDateRange === "30days" ? "default" : "outline-solid"
-                    }
+                    variant={selectedDateRange === "30days" ? "default" : "outline-solid"}
                     size="sm"
                     onClick={() => handleDateRangeChange("30days")}
                   >
                     Last 30 Days
                   </Button>
                   <Button
-                    variant={
-                      selectedDateRange === "60days" ? "default" : "outline-solid"
-                    }
+                    variant={selectedDateRange === "60days" ? "default" : "outline-solid"}
                     size="sm"
                     onClick={() => handleDateRangeChange("60days")}
                   >
                     Last 60 Days
                   </Button>
                   <Button
-                    variant={
-                      selectedDateRange === "90days" ? "default" : "outline-solid"
-                    }
+                    variant={selectedDateRange === "90days" ? "default" : "outline-solid"}
                     size="sm"
                     onClick={() => handleDateRangeChange("90days")}
                   >
                     Last 90 Days
                   </Button>
                   <Button
-                    variant={
-                      selectedDateRange === "custom" ? "default" : "outline-solid"
-                    }
+                    variant={selectedDateRange === "custom" ? "default" : "outline-solid"}
                     size="sm"
                     onClick={() => handleDateRangeChange("custom")}
                   >
@@ -514,10 +470,7 @@ const Transactions = () => {
               <div>
                 <Label htmlFor="member-search">Search by Member</Label>
                 <div className="relative mt-2">
-                  <Popover
-                    open={memberSearchOpen}
-                    onOpenChange={setMemberSearchOpen}
-                  >
+                  <Popover open={memberSearchOpen} onOpenChange={setMemberSearchOpen}>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
@@ -525,9 +478,7 @@ const Transactions = () => {
                         aria-expanded={memberSearchOpen}
                         className="w-full justify-between"
                       >
-                        {selectedMember
-                          ? selectedMember.name
-                          : "Search for a member..."}
+                        {selectedMember ? selectedMember.name : "Search for a member..."}
                         <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </PopoverTrigger>
@@ -576,13 +527,9 @@ const Transactions = () => {
                                           <User className="h-4 w-4 text-muted-foreground" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                          <p className="font-medium truncate">
-                                            {member.name}
-                                          </p>
+                                          <p className="font-medium truncate">{member.name}</p>
                                           <p className="text-sm text-muted-foreground truncate">
-                                            {member.email}{" "}
-                                            {member.phone &&
-                                              `• ${member.phone}`}
+                                            {member.email} {member.phone && `• ${member.phone}`}
                                           </p>
                                         </div>
                                       </div>
@@ -636,11 +583,7 @@ const Transactions = () => {
             )}
 
             <div className="flex justify-end mt-4 space-x-2">
-              <Button
-                variant="outline"
-                onClick={resetFilters}
-                className="flex items-center gap-2"
-              >
+              <Button variant="outline" onClick={resetFilters} className="flex items-center gap-2">
                 <RefreshCw className="h-4 w-4" />
                 Reset Filters
               </Button>
@@ -655,9 +598,7 @@ const Transactions = () => {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle>
-              {isBookStore ? "Sales" : "Borrowing"} Transactions
-            </CardTitle>
+            <CardTitle>{isBookStore ? "Sales" : "Borrowing"} Transactions</CardTitle>
             <CardDescription>
               {isBookStore
                 ? "List of all sales and rental transactions"
@@ -668,9 +609,7 @@ const Transactions = () => {
             {filteredTransactions.length > 0 && (
               <Badge variant="outline">
                 {filteredTransactions.length}{" "}
-                {filteredTransactions.length === 1
-                  ? "transaction"
-                  : "transactions"}
+                {filteredTransactions.length === 1 ? "transaction" : "transactions"}
               </Badge>
             )}
           </div>
@@ -679,9 +618,7 @@ const Transactions = () => {
           {isLoading && page === 0 ? (
             <div className="text-center py-6">
               <Loader2 className="h-6 w-6 animate-spin mx-auto" />
-              <p className="text-muted-foreground mt-2">
-                Loading transactions...
-              </p>
+              <p className="text-muted-foreground mt-2">Loading transactions...</p>
             </div>
           ) : (
             <>
@@ -702,28 +639,19 @@ const Transactions = () => {
                     <TableBody>
                       {filteredTransactions.map((transaction) => (
                         <TableRow key={transaction.id}>
-                          <TableCell>
-                            {new Date(transaction.date).toLocaleDateString()}
-                          </TableCell>
+                          <TableCell>{new Date(transaction.date).toLocaleDateString()}</TableCell>
                           <TableCell className="font-mono text-xs">
                             {transaction.id.substring(0, 8)}...
                           </TableCell>
                           <TableCell>
-                            <Badge
-                              variant="outline"
-                              className="font-normal bg-background"
-                            >
+                            <Badge variant="outline" className="font-normal bg-background">
                               {transaction.memberName || "Unknown"}
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            {getPaymentMethodDisplay(
-                              transaction.payment_method,
-                            )}
+                            {getPaymentMethodDisplay(transaction.payment_method)}
                           </TableCell>
-                          <TableCell>
-                            ${transaction.total_amount.toFixed(2)}
-                          </TableCell>
+                          <TableCell>${transaction.total_amount.toFixed(2)}</TableCell>
                           <TableCell>
                             <Badge
                               className={
@@ -754,18 +682,13 @@ const Transactions = () => {
               ) : (
                 <div className="text-center py-12 border rounded-md bg-muted/10">
                   <ShoppingCart className="h-12 w-12 mx-auto text-muted-foreground" />
-                  <h3 className="mt-4 text-lg font-medium">
-                    No transactions found
-                  </h3>
+                  <h3 className="mt-4 text-lg font-medium">No transactions found</h3>
                   <p className="mt-2 text-sm text-muted-foreground">
                     {isBookStore
                       ? "No sales or rental transactions have been recorded yet."
                       : "No borrowing transactions have been recorded yet."}
                   </p>
-                  <Button
-                    className="mt-4"
-                    onClick={() => navigate("/checkout")}
-                  >
+                  <Button className="mt-4" onClick={() => navigate("/checkout")}>
                     {isBookStore ? "Create New Sale" : "Create New Borrowing"}
                   </Button>
                 </div>
@@ -797,10 +720,7 @@ const Transactions = () => {
       </Card>
 
       {/* Transaction Detail Dialog */}
-      <Dialog
-        open={transactionDialogOpen}
-        onOpenChange={setTransactionDialogOpen}
-      >
+      <Dialog open={transactionDialogOpen} onOpenChange={setTransactionDialogOpen}>
         <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -825,9 +745,7 @@ const Transactions = () => {
                     <div className="flex justify-between">
                       <span className="text-sm">Method:</span>
                       <span className="font-medium">
-                        {formatPaymentMethod(
-                          selectedTransaction.payment_method,
-                        )}
+                        {formatPaymentMethod(selectedTransaction.payment_method)}
                       </span>
                     </div>
                     <div className="flex justify-between">
@@ -865,20 +783,14 @@ const Transactions = () => {
                     {selectedTransaction.memberEmail && (
                       <div className="flex justify-between">
                         <span className="text-sm">Email:</span>
-                        <span className="font-medium">
-                          {selectedTransaction.memberEmail}
-                        </span>
+                        <span className="font-medium">{selectedTransaction.memberEmail}</span>
                       </div>
                     )}
                     <div className="flex justify-between">
                       <span className="text-sm">Date:</span>
                       <div className="flex items-center gap-1">
                         <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
-                        <span>
-                          {new Date(
-                            selectedTransaction.date,
-                          ).toLocaleDateString()}
-                        </span>
+                        <span>{new Date(selectedTransaction.date).toLocaleDateString()}</span>
                       </div>
                     </div>
                   </div>
@@ -894,9 +806,7 @@ const Transactions = () => {
                 {isLoadingItems ? (
                   <div className="text-center py-6">
                     <Loader2 className="h-6 w-6 animate-spin mx-auto" />
-                    <p className="text-muted-foreground mt-2">
-                      Loading items...
-                    </p>
+                    <p className="text-muted-foreground mt-2">Loading items...</p>
                   </div>
                 ) : transactionItems.length > 0 ? (
                   <div className="space-y-3">
@@ -923,9 +833,7 @@ const Transactions = () => {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
-                            <h4 className="font-medium truncate">
-                              {item.title}
-                            </h4>
+                            <h4 className="font-medium truncate">{item.title}</h4>
                             <div className="flex items-center text-sm">
                               <span className="text-muted-foreground">
                                 ${item.price.toFixed(2)} × {item.quantity}
@@ -957,16 +865,12 @@ const Transactions = () => {
 
                     <div className="flex justify-between py-2 font-medium">
                       <span>Total</span>
-                      <span>
-                        ${selectedTransaction.total_amount.toFixed(2)}
-                      </span>
+                      <span>${selectedTransaction.total_amount.toFixed(2)}</span>
                     </div>
                   </div>
                 ) : (
                   <div className="text-center py-6 border rounded-md bg-muted/10">
-                    <p className="text-muted-foreground">
-                      No items found for this transaction.
-                    </p>
+                    <p className="text-muted-foreground">No items found for this transaction.</p>
                   </div>
                 )}
               </div>
@@ -974,10 +878,7 @@ const Transactions = () => {
           )}
 
           <DialogFooter>
-            <Button
-              type="button"
-              onClick={() => setTransactionDialogOpen(false)}
-            >
+            <Button type="button" onClick={() => setTransactionDialogOpen(false)}>
               Close
             </Button>
           </DialogFooter>

@@ -43,12 +43,8 @@ const AuthCallback = () => {
   return (
     <div className="flex items-center justify-center min-h-screen">
       <div className="animate-pulse text-center">
-        <h2 className="text-2xl font-semibold mb-2">
-          Completing authentication...
-        </h2>
-        <p className="text-muted-foreground">
-          You'll be redirected in a moment
-        </p>
+        <h2 className="text-2xl font-semibold mb-2">Completing authentication...</h2>
+        <p className="text-muted-foreground">You'll be redirected in a moment</p>
       </div>
     </div>
   );

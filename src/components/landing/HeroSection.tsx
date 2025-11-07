@@ -13,32 +13,23 @@ export const HeroSection = () => {
             </div>
             <div className="space-y-3">
               <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none">
-                Modern Library{" "}
-                <span className="text-primary">Management</span> Solution
+                Modern Library <span className="text-primary">Management</span> Solution
               </h1>
               <p className="max-w-[600px] text-muted-foreground text-lg md:text-xl leading-relaxed">
-                Streamline your library operations with our comprehensive
-                management system. From efficient cataloging to member
-                management and insightful analytics — all in one intuitive
-                platform.
+                Streamline your library operations with our comprehensive management system. From
+                efficient cataloging to member management and insightful analytics — all in one
+                intuitive platform.
               </p>
             </div>
             <div className="flex flex-col gap-3 min-[400px]:flex-row pt-2">
               <Link to="/auth">
-                <Button
-                  size="lg"
-                  className="gap-1.5 shadow-md font-medium px-6 cursor-pointer"
-                >
+                <Button size="lg" className="gap-1.5 shadow-md font-medium px-6 cursor-pointer">
                   Get Started Free
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </Link>
               <a href="#features">
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="gap-1.5 font-medium cursor-pointer"
-                >
+                <Button size="lg" variant="outline" className="gap-1.5 font-medium cursor-pointer">
                   Learn More
                   <Info className="h-4 w-4 ml-1" />
                 </Button>
@@ -93,9 +84,7 @@ export const HeroSection = () => {
               <div className="absolute bottom-4 left-4 rounded-lg bg-background/90 backdrop-blur-sm p-3 shadow-lg border border-primary/10">
                 <div className="flex items-center gap-2">
                   <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                  <span className="text-sm font-medium">
-                    Used by 2,300+ libraries worldwide
-                  </span>
+                  <span className="text-sm font-medium">Used by 2,300+ libraries worldwide</span>
                 </div>
               </div>
             </div>

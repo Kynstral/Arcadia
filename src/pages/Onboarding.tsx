@@ -81,11 +81,7 @@ const Onboarding = () => {
       <Card className="w-full max-w-md bg-card/95 backdrop-blur-xs border-0 shadow-lg">
         <CardContent className="pt-8 pb-6 px-6">
           <div className="flex flex-col items-center mb-8">
-            <img
-              src="/logo.svg"
-              alt="arcadia-logo"
-              className="h-12 w-12 text-primary mb-2"
-            />
+            <img src="/logo.svg" alt="arcadia-logo" className="h-12 w-12 text-primary mb-2" />
             <h1 className="text-2xl font-bold text-primary">Welcome to Arcadia</h1>
             <p className="text-sm text-muted-foreground mt-2 text-center">
               Let's set up your profile to get started

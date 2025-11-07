@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   AlertTriangle,
   Ban,
@@ -38,42 +38,36 @@ import {
   Import,
   Export,
 } from "@/components/members";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useNavigate } from "react-router-dom";
+import { Loader } from "@/components/ui/loader";
 
 const fetchMembers = async (userId: string | null): Promise<Member[]> => {
   if (!userId) return [];
 
+  // Optimized: Fetch members and borrowing counts in a single query using joins
   const { data, error } = await supabase
     .from("members")
-    .select("*")
+    .select(
+      `
+      *,
+      borrowings!member_id(count)
+    `
+    )
     .eq("user_id", userId)
+    .eq("borrowings.status", "Borrowed")
     .order("name");
 
   if (error) throw new Error(`Error fetching members: ${error.message}`);
   if (!data || data.length === 0) return [];
 
-  return await Promise.all(
-    data.map(async (member) => {
-      const { count } = await supabase
-        .from("borrowings")
-        .select("*", { count: "exact", head: true })
-        .eq("member_id", member.id)
-        .eq("status", "Borrowed");
-
-      return {
-        ...member,
-        status: validateMemberStatus(member.status),
-        booksCheckedOut: count || 0,
-      } as Member;
-    }),
-  );
+  return data.map((member: any) => ({
+    ...member,
+    status: validateMemberStatus(member.status),
+    booksCheckedOut: member.borrowings?.[0]?.count || 0,
+    borrowings: undefined, // Remove the join data
+  })) as Member[];
 };
 
 const fetchOverdueCount = async (userId: string | null): Promise<number> => {
@@ -81,23 +75,30 @@ const fetchOverdueCount = async (userId: string | null): Promise<number> => {
 
   const { count } = await supabase
     .from("borrowings")
-    .select("*", { count: "exact", head: true })
+    .select("*, members!inner(user_id)", { count: "exact", head: true })
     .eq("status", "Borrowed")
+    .eq("members.user_id", userId)
     .lt("due_date", new Date().toISOString());
 
   return count || 0;
 };
 
+const fetchMembersWithOverdue = async (userId: string | null): Promise<Set<string>> => {
+  if (!userId) return new Set();
+
+  const { data } = await supabase
+    .from("borrowings")
+    .select("member_id, members!inner(user_id)")
+    .eq("status", "Borrowed")
+    .eq("members.user_id", userId)
+    .lt("due_date", new Date().toISOString());
+
+  return new Set(data?.map((b: any) => b.member_id) || []);
+};
+
 const validateMemberStatus = (status: string): MemberStatus => {
-  const validStatuses: MemberStatus[] = [
-    "Active",
-    "Inactive",
-    "Suspended",
-    "Banned",
-  ];
-  return validStatuses.includes(status as MemberStatus)
-    ? (status as MemberStatus)
-    : "Active";
+  const validStatuses: MemberStatus[] = ["Active", "Inactive", "Suspended", "Banned"];
+  return validStatuses.includes(status as MemberStatus) ? (status as MemberStatus) : "Active";
 };
 
 const updateMemberStatus = async ({
@@ -143,6 +144,16 @@ const Members = () => {
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const queryClient = useQueryClient();
 
+  // Keyboard shortcuts - Listen for custom event from KeyboardShortcutsProvider
+  useEffect(() => {
+    const handleAddMember = () => {
+      handleOpenForm();
+    };
+
+    window.addEventListener("add-member-shortcut", handleAddMember);
+    return () => window.removeEventListener("add-member-shortcut", handleAddMember);
+  }, []);
+
   // State
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<MemberStatus | null>(null);
@@ -153,7 +164,7 @@ const Members = () => {
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [confirmAction, setConfirmAction] = useState<
-    "activate" | "deactivate" | "suspend" | "ban" | "delete" | null
+    "activate" | "deactivate" | "suspend" | "ban" | "delete" | "bulkDelete" | null
   >(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
@@ -163,7 +174,7 @@ const Members = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(25);
 
-  // Queries
+  // Queries with optimized caching
   const {
     data: members = [],
     isLoading,
@@ -172,12 +183,22 @@ const Members = () => {
     queryKey: ["members", userId],
     queryFn: () => fetchMembers(userId),
     enabled: !!userId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
   });
 
   const { data: overdueCount = 0 } = useQuery({
     queryKey: ["overdueCount", userId],
     queryFn: () => fetchOverdueCount(userId),
     enabled: !!userId,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
+
+  const { data: membersWithOverdue = new Set() } = useQuery({
+    queryKey: ["membersWithOverdue", userId],
+    queryFn: () => fetchMembersWithOverdue(userId),
+    enabled: !!userId,
+    staleTime: 2 * 60 * 1000,
   });
 
   // Filtering logic
@@ -199,9 +220,7 @@ const Members = () => {
       if (dateFilter !== "all") {
         const joinedDate = new Date(member.joined_date);
         const now = new Date();
-        const daysDiff = Math.floor(
-          (now.getTime() - joinedDate.getTime()) / (1000 * 60 * 60 * 24),
-        );
+        const daysDiff = Math.floor((now.getTime() - joinedDate.getTime()) / (1000 * 60 * 60 * 24));
 
         if (dateFilter === "week") matchesDate = daysDiff <= 7;
         else if (dateFilter === "month") matchesDate = daysDiff <= 30;
@@ -217,53 +236,60 @@ const Members = () => {
       // Overdue filter (simplified - would need actual overdue data)
       const matchesOverdue = !overdueFilter;
 
-      return (
-        matchesSearch &&
-        matchesStatus &&
-        matchesDate &&
-        matchesBooks &&
-        matchesOverdue
-      );
+      return matchesSearch && matchesStatus && matchesDate && matchesBooks && matchesOverdue;
     });
-  }, [
-    members,
-    searchQuery,
-    statusFilter,
-    dateFilter,
-    booksFilter,
-    overdueFilter,
-  ]);
+  }, [members, searchQuery, statusFilter, dateFilter, booksFilter, overdueFilter]);
 
   // Pagination
   const totalPages = Math.ceil(filteredMembers.length / itemsPerPage);
   const paginatedMembers = filteredMembers.slice(
     (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage,
+    currentPage * itemsPerPage
   );
 
-  const totalBorrowed = members.reduce(
-    (sum, m) => sum + m.booksCheckedOut,
-    0,
-  );
+  const totalBorrowed = members.reduce((sum, m) => sum + m.booksCheckedOut, 0);
 
-  // Mutations
+  // Mutations with optimistic updates
   const updateStatusMutation = useMutation({
     mutationFn: (params: { memberId: string; status: MemberStatus }) =>
       updateMemberStatus({ ...params, userId }),
+    onMutate: async ({ memberId, status }) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ["members", userId] });
+
+      // Snapshot previous value
+      const previousMembers = queryClient.getQueryData<Member[]>(["members", userId]);
+
+      // Optimistically update
+      if (previousMembers) {
+        queryClient.setQueryData<Member[]>(
+          ["members", userId],
+          previousMembers.map((m) => (m.id === memberId ? { ...m, status } : m))
+        );
+      }
+
+      return { previousMembers };
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["members", userId] });
       toast({
         title: "Status updated",
         description: "Member status has been updated successfully.",
       });
       setConfirmDialogOpen(false);
     },
-    onError: (error: Error) => {
+    onError: (error: Error, _, context) => {
+      // Rollback on error
+      if (context?.previousMembers) {
+        queryClient.setQueryData(["members", userId], context.previousMembers);
+      }
       toast({
         title: "Error",
         description: error.message,
         variant: "destructive",
       });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["members", userId] });
     },
   });
 
@@ -275,6 +301,29 @@ const Members = () => {
         title: "Member deleted",
         description: "Member has been deleted successfully.",
       });
+      setConfirmDialogOpen(false);
+      setSelectedMember(null);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async (memberIds: string[]) => {
+      await Promise.all(memberIds.map((id) => deleteMember(id, userId)));
+    },
+    onSuccess: (_, memberIds) => {
+      queryClient.invalidateQueries({ queryKey: ["members", userId] });
+      toast({
+        title: "Members deleted",
+        description: `Successfully deleted ${memberIds.length} member${memberIds.length !== 1 ? "s" : ""}`,
+      });
+      setSelectedMembers([]);
       setConfirmDialogOpen(false);
     },
     onError: (error: Error) => {
@@ -310,7 +359,7 @@ const Members = () => {
 
   const handleSelectMember = (id: string) => {
     setSelectedMembers((prev) =>
-      prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id],
+      prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id]
     );
   };
 
@@ -331,7 +380,16 @@ const Members = () => {
   };
 
   const handleConfirmAction = () => {
-    if (!selectedMember || !confirmAction) return;
+    if (!confirmAction) return;
+
+    // For bulk delete, we don't need selectedMember
+    if (confirmAction === "bulkDelete") {
+      bulkDeleteMutation.mutate(selectedMembers);
+      return;
+    }
+
+    // For other actions, we need selectedMember
+    if (!selectedMember) return;
 
     switch (confirmAction) {
       case "activate":
@@ -369,9 +427,7 @@ const Members = () => {
 
     try {
       await Promise.all(
-        selectedMembers.map((id) =>
-          updateMemberStatus({ memberId: id, status, userId }),
-        ),
+        selectedMembers.map((id) => updateMemberStatus({ memberId: id, status, userId }))
       );
 
       queryClient.invalidateQueries({ queryKey: ["members", userId] });
@@ -389,6 +445,12 @@ const Members = () => {
     }
   };
 
+  const handleBulkDelete = () => {
+    if (selectedMembers.length === 0) return;
+    setConfirmAction("bulkDelete");
+    setConfirmDialogOpen(true);
+  };
+
   const handleClearFilters = () => {
     setStatusFilter(null);
     setDateFilter("all");
@@ -398,43 +460,49 @@ const Members = () => {
   };
 
   const getActionConfig = () => {
-    if (!confirmAction || !selectedMember)
-      return { title: "", description: "", confirmLabel: "", icon: null };
+    if (!confirmAction) return { title: "", description: "", confirmLabel: "", icon: null };
 
     switch (confirmAction) {
       case "activate":
         return {
           title: "Activate Membership",
-          description: `Are you sure you want to activate ${selectedMember.name}'s membership?`,
+          description: `Are you sure you want to activate ${selectedMember?.name}'s membership?`,
           confirmLabel: "Activate",
           icon: <Check className="h-6 w-6 text-green-500" />,
         };
       case "deactivate":
         return {
           title: "Deactivate Membership",
-          description: `Are you sure you want to deactivate ${selectedMember.name}'s membership?`,
+          description: `Are you sure you want to deactivate ${selectedMember?.name}'s membership?`,
           confirmLabel: "Deactivate",
           icon: <AlertTriangle className="h-6 w-6 text-amber-500" />,
         };
       case "suspend":
         return {
           title: "Suspend Membership",
-          description: `Are you sure you want to suspend ${selectedMember.name}'s membership?`,
+          description: `Are you sure you want to suspend ${selectedMember?.name}'s membership?`,
           confirmLabel: "Suspend",
           icon: <AlertTriangle className="h-6 w-6 text-amber-500" />,
         };
       case "ban":
         return {
           title: "Ban Member",
-          description: `Are you sure you want to ban ${selectedMember.name}?`,
+          description: `Are you sure you want to ban ${selectedMember?.name}?`,
           confirmLabel: "Ban",
           icon: <Ban className="h-6 w-6 text-red-500" />,
         };
       case "delete":
         return {
           title: "Delete Member",
-          description: `Are you sure you want to permanently delete ${selectedMember.name}'s record?`,
+          description: `Are you sure you want to permanently delete ${selectedMember?.name}'s record?`,
           confirmLabel: "Delete",
+          icon: <Trash2 className="h-6 w-6 text-red-500" />,
+        };
+      case "bulkDelete":
+        return {
+          title: "Delete Members",
+          description: `Are you sure you want to permanently delete ${selectedMembers.length} member${selectedMembers.length !== 1 ? "s" : ""}? This action cannot be undone.`,
+          confirmLabel: "Delete All",
           icon: <Trash2 className="h-6 w-6 text-red-500" />,
         };
       default:
@@ -456,11 +524,8 @@ const Members = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-pulse text-center">
-          <Users className="h-12 w-12 mx-auto mb-4 text-primary/70" />
-          <p>Loading members...</p>
-        </div>
+      <div className="flex items-center justify-center h-screen">
+        <Loader size={48} variant="accent" />
       </div>
     );
   }
@@ -476,21 +541,14 @@ const Members = () => {
   }
 
   const hasFilters =
-    searchQuery ||
-    statusFilter ||
-    dateFilter !== "all" ||
-    booksFilter !== "all" ||
-    overdueFilter;
+    searchQuery || statusFilter || dateFilter !== "all" || booksFilter !== "all" || overdueFilter;
 
   return (
-    <div className="space-y-6 page-transition">
+    <div className="space-y-6 page-transition animate-in fade-in duration-300">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-in slide-in-from-top-4 duration-500">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-            <Users className="h-8 w-8" />
-            Members
-          </h2>
+          <h2 className="text-3xl font-bold tracking-tight flex items-center gap-2">Members</h2>
           <p className="text-muted-foreground mt-1">
             Manage library members and their borrowing activity
           </p>
@@ -513,18 +571,17 @@ const Members = () => {
       </div>
 
       {/* Stats */}
-      <MemberStats
-        members={members}
-        totalBorrowed={totalBorrowed}
-        overdueCount={overdueCount}
-      />
+      <div className="animate-in slide-in-from-top-6 duration-500 delay-100">
+        <MemberStats members={members} totalBorrowed={totalBorrowed} overdueCount={overdueCount} />
+      </div>
 
       {/* Search and Filters */}
       <div className="flex flex-col gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search members by name, email, phone, or address..."
+            id="member-search"
+            placeholder="Search members by name, email, phone, or address... (Ctrl+K)"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9"
@@ -552,6 +609,7 @@ const Members = () => {
           onBulkStatusUpdate={handleBulkStatusUpdate}
           onBulkExport={() => setIsExportOpen(true)}
           onBulkImport={() => setIsImportOpen(true)}
+          onBulkDelete={handleBulkDelete}
         />
       )}
 
@@ -561,10 +619,12 @@ const Members = () => {
           <MemberTable
             members={paginatedMembers}
             selectedMembers={selectedMembers}
+            membersWithOverdue={membersWithOverdue}
             onSelectMember={handleSelectMember}
             onSelectAll={handleSelectAll}
             onViewDetails={handleViewDetails}
-            onEdit={(member) => navigate(`/members/edit/${member.id}`)}
+            onEdit={(member) => handleOpenForm(member)}
+            onMemberUpdate={() => queryClient.invalidateQueries({ queryKey: ["members", userId] })}
             onStatusChange={handleStatusChange}
             onDelete={handleDelete}
             onAssignBook={handleViewDetails}
@@ -603,26 +663,34 @@ const Members = () => {
           </DialogHeader>
           <DialogDescription>{actionConfig.description}</DialogDescription>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setConfirmDialogOpen(false)}
-            >
+            <Button variant="outline" onClick={() => setConfirmDialogOpen(false)}>
               Cancel
             </Button>
             <Button
               variant={
-                confirmAction === "delete" || confirmAction === "ban"
+                confirmAction === "delete" ||
+                confirmAction === "ban" ||
+                confirmAction === "bulkDelete"
                   ? "destructive"
                   : "default"
               }
               onClick={handleConfirmAction}
               disabled={
-                updateStatusMutation.isPending || deleteMemberMutation.isPending
+                updateStatusMutation.isPending ||
+                deleteMemberMutation.isPending ||
+                bulkDeleteMutation.isPending
               }
             >
-              {updateStatusMutation.isPending || deleteMemberMutation.isPending
-                ? "Processing..."
-                : actionConfig.confirmLabel}
+              {updateStatusMutation.isPending ||
+              deleteMemberMutation.isPending ||
+              bulkDeleteMutation.isPending ? (
+                <>
+                  <Loader size={16} variant="white" className="mr-2" />
+                  Processing...
+                </>
+              ) : (
+                actionConfig.confirmLabel
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -633,9 +701,7 @@ const Members = () => {
         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
-              <DialogTitle>
-                {selectedMember ? "Edit Member" : "Add New Member"}
-              </DialogTitle>
+              <DialogTitle>{selectedMember ? "Edit Member" : "Add New Member"}</DialogTitle>
             </DialogHeader>
             <MemberForm
               member={selectedMember}
@@ -648,9 +714,7 @@ const Members = () => {
         <Drawer open={isFormOpen} onOpenChange={setIsFormOpen}>
           <DrawerContent>
             <DrawerHeader className="text-left">
-              <DrawerTitle>
-                {selectedMember ? "Edit Member" : "Add New Member"}
-              </DrawerTitle>
+              <DrawerTitle>{selectedMember ? "Edit Member" : "Add New Member"}</DrawerTitle>
               <Button
                 variant="ghost"
                 size="icon"
@@ -679,10 +743,7 @@ const Members = () => {
               <DialogTitle>Member Details</DialogTitle>
             </DialogHeader>
             {selectedMemberId && (
-              <MemberDetail
-                memberId={selectedMemberId}
-                onClose={() => setIsDetailOpen(false)}
-              />
+              <MemberDetail memberId={selectedMemberId} onClose={() => setIsDetailOpen(false)} />
             )}
           </DialogContent>
         </Dialog>
@@ -702,10 +763,7 @@ const Members = () => {
             </DrawerHeader>
             <div className="px-4 pb-8 overflow-y-auto">
               {selectedMemberId && (
-                <MemberDetail
-                  memberId={selectedMemberId}
-                  onClose={() => setIsDetailOpen(false)}
-                />
+                <MemberDetail memberId={selectedMemberId} onClose={() => setIsDetailOpen(false)} />
               )}
             </div>
           </DrawerContent>

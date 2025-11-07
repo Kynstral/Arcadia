@@ -190,9 +190,7 @@ export default function TrashPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-primary-text">
-            Trash ({deletedBooks.length})
-          </h1>
+          <h1 className="text-3xl font-bold text-primary-text">Trash ({deletedBooks.length})</h1>
           <p className="text-secondary-text mt-1">
             Deleted books are kept for 30 days before permanent deletion
           </p>
@@ -256,9 +254,7 @@ export default function TrashPage() {
       {deletedBooks.length === 0 ? (
         <Card className="p-12 text-center">
           <Trash2 className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-          <h2 className="text-xl font-semibold text-primary-text mb-2">
-            Trash is empty
-          </h2>
+          <h2 className="text-xl font-semibold text-primary-text mb-2">Trash is empty</h2>
           <p className="text-secondary-text">
             Deleted books will appear here and can be restored within 30 days.
           </p>
@@ -267,22 +263,19 @@ export default function TrashPage() {
         /* Books Grid */
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {deletedBooks.map((book) => {
-            const deletedDate = book.deleted_at
-              ? new Date(book.deleted_at)
-              : null;
+            const deletedDate = book.deleted_at ? new Date(book.deleted_at) : null;
             const daysRemaining = deletedDate
               ? Math.max(
-                0,
-                30 -
-                Math.floor(
-                  (Date.now() - deletedDate.getTime()) /
-                  (1000 * 60 * 60 * 24),
-                ),
-              )
+                  0,
+                  30 - Math.floor((Date.now() - deletedDate.getTime()) / (1000 * 60 * 60 * 24))
+                )
               : 30;
 
             return (
-              <Card key={book.id} className="h-[280px] relative group overflow-hidden transition-all">
+              <Card
+                key={book.id}
+                className="h-[280px] relative group overflow-hidden transition-all"
+              >
                 <div className="h-full w-full relative overflow-hidden rounded-lg">
                   {book.coverImage ? (
                     <img
@@ -308,9 +301,7 @@ export default function TrashPage() {
                     <h3 className="font-semibold text-sm line-clamp-1 text-foreground mb-0.5">
                       {book.title}
                     </h3>
-                    <p className="text-xs text-muted-foreground line-clamp-1 mb-2">
-                      {book.author}
-                    </p>
+                    <p className="text-xs text-muted-foreground line-clamp-1 mb-2">{book.author}</p>
 
                     {deletedDate && (
                       <p className="text-[10px] text-muted-foreground mb-2">
@@ -358,16 +349,12 @@ export default function TrashPage() {
       )}
 
       {/* Permanent Delete Confirmation Dialog */}
-      <Dialog
-        open={!!bookToDelete}
-        onOpenChange={(open) => !open && setBookToDelete(null)}
-      >
+      <Dialog open={!!bookToDelete} onOpenChange={(open) => !open && setBookToDelete(null)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Permanently Delete Book?</DialogTitle>
             <DialogDescription>
-              This action cannot be undone. This will permanently delete the
-              book from the database.
+              This action cannot be undone. This will permanently delete the book from the database.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -397,16 +384,13 @@ export default function TrashPage() {
       </Dialog>
 
       {/* Empty Trash Confirmation Dialog */}
-      <Dialog
-        open={showEmptyTrashDialog}
-        onOpenChange={setShowEmptyTrashDialog}
-      >
+      <Dialog open={showEmptyTrashDialog} onOpenChange={setShowEmptyTrashDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Empty Trash?</DialogTitle>
             <DialogDescription>
-              This will permanently delete all {deletedBooks.length} book(s) in
-              the trash. This action cannot be undone.
+              This will permanently delete all {deletedBooks.length} book(s) in the trash. This
+              action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -436,16 +420,13 @@ export default function TrashPage() {
       </Dialog>
 
       {/* Restore All Confirmation Dialog */}
-      <Dialog
-        open={showRestoreAllDialog}
-        onOpenChange={setShowRestoreAllDialog}
-      >
+      <Dialog open={showRestoreAllDialog} onOpenChange={setShowRestoreAllDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Restore All Books?</DialogTitle>
             <DialogDescription>
-              This will restore all {deletedBooks.length} book(s) from the trash
-              back to your library.
+              This will restore all {deletedBooks.length} book(s) from the trash back to your
+              library.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -456,10 +437,7 @@ export default function TrashPage() {
             >
               Cancel
             </Button>
-            <Button
-              onClick={confirmRestoreAll}
-              disabled={restoreAllMutation.isPending}
-            >
+            <Button onClick={confirmRestoreAll} disabled={restoreAllMutation.isPending}>
               {restoreAllMutation.isPending ? (
                 <>
                   <Loader size={16} variant="white" className="mr-2" />

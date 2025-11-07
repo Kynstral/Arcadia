@@ -8,17 +8,13 @@ export const Footer = () => {
           <div className="col-span-2 md:col-span-1 lg:col-span-2 space-y-4">
             <div className="flex items-center gap-2.5">
               <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10">
-                <img
-                  src="/logo.svg"
-                  alt="arcadia-footer-logo"
-                  className="h-5 w-5"
-                />
+                <img src="/logo.svg" alt="arcadia-footer-logo" className="h-5 w-5" />
               </div>
               <span className="text-xl font-bold text-primary">Arcadia</span>
             </div>
             <p className="text-sm text-muted-foreground max-w-xs">
-              The modern way to manage your library's resources and patrons.
-              Trusted by institutions of all sizes around the world.
+              The modern way to manage your library's resources and patrons. Trusted by institutions
+              of all sizes around the world.
             </p>
 
             <div className="flex items-center gap-3 pt-2">
@@ -124,18 +120,12 @@ export const Footer = () => {
                 </a>
               </li>
               <li>
-                <a
-                  href="#"
-                  className="text-muted-foreground hover:text-primary transition-colors"
-                >
+                <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
                   Integrations
                 </a>
               </li>
               <li>
-                <a
-                  href="#"
-                  className="text-muted-foreground hover:text-primary transition-colors"
-                >
+                <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
                   Updates
                 </a>
               </li>
@@ -146,34 +136,22 @@ export const Footer = () => {
             <h3 className="font-semibold mb-4">Resources</h3>
             <ul className="space-y-3 text-sm">
               <li>
-                <a
-                  href="#"
-                  className="text-muted-foreground hover:text-primary transition-colors"
-                >
+                <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
                   Documentation
                 </a>
               </li>
               <li>
-                <a
-                  href="#"
-                  className="text-muted-foreground hover:text-primary transition-colors"
-                >
+                <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
                   Guides
                 </a>
               </li>
               <li>
-                <a
-                  href="#"
-                  className="text-muted-foreground hover:text-primary transition-colors"
-                >
+                <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
                   Support
                 </a>
               </li>
               <li>
-                <a
-                  href="#"
-                  className="text-muted-foreground hover:text-primary transition-colors"
-                >
+                <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
                   API
                 </a>
               </li>
@@ -184,34 +162,22 @@ export const Footer = () => {
             <h3 className="font-semibold mb-4">Company</h3>
             <ul className="space-y-3 text-sm">
               <li>
-                <a
-                  href="#"
-                  className="text-muted-foreground hover:text-primary transition-colors"
-                >
+                <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
                   About
                 </a>
               </li>
               <li>
-                <a
-                  href="#"
-                  className="text-muted-foreground hover:text-primary transition-colors"
-                >
+                <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
                   Blog
                 </a>
               </li>
               <li>
-                <a
-                  href="#"
-                  className="text-muted-foreground hover:text-primary transition-colors"
-                >
+                <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
                   Careers
                 </a>
               </li>
               <li>
-                <a
-                  href="#"
-                  className="text-muted-foreground hover:text-primary transition-colors"
-                >
+                <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
                   Contact
                 </a>
               </li>
@@ -224,8 +190,8 @@ export const Footer = () => {
             <div className="md:max-w-md">
               <h3 className="font-semibold mb-2">Stay updated</h3>
               <p className="text-sm text-muted-foreground">
-                Subscribe to our newsletter for the latest updates, features,
-                and library management tips.
+                Subscribe to our newsletter for the latest updates, features, and library management
+                tips.
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">

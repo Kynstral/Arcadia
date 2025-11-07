@@ -78,8 +78,7 @@ const Auth = () => {
           toast({
             variant: "destructive",
             title: "Sign up failed",
-            description:
-              "This email address is already in use. Please try signing in instead.",
+            description: "This email address is already in use. Please try signing in instead.",
           });
         } else {
           toast({
@@ -195,11 +194,7 @@ const Auth = () => {
         <Card className="w-full max-w-md bg-card/95 backdrop-blur-xs border-0 shadow-lg">
           <CardContent className="pt-8 pb-6 px-6">
             <div className="flex flex-col items-center mb-8">
-              <img
-                src="/logo.svg"
-                alt="arcadia-logo"
-                className="h-12 w-12 text-primary mb-2"
-              />
+              <img src="/logo.svg" alt="arcadia-logo" className="h-12 w-12 text-primary mb-2" />
               <h1 className="text-2xl font-bold text-primary">Arcadia</h1>
               <p className="text-sm text-muted-foreground mt-1">
                 {isSignUp ? "Create a new account" : "Sign in to your account"}
@@ -243,11 +238,7 @@ const Auth = () => {
                     disabled={loading}
                     className="w-full"
                   >
-                    <svg
-                      className="mr-2 h-4 w-4"
-                      fill="currentColor"
-                      viewBox="0 0 24 24"
-                    >
+                    <svg className="mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
                     </svg>
                     GitHub
@@ -269,10 +260,7 @@ const Auth = () => {
                   <Label htmlFor="role" className="text-foreground/90">
                     Register as
                   </Label>
-                  <Select
-                    value={role}
-                    onValueChange={(value) => setRole(value as UserRole)}
-                  >
+                  <Select value={role} onValueChange={(value) => setRole(value as UserRole)}>
                     <SelectTrigger className="bg-muted/50 border-muted">
                       <SelectValue placeholder="Select role" />
                     </SelectTrigger>
@@ -288,9 +276,7 @@ const Auth = () => {
                   </Label>
                   <Input
                     id="name"
-                    placeholder={
-                      role === "Library" ? "Central Library" : "Book Haven"
-                    }
+                    placeholder={role === "Library" ? "Central Library" : "Book Haven"}
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     disabled={loading}
@@ -314,10 +300,7 @@ const Auth = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="password-signup"
-                    className="text-foreground/90"
-                  >
+                  <Label htmlFor="password-signup" className="text-foreground/90">
                     Password
                   </Label>
                   <Input
@@ -331,12 +314,7 @@ const Auth = () => {
                     required
                   />
                 </div>
-                <Button
-                  type="submit"
-                  className="w-full mt-6"
-                  disabled={loading}
-                  size="lg"
-                >
+                <Button type="submit" className="w-full mt-6" disabled={loading} size="lg">
                   {loading ? "Creating account..." : "Sign Up"}
                 </Button>
 
@@ -390,11 +368,7 @@ const Auth = () => {
                     disabled={loading}
                     className="w-full"
                   >
-                    <svg
-                      className="mr-2 h-4 w-4"
-                      fill="currentColor"
-                      viewBox="0 0 24 24"
-                    >
+                    <svg className="mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
                     </svg>
                     GitHub
@@ -416,10 +390,7 @@ const Auth = () => {
                   <Label htmlFor="loginRole" className="text-foreground/90">
                     Login as
                   </Label>
-                  <Select
-                    value={role}
-                    onValueChange={(value) => setRole(value as UserRole)}
-                  >
+                  <Select value={role} onValueChange={(value) => setRole(value as UserRole)}>
                     <SelectTrigger className="bg-muted/50 border-muted">
                       <SelectValue placeholder="Select role" />
                     </SelectTrigger>
@@ -467,12 +438,7 @@ const Auth = () => {
                     required
                   />
                 </div>
-                <Button
-                  type="submit"
-                  className="w-full mt-6"
-                  disabled={loading}
-                  size="lg"
-                >
+                <Button type="submit" className="w-full mt-6" disabled={loading} size="lg">
                   {loading ? "Signing in..." : "Log in"}
                 </Button>
 

@@ -11,11 +11,7 @@ import {
 import { books } from "@/lib/data.ts";
 
 export const getBooks = async (userId?: string | null): Promise<Book[]> => {
-  let query = supabase
-    .from("books")
-    .select("*")
-    .is("deleted_at", null)
-    .order("title");
+  let query = supabase.from("books").select("*").is("deleted_at", null).order("title");
 
   if (userId) {
     query = query.eq("user_id", userId);
@@ -52,16 +48,13 @@ export const getBooks = async (userId?: string | null): Promise<Book[]> => {
     salesCount: book.sales_count,
   }));
 };
-export const searchBooks = async (
-  query: string,
-  userId?: string | null,
-): Promise<Book[]> => {
+export const searchBooks = async (query: string, userId?: string | null): Promise<Book[]> => {
   let dbQuery = supabase
     .from("books")
     .select("*")
     .is("deleted_at", null)
     .or(
-      `title.ilike.%${query}%,author.ilike.%${query}%,description.ilike.%${query}%,isbn.ilike.%${query}%`,
+      `title.ilike.%${query}%,author.ilike.%${query}%,description.ilike.%${query}%,isbn.ilike.%${query}%`
     )
     .order("title");
 
@@ -100,12 +93,7 @@ export const searchBooks = async (
     salesCount: book.sales_count,
   }));
 };
-export const deleteBook = async (
-  id: string,
-  userId?: string | null,
-): Promise<string> => {
-  console.log("deleteBook function called for id:", id, "- moving to trash");
-
+export const deleteBook = async (id: string, userId?: string | null): Promise<string> => {
   // Soft delete: set deleted_at timestamp instead of actually deleting
   const { error } = await supabase
     .from("books")
@@ -124,12 +112,7 @@ export const deleteBook = async (
   return id;
 };
 
-export const restoreBook = async (
-  id: string,
-  userId?: string | null,
-): Promise<string> => {
-  console.log("restoreBook function called for id:", id);
-
+export const restoreBook = async (id: string, userId?: string | null): Promise<string> => {
   const { error } = await supabase
     .from("books")
     .update({
@@ -149,10 +132,8 @@ export const restoreBook = async (
 
 export const permanentlyDeleteBook = async (
   id: string,
-  userId?: string | null,
+  userId?: string | null
 ): Promise<string> => {
-  console.log("permanentlyDeleteBook function called for id:", id);
-
   const { error } = await supabase
     .from("books")
     .delete()
@@ -167,9 +148,7 @@ export const permanentlyDeleteBook = async (
   return id;
 };
 
-export const getDeletedBooks = async (
-  userId?: string | null,
-): Promise<Book[]> => {
+export const getDeletedBooks = async (userId?: string | null): Promise<Book[]> => {
   let query = supabase
     .from("books")
     .select("*")
@@ -215,8 +194,6 @@ export const getDeletedBooks = async (
 };
 
 export const emptyTrash = async (userId?: string | null): Promise<number> => {
-  console.log("emptyTrash function called");
-
   // Get all deleted books for this user
   const { data: deletedBooks, error: fetchError } = await supabase
     .from("books")
@@ -263,10 +240,8 @@ export const bulkUpdateBooks = async (
     location?: string;
     stock?: number;
   },
-  userId?: string | null,
+  userId?: string | null
 ): Promise<BulkUpdateResult> => {
-  console.log("bulkUpdateBooks function called for", bookIds.length, "books");
-
   const results: BulkUpdateResult = {
     success: 0,
     failed: 0,
@@ -309,9 +284,7 @@ export const bulkUpdateBooks = async (
   return results;
 };
 
-export const getDashboardStats = async (
-  userId?: string | null,
-): Promise<DashboardStats> => {
+export const getDashboardStats = async (userId?: string | null): Promise<DashboardStats> => {
   let booksQuery = supabase
     .from("books")
     .select("*", { count: "exact", head: true })
@@ -328,9 +301,7 @@ export const getDashboardStats = async (
     throw new Error(`Error fetching total books: ${booksError.message}`);
   }
 
-  let membersQuery = supabase
-    .from("members")
-    .select("*", { count: "exact", head: true });
+  let membersQuery = supabase.from("members").select("*", { count: "exact", head: true });
 
   if (userId) {
     membersQuery = membersQuery.eq("user_id", userId);
@@ -351,19 +322,14 @@ export const getDashboardStats = async (
     transactionsQuery = transactionsQuery.eq("user_id", userId);
   }
 
-  const { count: totalTransactions, error: transactionsError } =
-    await transactionsQuery;
+  const { count: totalTransactions, error: transactionsError } = await transactionsQuery;
 
   if (transactionsError) {
     console.error("Error fetching total transactions:", transactionsError);
-    throw new Error(
-      `Error fetching total transactions: ${transactionsError.message}`,
-    );
+    throw new Error(`Error fetching total transactions: ${transactionsError.message}`);
   }
 
-  let revenueQuery = supabase
-    .from("checkout_transactions")
-    .select("total_amount");
+  let revenueQuery = supabase.from("checkout_transactions").select("total_amount");
 
   if (userId) {
     revenueQuery = revenueQuery.eq("user_id", userId);
@@ -376,10 +342,7 @@ export const getDashboardStats = async (
     throw new Error(`Error fetching revenue: ${revenueError.message}`);
   }
 
-  const totalRevenue = revenueData.reduce(
-    (acc, curr) => acc + curr.total_amount,
-    0,
-  );
+  const totalRevenue = revenueData.reduce((acc, curr) => acc + curr.total_amount, 0);
 
   let recentTransactionsQuery = supabase
     .from("checkout_transactions")
@@ -395,13 +358,8 @@ export const getDashboardStats = async (
     await recentTransactionsQuery;
 
   if (recentTransactionsError) {
-    console.error(
-      "Error fetching recent transactions:",
-      recentTransactionsError,
-    );
-    throw new Error(
-      `Error fetching recent transactions: ${recentTransactionsError.message}`,
-    );
+    console.error("Error fetching recent transactions:", recentTransactionsError);
+    throw new Error(`Error fetching recent transactions: ${recentTransactionsError.message}`);
   }
 
   const recentTransactions: CheckoutTransaction[] = [];
@@ -413,10 +371,7 @@ export const getDashboardStats = async (
       .eq("transaction_id", transaction.id);
 
     if (itemsError) {
-      console.error(
-        `Error fetching checkout items for transaction ${transaction.id}:`,
-        itemsError,
-      );
+      console.error(`Error fetching checkout items for transaction ${transaction.id}:`, itemsError);
       throw new Error(`Error fetching checkout items: ${itemsError.message}`);
     }
 
@@ -435,9 +390,7 @@ export const getDashboardStats = async (
       customerId: transaction.customer_id,
       status: transaction.status as TransactionStatus,
       paymentMethod: transaction.payment_method as PaymentMethod,
-      returnDate: transaction.return_date
-        ? new Date(transaction.return_date)
-        : undefined,
+      returnDate: transaction.return_date ? new Date(transaction.return_date) : undefined,
       user_id: transaction.user_id,
     });
   }
@@ -464,16 +417,14 @@ export const getDashboardStats = async (
         sales_count,
         user_id
       )
-    `,
+    `
     )
     .order("quantity", { ascending: false })
     .limit(5);
 
   if (popularBooksError) {
     console.error("Error fetching popular books:", popularBooksError);
-    throw new Error(
-      `Error fetching popular books: ${popularBooksError.message}`,
-    );
+    throw new Error(`Error fetching popular books: ${popularBooksError.message}`);
   }
 
   let popularBooks: Book[] = [];

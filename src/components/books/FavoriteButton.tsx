@@ -1,10 +1,6 @@
 import { Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useFavorites } from "@/hooks/use-favorites";
 import { cn } from "@/lib/utils";
 
@@ -41,9 +37,7 @@ export function FavoriteButton({
           <Star
             className={cn(
               "h-4 w-4 transition-all",
-              isFavorite
-                ? "fill-primary text-primary"
-                : "text-muted-foreground hover:text-primary",
+              isFavorite ? "fill-primary text-primary" : "text-muted-foreground hover:text-primary"
             )}
           />
         </Button>

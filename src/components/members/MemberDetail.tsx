@@ -2,24 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  Book,
-  BookCategory,
-  BookStatus,
-  Member,
-  TransactionStatus,
-} from "@/lib/types";
+import { Book, BookCategory, BookStatus, Member, TransactionStatus } from "@/lib/types";
 import {
   BookOpen,
   Check,
@@ -53,6 +41,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/components/AuthStatusProvider";
 import { Link } from "react-router-dom";
+import { Loader } from "@/components/ui/loader";
 
 interface CheckoutItem {
   id: string;
@@ -97,9 +86,7 @@ interface MemberDetailProps {
 const MemberDetail = ({ memberId, onClose }: MemberDetailProps) => {
   const { userRole } = useAuth();
   const [member, setMember] = useState<Member | null>(null);
-  const [checkoutHistory, setCheckoutHistory] = useState<
-    ExtendedCheckoutTransaction[]
-  >([]);
+  const [checkoutHistory, setCheckoutHistory] = useState<ExtendedCheckoutTransaction[]>([]);
   const [borrowedBooks, setBorrowedBooks] = useState<Borrowing[]>([]);
   const [availableBooks, setAvailableBooks] = useState<Book[]>([]);
   const [assignBookOpen, setAssignBookOpen] = useState(false);
@@ -109,15 +96,12 @@ const MemberDetail = ({ memberId, onClose }: MemberDetailProps) => {
   const [categoryFilter, setCategoryFilter] = useState<string>("");
   const [categories, setCategories] = useState<string[]>([]);
   const [isAssigning, setIsAssigning] = useState(false);
-  const [isReturning, setIsReturning] = useState<{ [key: string]: boolean }>(
-    {},
-  );
+  const [isReturning, setIsReturning] = useState<{ [key: string]: boolean }>({});
   const { toast } = useToast();
 
   const [isMemberLoading, setIsMemberLoading] = useState(true);
   const [isBorrowedBooksLoading, setIsBorrowedBooksLoading] = useState(true);
-  const [isCheckoutHistoryLoading, setIsCheckoutHistoryLoading] =
-    useState(true);
+  const [isCheckoutHistoryLoading, setIsCheckoutHistoryLoading] = useState(true);
 
   const cache = useRef({
     member: null as Member | null,
@@ -149,8 +133,7 @@ const MemberDetail = ({ memberId, onClose }: MemberDetailProps) => {
         setIsMemberLoading(false);
       }
     } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : "An unknown error occurred";
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
 
       toast({
         variant: "destructive",
@@ -163,10 +146,7 @@ const MemberDetail = ({ memberId, onClose }: MemberDetailProps) => {
   const fetchBorrowedBooks = async () => {
     setIsBorrowedBooksLoading(true);
     try {
-      if (
-        cache.current.borrowedBooks.length > 0 &&
-        cache.current.member?.id === memberId
-      ) {
+      if (cache.current.borrowedBooks.length > 0 && cache.current.member?.id === memberId) {
         setBorrowedBooks(cache.current.borrowedBooks);
         setIsBorrowedBooksLoading(false);
       } else {
@@ -183,8 +163,7 @@ const MemberDetail = ({ memberId, onClose }: MemberDetailProps) => {
         setIsBorrowedBooksLoading(false);
       }
     } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : "An unknown error occurred";
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
 
       toast({
         variant: "destructive",
@@ -197,10 +176,7 @@ const MemberDetail = ({ memberId, onClose }: MemberDetailProps) => {
   const fetchCheckoutHistory = async () => {
     setIsCheckoutHistoryLoading(true);
     try {
-      if (
-        cache.current.checkoutHistory.length > 0 &&
-        cache.current.member?.id === memberId
-      ) {
+      if (cache.current.checkoutHistory.length > 0 && cache.current.member?.id === memberId) {
         setCheckoutHistory(cache.current.checkoutHistory);
       } else {
         const { data: checkoutData, error: checkoutError } = await supabase
@@ -210,13 +186,11 @@ const MemberDetail = ({ memberId, onClose }: MemberDetailProps) => {
           .order("date", { ascending: false });
 
         if (checkoutError) throw checkoutError;
-        cache.current.checkoutHistory =
-          checkoutData as ExtendedCheckoutTransaction[];
+        cache.current.checkoutHistory = checkoutData as ExtendedCheckoutTransaction[];
         setCheckoutHistory(checkoutData as ExtendedCheckoutTransaction[]);
       }
     } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : "An unknown error occurred";
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
 
       toast({
         variant: "destructive",
@@ -265,13 +239,10 @@ const MemberDetail = ({ memberId, onClose }: MemberDetailProps) => {
 
       setAvailableBooks(typedBooks);
 
-      const uniqueCategories = Array.from(
-        new Set(typedBooks.map((book) => book.category)),
-      );
+      const uniqueCategories = Array.from(new Set(typedBooks.map((book) => book.category)));
       setCategories(uniqueCategories);
     } catch (error: Error | unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error occurred";
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
       toast({
         variant: "destructive",
         title: "Error loading member details",
@@ -289,7 +260,7 @@ const MemberDetail = ({ memberId, onClose }: MemberDetailProps) => {
   }, [memberId, toast]);
 
   useEffect(() => {
-    return () => { };
+    return () => {};
   }, []);
 
   const getFilteredBooks = () => {
@@ -298,9 +269,7 @@ const MemberDetail = ({ memberId, onClose }: MemberDetailProps) => {
         (searchQuery === "" ||
           book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
           book.author.toLowerCase().includes(searchQuery.toLowerCase())) &&
-        (categoryFilter === "all" ||
-          categoryFilter === "" ||
-          book.category === categoryFilter),
+        (categoryFilter === "all" || categoryFilter === "" || book.category === categoryFilter)
     );
   };
   const filteredBooks = getFilteredBooks();
@@ -354,18 +323,16 @@ const MemberDetail = ({ memberId, onClose }: MemberDetailProps) => {
           const dueDate = new Date();
           dueDate.setDate(dueDate.getDate() + 14);
 
-          const { error: borrowError } = await supabase
-            .from("borrowings")
-            .insert([
-              {
-                book_id: bookId,
-                member_id: memberId,
-                due_date: dueDate.toISOString(),
-                status: "Borrowed",
-                checkout_date: new Date().toISOString(),
-                user_id: userId,
-              },
-            ]);
+          const { error: borrowError } = await supabase.from("borrowings").insert([
+            {
+              book_id: bookId,
+              member_id: memberId,
+              due_date: dueDate.toISOString(),
+              status: "Borrowed",
+              checkout_date: new Date().toISOString(),
+              user_id: userId,
+            },
+          ]);
 
           if (borrowError) throw borrowError;
 
@@ -422,11 +389,7 @@ const MemberDetail = ({ memberId, onClose }: MemberDetailProps) => {
         description: (
           <div className="flex items-center font-medium">
             <Check className="mr-2 h-4 w-4 text-green-500" />
-            Books{" "}
-            {assignType === "borrow"
-              ? borrowedText.toLowerCase()
-              : "purchased"}{" "}
-            successfully
+            Books {assignType === "borrow" ? borrowedText.toLowerCase() : "purchased"} successfully
           </div>
         ),
         className: "text-green-600",
@@ -437,8 +400,7 @@ const MemberDetail = ({ memberId, onClose }: MemberDetailProps) => {
       setAssignType("borrow");
       setCategoryFilter("");
     } catch (error: Error | unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error occurred";
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
       toast({
         variant: "destructive",
         title: "Failed to assign book",
@@ -449,11 +411,7 @@ const MemberDetail = ({ memberId, onClose }: MemberDetailProps) => {
     }
   };
 
-  const handleBookReturn = async (
-    borrowingId: string,
-    bookId: string,
-    bookTitle: string,
-  ) => {
+  const handleBookReturn = async (borrowingId: string, bookId: string, bookTitle: string) => {
     setIsReturning({ ...isReturning, [borrowingId]: true });
     try {
       const { error: borrowingError } = await supabase
@@ -484,18 +442,16 @@ const MemberDetail = ({ memberId, onClose }: MemberDetailProps) => {
 
       if (updateError) throw updateError;
 
-      const { error: transactionError } = await supabase
-        .from("checkout_transactions")
-        .insert([
-          {
-            customer_id: memberId,
-            status: "Completed" as TransactionStatus,
-            payment_method: "Return",
-            total_amount: 0,
-            date: new Date().toISOString(),
-            notes: `Returned: ${bookTitle}`,
-          },
-        ]);
+      const { error: transactionError } = await supabase.from("checkout_transactions").insert([
+        {
+          customer_id: memberId,
+          status: "Completed" as TransactionStatus,
+          payment_method: "Return",
+          total_amount: 0,
+          date: new Date().toISOString(),
+          notes: `Returned: ${bookTitle}`,
+        },
+      ]);
 
       if (transactionError) throw transactionError;
       fetchMemberDetails();
@@ -511,8 +467,7 @@ const MemberDetail = ({ memberId, onClose }: MemberDetailProps) => {
         className: "text-green-600",
       });
     } catch (error: Error | unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error occurred";
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
       toast({
         variant: "destructive",
         title: "Failed to return book",
@@ -558,10 +513,7 @@ const MemberDetail = ({ memberId, onClose }: MemberDetailProps) => {
       <div className="flex justify-between items-start">
         <div>
           {isMemberLoading ? (
-            <div className="animate-pulse">
-              <div className="h-8 bg-gray-300 rounded w-48"></div>
-              <div className="h-4 bg-gray-200 rounded w-24 mt-2"></div>
-            </div>
+            <Loader size={32} variant="accent" />
           ) : (
             <>
               <h2 className="text-2xl font-bold">{member?.name}</h2>
@@ -591,33 +543,15 @@ const MemberDetail = ({ memberId, onClose }: MemberDetailProps) => {
                   </Button>
                 </Link>
               )}
-              <Button
-                onClick={() => setAssignBookOpen(true)}
-                variant="outline"
-                size="sm"
-              >
+              <Button onClick={() => setAssignBookOpen(true)} variant="outline" size="sm">
                 <Plus className="h-4 w-4 mr-2" /> Assign Book
               </Button>
             </div>
           </div>
 
           {isBorrowedBooksLoading ? (
-            <div className="grid gap-4 md:grid-cols-2">
-              {[...Array(2)].map((_, i) => (
-                <Card key={i} className="animate-pulse">
-                  <CardContent className="p-4">
-                    <div className="flex gap-3">
-                      <div className="h-16 w-12 bg-gray-300 rounded shrink-0"></div>
-                      <div className="flex-1 space-y-2">
-                        <div className="h-4 bg-gray-300 rounded w-32"></div>
-                        <div className="h-3 bg-gray-200 rounded w-24"></div>
-                        <div className="h-3 bg-gray-200 rounded w-16"></div>
-                      </div>
-                      <div className="w-20 h-8 bg-gray-300 rounded self-center"></div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+            <div className="flex justify-center py-8">
+              <Loader size={32} variant="accent" />
             </div>
           ) : borrowedBooks.length > 0 ? (
             <div className="grid gap-4 md:grid-cols-2">
@@ -638,15 +572,10 @@ const MemberDetail = ({ memberId, onClose }: MemberDetailProps) => {
                       </div>
                       <div className="flex-1">
                         <h4 className="font-medium">{borrowing.books.title}</h4>
-                        <p className="text-sm text-muted-foreground">
-                          {borrowing.books.author}
-                        </p>
+                        <p className="text-sm text-muted-foreground">{borrowing.books.author}</p>
                         <div className="flex flex-col gap-1 mt-1 text-xs text-muted-foreground">
                           <span>
-                            {borrowedText}:{" "}
-                            {new Date(
-                              borrowing.checkout_date,
-                            ).toLocaleDateString()}
+                            {borrowedText}: {new Date(borrowing.checkout_date).toLocaleDateString()}
                           </span>
                           <span
                             className={
@@ -655,8 +584,7 @@ const MemberDetail = ({ memberId, onClose }: MemberDetailProps) => {
                                 : ""
                             }
                           >
-                            Due:{" "}
-                            {new Date(borrowing.due_date).toLocaleDateString()}
+                            Due: {new Date(borrowing.due_date).toLocaleDateString()}
                           </span>
                         </div>
                       </div>
@@ -664,11 +592,7 @@ const MemberDetail = ({ memberId, onClose }: MemberDetailProps) => {
                         variant="outline"
                         size="sm"
                         onClick={() =>
-                          handleBookReturn(
-                            borrowing.id,
-                            borrowing.book_id,
-                            borrowing.books.title,
-                          )
+                          handleBookReturn(borrowing.id, borrowing.book_id, borrowing.books.title)
                         }
                         disabled={isReturning[borrowing.id]}
                         className="self-center"
@@ -706,26 +630,8 @@ const MemberDetail = ({ memberId, onClose }: MemberDetailProps) => {
           <h3 className="text-lg font-medium">Checkout History</h3>
 
           {isCheckoutHistoryLoading ? (
-            <div className="space-y-4">
-              {[...Array(2)].map((_, i) => (
-                <Card key={i} className="animate-pulse">
-                  <CardHeader className="pb-2">
-                    <div className="flex justify-between items-center">
-                      <div className="space-y-1">
-                        <div className="h-6 bg-gray-300 rounded w-32"></div>
-                        <div className="h-4 bg-gray-200 rounded w-48"></div>
-                      </div>
-                      <div className="space-y-1 text-right">
-                        <div className="h-6 bg-gray-300 rounded w-20"></div>
-                        <div className="h-4 bg-gray-200 rounded w-16"></div>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-4 bg-gray-200 rounded w-full"></div>
-                  </CardContent>
-                </Card>
-              ))}
+            <div className="flex justify-center py-8">
+              <Loader size={32} variant="accent" />
             </div>
           ) : checkoutHistory.length > 0 ? (
             <div className="space-y-4">
@@ -741,23 +647,16 @@ const MemberDetail = ({ memberId, onClose }: MemberDetailProps) => {
                           {new Date(transaction.date).toLocaleDateString()} -
                           <Badge
                             className="ml-2"
-                            variant={
-                              transaction.status === "Completed"
-                                ? "default"
-                                : "outline"
-                            }
+                            variant={transaction.status === "Completed" ? "default" : "outline"}
                           >
                             {transaction.status}
                           </Badge>
                         </CardDescription>
                       </div>
                       <div className="text-right">
-                        <p className="font-medium">
-                          ${(transaction.total_amount || 0).toFixed(2)}
-                        </p>
+                        <p className="font-medium">${(transaction.total_amount || 0).toFixed(2)}</p>
                         <p className="text-xs text-muted-foreground">
-                          {transaction.payment_method === "Borrow" &&
-                            isBookStore
+                          {transaction.payment_method === "Borrow" && isBookStore
                             ? "Rent"
                             : transaction.payment_method}
                           {transaction.payment_method === "Return" && (
@@ -775,8 +674,7 @@ const MemberDetail = ({ memberId, onClose }: MemberDetailProps) => {
                   <CardContent>
                     {transaction.payment_method === "Return" ? (
                       <div className="text-sm">
-                        {transaction.notes &&
-                          transaction.notes.startsWith("Returned:") ? (
+                        {transaction.notes && transaction.notes.startsWith("Returned:") ? (
                           <div className="flex items-center text-emerald-700">
                             <Check className="mr-2 h-4 w-4" />
                             {transaction.notes}
@@ -792,10 +690,7 @@ const MemberDetail = ({ memberId, onClose }: MemberDetailProps) => {
                       <ul className="space-y-2">
                         {transaction.checkout_items &&
                           transaction.checkout_items.map((item) => (
-                            <li
-                              key={item.id}
-                              className="flex justify-between text-sm"
-                            >
+                            <li key={item.id} className="flex justify-between text-sm">
                               <div className="flex items-center">
                                 <span>
                                   {item.quantity}x {item.title}
@@ -809,9 +704,7 @@ const MemberDetail = ({ memberId, onClose }: MemberDetailProps) => {
                                   </Badge>
                                 )}
                               </div>
-                              <span>
-                                ${(item.price * item.quantity).toFixed(2)}
-                              </span>
+                              <span>${(item.price * item.quantity).toFixed(2)}</span>
                             </li>
                           ))}
                       </ul>
@@ -837,9 +730,7 @@ const MemberDetail = ({ memberId, onClose }: MemberDetailProps) => {
               <div className="flex justify-between items-center">
                 <div>
                   <CardTitle>Member Information</CardTitle>
-                  <CardDescription>
-                    Personal details and account information
-                  </CardDescription>
+                  <CardDescription>Personal details and account information</CardDescription>
                 </div>
 
                 <Button
@@ -854,59 +745,36 @@ const MemberDetail = ({ memberId, onClose }: MemberDetailProps) => {
             </CardHeader>
             <CardContent className="space-y-4">
               {isMemberLoading ? (
-                <div className="grid grid-cols-2 gap-4 animate-pulse">
-                  {[...Array(6)].map((_, i) => (
-                    <div key={i}>
-                      <div className="h-4 bg-gray-300 rounded w-20 mb-2"></div>
-                      <div className="h-6 bg-gray-200 rounded w-full"></div>
-                    </div>
-                  ))}
+                <div className="flex justify-center py-8">
+                  <Loader size={32} variant="accent" />
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <h4 className="text-sm font-medium text-muted-foreground">
-                      Full Name
-                    </h4>
+                    <h4 className="text-sm font-medium text-muted-foreground">Full Name</h4>
                     <p>{member?.name}</p>
                   </div>
                   <div>
-                    <h4 className="text-sm font-medium text-muted-foreground">
-                      Email
-                    </h4>
+                    <h4 className="text-sm font-medium text-muted-foreground">Email</h4>
                     <p>{member?.email}</p>
                   </div>
                   <div>
-                    <h4 className="text-sm font-medium text-muted-foreground">
-                      Phone
-                    </h4>
+                    <h4 className="text-sm font-medium text-muted-foreground">Phone</h4>
                     <p>{member?.phone || "Not provided"}</p>
                   </div>
                   <div>
-                    <h4 className="text-sm font-medium text-muted-foreground">
-                      Address
-                    </h4>
+                    <h4 className="text-sm font-medium text-muted-foreground">Address</h4>
                     <p>{member?.address || "Not provided"}</p>
                   </div>
                   <div>
-                    <h4 className="text-sm font-medium text-muted-foreground">
-                      Status
-                    </h4>
-                    <Badge
-                      className={getStatusColor(member?.status || "Inactive")}
-                    >
+                    <h4 className="text-sm font-medium text-muted-foreground">Status</h4>
+                    <Badge className={getStatusColor(member?.status || "Inactive")}>
                       {member?.status}
                     </Badge>
                   </div>
                   <div>
-                    <h4 className="text-sm font-medium text-muted-foreground">
-                      Joined Date
-                    </h4>
-                    <p>
-                      {new Date(
-                        member?.joined_date || new Date(),
-                      ).toLocaleDateString()}
-                    </p>
+                    <h4 className="text-sm font-medium text-muted-foreground">Joined Date</h4>
+                    <p>{new Date(member?.joined_date || new Date()).toLocaleDateString()}</p>
                   </div>
                 </div>
               )}
@@ -919,9 +787,7 @@ const MemberDetail = ({ memberId, onClose }: MemberDetailProps) => {
         <DialogContent className="sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>Assign Book to {member?.name}</DialogTitle>
-            <DialogDescription>
-              Select up to 5 books to assign to this member
-            </DialogDescription>
+            <DialogDescription>Select up to 5 books to assign to this member</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
@@ -930,18 +796,12 @@ const MemberDetail = ({ memberId, onClose }: MemberDetailProps) => {
 
               <RadioGroup
                 value={assignType}
-                onValueChange={(value) =>
-                  setAssignType(value as "borrow" | "purchase")
-                }
+                onValueChange={(value) => setAssignType(value as "borrow" | "purchase")}
                 className="flex gap-4 mt-2"
               >
                 <div className="flex-1">
                   <div className="relative">
-                    <RadioGroupItem
-                      value="borrow"
-                      id="borrow"
-                      className="sr-only peer"
-                    />
+                    <RadioGroupItem value="borrow" id="borrow" className="sr-only peer" />
                     <Label
                       htmlFor="borrow"
                       className="flex h-10 w-full items-center justify-center bg-black dark:bg-white text-white dark:text-black gap-2 rounded-md border-2 cursor-pointer peer-focus-visible:ring-2 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-primary peer-checked:bg-primary/20 peer-checked:border-primary peer-checked:text-primary peer-checked:font-medium transition-colors relative"
@@ -957,11 +817,7 @@ const MemberDetail = ({ memberId, onClose }: MemberDetailProps) => {
                 </div>
                 <div className="flex-1">
                   <div className="relative">
-                    <RadioGroupItem
-                      value="purchase"
-                      id="purchase"
-                      className="sr-only peer"
-                    />
+                    <RadioGroupItem value="purchase" id="purchase" className="sr-only peer" />
                     <Label
                       htmlFor="purchase"
                       className="flex h-10 w-full items-center justify-center bg-black dark:bg-white text-white dark:text-black gap-2 rounded-md border-2 cursor-pointer peer-focus-visible:ring-2 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-primary peer-checked:bg-primary/20 peer-checked:border-primary peer-checked:text-primary peer-checked:font-medium transition-colors relative"
@@ -990,10 +846,7 @@ const MemberDetail = ({ memberId, onClose }: MemberDetailProps) => {
               </div>
 
               <div className="w-1/3">
-                <Select
-                  value={categoryFilter}
-                  onValueChange={(value) => setCategoryFilter(value)}
-                >
+                <Select value={categoryFilter} onValueChange={(value) => setCategoryFilter(value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Category" />
                   </SelectTrigger>
@@ -1014,8 +867,9 @@ const MemberDetail = ({ memberId, onClose }: MemberDetailProps) => {
                 filteredBooks.map((book) => (
                   <Card
                     key={book.id}
-                    className={`cursor-pointer transition-colors ${selectedBookIds.includes(book.id) ? "border-primary" : ""
-                      }`}
+                    className={`cursor-pointer transition-colors ${
+                      selectedBookIds.includes(book.id) ? "border-primary" : ""
+                    }`}
                     onClick={() => handleToggleBookSelection(book.id)}
                   >
                     <CardContent className="p-4">
@@ -1033,9 +887,7 @@ const MemberDetail = ({ memberId, onClose }: MemberDetailProps) => {
                         </div>
                         <div className="flex-1">
                           <h4 className="font-medium">{book.title}</h4>
-                          <p className="text-sm text-muted-foreground">
-                            {book.author}
-                          </p>
+                          <p className="text-sm text-muted-foreground">{book.author}</p>
                           <div className="flex gap-2 mt-1">
                             <Badge variant="outline" className="text-xs">
                               {book.stock} available
@@ -1071,11 +923,7 @@ const MemberDetail = ({ memberId, onClose }: MemberDetailProps) => {
                     {selectedBookIds.map((id) => {
                       const book = availableBooks.find((b) => b.id === id);
                       return book ? (
-                        <Badge
-                          key={id}
-                          variant="outline"
-                          className="flex items-center gap-1"
-                        >
+                        <Badge key={id} variant="outline" className="flex items-center gap-1">
                           {book.title}
                           <button
                             onClick={(e) => {

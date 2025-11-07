@@ -7,11 +7,7 @@ interface BookEmptyStateProps {
   onClearFilters: () => void;
 }
 
-export function BookEmptyState({
-  hasBooks,
-  onAddBook,
-  onClearFilters,
-}: BookEmptyStateProps) {
+export function BookEmptyState({ hasBooks, onAddBook, onClearFilters }: BookEmptyStateProps) {
   return (
     <div className="flex flex-col items-center justify-center text-muted-foreground py-10">
       <BookOpen className="h-12 w-12 mx-auto text-muted-foreground/50" />

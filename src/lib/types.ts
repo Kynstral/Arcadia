@@ -71,12 +71,7 @@ export type BookStatus =
   | "Lost"
   | "Out of Stock";
 
-export type PaymentMethod =
-  | "Credit Card"
-  | "Cash"
-  | "PayPal"
-  | "Bank Transfer"
-  | "Other";
+export type PaymentMethod = "Credit Card" | "Cash" | "PayPal" | "Bank Transfer" | "Other";
 
 export type MemberStatus = "Active" | "Inactive" | "Suspended" | "Banned";
 
@@ -116,11 +111,7 @@ export interface CheckoutItem {
   dueDate?: Date;
 }
 
-export type TransactionStatus =
-  | "Pending"
-  | "Completed"
-  | "Canceled"
-  | "Returned";
+export type TransactionStatus = "Pending" | "Completed" | "Canceled" | "Returned";
 
 export interface CheckoutTransaction {
   id: string;

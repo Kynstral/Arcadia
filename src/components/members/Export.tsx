@@ -21,12 +21,7 @@ interface ExportProps {
   selectedMembers: string[];
 }
 
-const Export = ({
-  open,
-  onOpenChange,
-  members,
-  selectedMembers,
-}: ExportProps) => {
+const Export = ({ open, onOpenChange, members, selectedMembers }: ExportProps) => {
   const [includeFields, setIncludeFields] = useState({
     name: true,
     email: true,
@@ -44,9 +39,7 @@ const Export = ({
 
   const handleExport = () => {
     const membersToExport =
-      selectedMembers.length > 0
-        ? members.filter((m) => selectedMembers.includes(m.id))
-        : members;
+      selectedMembers.length > 0 ? members.filter((m) => selectedMembers.includes(m.id)) : members;
 
     if (membersToExport.length === 0) {
       toast({
@@ -66,9 +59,7 @@ const Export = ({
         headers.push(
           field === "booksCheckedOut"
             ? "Books Checked Out"
-            : field
-              .replace(/_/g, " ")
-              .replace(/\b\w/g, (l) => l.toUpperCase()),
+            : field.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())
         );
       }
     });
@@ -134,16 +125,12 @@ const Export = ({
                   <Checkbox
                     id={field}
                     checked={checked}
-                    onCheckedChange={() =>
-                      toggleField(field as keyof typeof includeFields)
-                    }
+                    onCheckedChange={() => toggleField(field as keyof typeof includeFields)}
                   />
                   <Label htmlFor={field} className="cursor-pointer">
                     {field === "booksCheckedOut"
                       ? "Books Checked Out"
-                      : field
-                        .replace(/_/g, " ")
-                        .replace(/\b\w/g, (l) => l.toUpperCase())}
+                      : field.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}
                   </Label>
                 </div>
               ))}

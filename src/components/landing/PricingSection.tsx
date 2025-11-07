@@ -22,8 +22,8 @@ export const PricingSection = () => {
             Ready to Transform Your Library?
           </h2>
           <p className="text-muted-foreground text-lg leading-relaxed mb-8 max-w-2xl mx-auto">
-            Join thousands of libraries that trust Arcadia for their management
-            needs. During our beta period, get complete access for free.
+            Join thousands of libraries that trust Arcadia for their management needs. During our
+            beta period, get complete access for free.
           </p>
 
           <div className="mb-10 bg-card border rounded-xl shadow-lg p-8 md:p-10">
@@ -34,9 +34,7 @@ export const PricingSection = () => {
               <h3 className="text-2xl font-bold mb-2">Free Beta Access</h3>
               <div className="flex items-baseline mb-6">
                 <span className="text-5xl font-bold text-primary">$0</span>
-                <span className="text-lg text-muted-foreground ml-2">
-                  /month
-                </span>
+                <span className="text-lg text-muted-foreground ml-2">/month</span>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-md mb-8">
@@ -76,11 +74,7 @@ export const PricingSection = () => {
                   </Button>
                 </Link>
                 <a href="#features" className="w-full sm:w-auto">
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="font-medium w-full cursor-pointer"
-                  >
+                  <Button size="lg" variant="outline" className="font-medium w-full cursor-pointer">
                     Book a Demo
                   </Button>
                 </a>

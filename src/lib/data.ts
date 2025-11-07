@@ -85,7 +85,5 @@ export const books: Book[] = [
 
 export const getRelatedBooks = (book: Book, limit: number = 4): Book[] => {
   // Find books in the same category, excluding the current book
-  return books
-    .filter((b) => b.id !== book.id && b.category === book.category)
-    .slice(0, limit);
+  return books.filter((b) => b.id !== book.id && b.category === book.category).slice(0, limit);
 };

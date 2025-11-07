@@ -24,12 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import {
   Drawer,
@@ -92,11 +87,8 @@ const ITEMS_PER_PAGE = 24;
 
 const Catalog = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState<BookCategory | string>(
-    ALL_CATEGORIES,
-  );
-  const [publisherFilter, setPublisherFilter] =
-    useState<string>(ALL_PUBLISHERS);
+  const [categoryFilter, setCategoryFilter] = useState<BookCategory | string>(ALL_CATEGORIES);
+  const [publisherFilter, setPublisherFilter] = useState<string>(ALL_PUBLISHERS);
   const [yearFilter, setYearFilter] = useState<string>(ALL_YEARS);
   const [priceRange, setPriceRange] = useState<{
     min: number;
@@ -114,10 +106,10 @@ const Catalog = () => {
   useEffect(() => {
     setIsFilterActive(
       categoryFilter !== ALL_CATEGORIES ||
-      publisherFilter !== ALL_PUBLISHERS ||
-      yearFilter !== ALL_YEARS ||
-      !!priceRange ||
-      !!searchQuery,
+        publisherFilter !== ALL_PUBLISHERS ||
+        yearFilter !== ALL_YEARS ||
+        !!priceRange ||
+        !!searchQuery
     );
   }, [categoryFilter, publisherFilter, yearFilter, priceRange, searchQuery]);
 
@@ -150,9 +142,9 @@ const Catalog = () => {
 
   const categories = Array.from(new Set(books.map((book) => book.category)));
   const publishers = Array.from(new Set(books.map((book) => book.publisher)));
-  const years = Array.from(
-    new Set(books.map((book) => book.publicationYear)),
-  ).sort((a, b) => b - a);
+  const years = Array.from(new Set(books.map((book) => book.publicationYear))).sort(
+    (a, b) => b - a
+  );
 
   const filteredBooks = books.filter((book) => {
     const matchesSearch =
@@ -161,24 +153,14 @@ const Catalog = () => {
       book.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
       book.isbn.includes(searchQuery);
 
-    const matchesCategory =
-      categoryFilter === ALL_CATEGORIES || book.category === categoryFilter;
+    const matchesCategory = categoryFilter === ALL_CATEGORIES || book.category === categoryFilter;
     const matchesPublisher =
       publisherFilter === ALL_PUBLISHERS || book.publisher === publisherFilter;
-    const matchesYear =
-      yearFilter === ALL_YEARS ||
-      book.publicationYear.toString() === yearFilter;
+    const matchesYear = yearFilter === ALL_YEARS || book.publicationYear.toString() === yearFilter;
     const matchesPriceRange =
-      !priceRange ||
-      (book.price >= priceRange.min && book.price <= priceRange.max);
+      !priceRange || (book.price >= priceRange.min && book.price <= priceRange.max);
 
-    return (
-      matchesSearch &&
-      matchesCategory &&
-      matchesPublisher &&
-      matchesYear &&
-      matchesPriceRange
-    );
+    return matchesSearch && matchesCategory && matchesPublisher && matchesYear && matchesPriceRange;
   });
 
   const handleViewBook = (book: Book) => {
@@ -286,9 +268,7 @@ const Catalog = () => {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <Loader size={48} variant="accent" className="mx-auto mb-4" />
-          <p className="text-muted-foreground">
-            Loading your catalog...
-          </p>
+          <p className="text-muted-foreground">Loading your catalog...</p>
         </div>
       </div>
     );
@@ -300,9 +280,7 @@ const Catalog = () => {
         <div className="text-center max-w-md mx-auto p-8 rounded-lg border bg-card">
           <BookOpen className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
           <h2 className="text-2xl font-bold mb-2">Sign In Required</h2>
-          <p className="text-muted-foreground">
-            Please sign in to view your book catalog.
-          </p>
+          <p className="text-muted-foreground">Please sign in to view your book catalog.</p>
           <Button className="mt-6" onClick={() => navigate("/login")}>
             Sign In
           </Button>
@@ -316,17 +294,11 @@ const Catalog = () => {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-8 rounded-lg border bg-destructive/10">
           <X className="h-16 w-16 mx-auto mb-4 text-destructive" />
-          <h2 className="text-2xl font-bold mb-2 text-destructive">
-            Error Loading Catalog
-          </h2>
+          <h2 className="text-2xl font-bold mb-2 text-destructive">Error Loading Catalog</h2>
           <p className="text-muted-foreground mb-4">
-            We encountered a problem loading your catalog. Please try again
-            later.
+            We encountered a problem loading your catalog. Please try again later.
           </p>
-          <Button
-            variant="destructive"
-            onClick={() => window.location.reload()}
-          >
+          <Button variant="destructive" onClick={() => window.location.reload()}>
             Retry
           </Button>
         </div>
@@ -337,35 +309,22 @@ const Catalog = () => {
   const FilterDrawer = () => (
     <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
       <DrawerTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="flex md:hidden items-center gap-2"
-        >
+        <Button variant="outline" size="sm" className="flex md:hidden items-center gap-2">
           <SlidersHorizontal className="h-4 w-4" />
           Filters
-          {isFilterActive && (
-            <Badge className="h-2 w-2 p-0 rounded-full bg-primary" />
-          )}
+          {isFilterActive && <Badge className="h-2 w-2 p-0 rounded-full bg-primary" />}
         </Button>
       </DrawerTrigger>
       <DrawerContent>
         <DrawerHeader>
           <DrawerTitle>Filter Books</DrawerTitle>
-          <DrawerDescription>
-            Apply filters to narrow your search
-          </DrawerDescription>
+          <DrawerDescription>Apply filters to narrow your search</DrawerDescription>
         </DrawerHeader>
         <ScrollArea className="px-4 py-2 max-h-[60vh]">
           <div className="space-y-4">
             <div>
-              <Label className="text-sm font-medium mb-1.5 block">
-                Category
-              </Label>
-              <Select
-                value={categoryFilter}
-                onValueChange={(value) => setCategoryFilter(value)}
-              >
+              <Label className="text-sm font-medium mb-1.5 block">Category</Label>
+              <Select value={categoryFilter} onValueChange={(value) => setCategoryFilter(value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select Category" />
                 </SelectTrigger>
@@ -381,13 +340,8 @@ const Catalog = () => {
             </div>
 
             <div>
-              <Label className="text-sm font-medium mb-1.5 block">
-                Publisher
-              </Label>
-              <Select
-                value={publisherFilter}
-                onValueChange={(value) => setPublisherFilter(value)}
-              >
+              <Label className="text-sm font-medium mb-1.5 block">Publisher</Label>
+              <Select value={publisherFilter} onValueChange={(value) => setPublisherFilter(value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select Publisher" />
                 </SelectTrigger>
@@ -403,13 +357,8 @@ const Catalog = () => {
             </div>
 
             <div>
-              <Label className="text-sm font-medium mb-1.5 block">
-                Publication Year
-              </Label>
-              <Select
-                value={yearFilter}
-                onValueChange={(value) => setYearFilter(value)}
-              >
+              <Label className="text-sm font-medium mb-1.5 block">Publication Year</Label>
+              <Select value={yearFilter} onValueChange={(value) => setYearFilter(value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select Year" />
                 </SelectTrigger>
@@ -426,11 +375,7 @@ const Catalog = () => {
           </div>
         </ScrollArea>
         <DrawerFooter className="flex flex-row gap-3">
-          <Button
-            variant="outline"
-            onClick={clearAllFilters}
-            className="flex-1"
-          >
+          <Button variant="outline" onClick={clearAllFilters} className="flex-1">
             Clear All
           </Button>
           <Button onClick={() => setDrawerOpen(false)} className="flex-1">
@@ -445,12 +390,8 @@ const Catalog = () => {
     <div className="space-y-6 page-transition">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-            Catalog
-          </h2>
-          <p className="text-muted-foreground mt-1">
-            Browse and manage your book collection
-          </p>
+          <h2 className="text-3xl font-bold tracking-tight flex items-center gap-2">Catalog</h2>
+          <p className="text-muted-foreground mt-1">Browse and manage your book collection</p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -512,10 +453,7 @@ const Catalog = () => {
         </div>
 
         <div className="hidden md:flex gap-2 order-2">
-          <Select
-            value={categoryFilter}
-            onValueChange={(value) => setCategoryFilter(value)}
-          >
+          <Select value={categoryFilter} onValueChange={(value) => setCategoryFilter(value)}>
             <SelectTrigger className="w-[160px]">
               <SelectValue placeholder="Category" />
             </SelectTrigger>
@@ -529,10 +467,7 @@ const Catalog = () => {
             </SelectContent>
           </Select>
 
-          <Select
-            value={publisherFilter}
-            onValueChange={(value) => setPublisherFilter(value)}
-          >
+          <Select value={publisherFilter} onValueChange={(value) => setPublisherFilter(value)}>
             <SelectTrigger className="w-[160px]">
               <SelectValue placeholder="Publisher" />
             </SelectTrigger>
@@ -546,10 +481,7 @@ const Catalog = () => {
             </SelectContent>
           </Select>
 
-          <Select
-            value={yearFilter}
-            onValueChange={(value) => setYearFilter(value)}
-          >
+          <Select value={yearFilter} onValueChange={(value) => setYearFilter(value)}>
             <SelectTrigger className="w-[160px]">
               <SelectValue placeholder="Year" />
             </SelectTrigger>
@@ -581,8 +513,7 @@ const Catalog = () => {
         <>
           <div className="flex justify-between items-center">
             <div className="text-sm text-muted-foreground">
-              {filteredBooks.length}{" "}
-              {filteredBooks.length === 1 ? "book" : "books"} found
+              {filteredBooks.length} {filteredBooks.length === 1 ? "book" : "books"} found
             </div>
           </div>
 
@@ -616,15 +547,15 @@ const Catalog = () => {
                       <Button
                         size="icon"
                         variant="ghost"
-                        className={`absolute top-2 right-2 h-8 w-8 rounded-full backdrop-blur-sm shadow-sm ${favoritesSet.has(book.id)
-                          ? "bg-red-500/90 hover:bg-red-600 text-white"
-                          : "bg-background/80 hover:bg-background"
-                          }`}
+                        className={`absolute top-2 right-2 h-8 w-8 rounded-full backdrop-blur-sm shadow-sm ${
+                          favoritesSet.has(book.id)
+                            ? "bg-red-500/90 hover:bg-red-600 text-white"
+                            : "bg-background/80 hover:bg-background"
+                        }`}
                         onClick={(e) => handleToggleFavorite(e, book.id)}
                       >
                         <Heart
-                          className={`h-4 w-4 ${favoritesSet.has(book.id) ? "fill-current" : ""
-                            }`}
+                          className={`h-4 w-4 ${favoritesSet.has(book.id) ? "fill-current" : ""}`}
                         />
                       </Button>
 
@@ -653,9 +584,7 @@ const Catalog = () => {
                       {book.title}
                     </h3>
 
-                    <p className="text-xs text-muted-foreground line-clamp-1">
-                      {book.author}
-                    </p>
+                    <p className="text-xs text-muted-foreground line-clamp-1">{book.author}</p>
 
                     <div className="flex items-center justify-between pt-1">
                       <span className="text-lg font-bold text-primary">
@@ -727,15 +656,15 @@ const Catalog = () => {
                         <Button
                           size="icon"
                           variant="ghost"
-                          className={`h-9 w-9 rounded-full shrink-0 ${favoritesSet.has(book.id)
-                            ? "text-red-500 hover:text-red-600"
-                            : "hover:text-red-500"
-                            }`}
+                          className={`h-9 w-9 rounded-full shrink-0 ${
+                            favoritesSet.has(book.id)
+                              ? "text-red-500 hover:text-red-600"
+                              : "hover:text-red-500"
+                          }`}
                           onClick={(e) => handleToggleFavorite(e, book.id)}
                         >
                           <Heart
-                            className={`h-4 w-4 ${favoritesSet.has(book.id) ? "fill-current" : ""
-                              }`}
+                            className={`h-4 w-4 ${favoritesSet.has(book.id) ? "fill-current" : ""}`}
                           />
                         </Button>
                       </div>
@@ -846,15 +775,11 @@ const Catalog = () => {
           </div>
           <h3 className="mt-4 text-lg font-medium">No Books Found</h3>
           <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
-            We couldn't find any books matching your search criteria. Try
-            adjusting your filters or adding new books to your catalog.
+            We couldn't find any books matching your search criteria. Try adjusting your filters or
+            adding new books to your catalog.
           </p>
           {isFilterActive && (
-            <Button
-              variant="outline"
-              className="mt-4"
-              onClick={clearAllFilters}
-            >
+            <Button variant="outline" className="mt-4" onClick={clearAllFilters}>
               Clear All Filters
             </Button>
           )}

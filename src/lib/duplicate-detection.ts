@@ -15,7 +15,7 @@ export interface DuplicateCheckResult {
  */
 export async function checkDuplicates(
   book: { isbn?: string; title?: string; author?: string },
-  excludeId?: string,
+  excludeId?: string
 ): Promise<DuplicateCheckResult> {
   const result: DuplicateCheckResult = {
     exactISBN: [],
@@ -33,16 +33,17 @@ export async function checkDuplicates(
       .is("deleted_at", null);
 
     if (!isbnError && isbnMatches) {
-      result.exactISBN = isbnMatches
-        .filter((b) => b.id !== excludeId)
-        .map(mapBookFromDb);
+      result.exactISBN = isbnMatches.filter((b) => b.id !== excludeId).map(mapBookFromDb);
     }
   }
 
   // 2. Check for similar titles using ILIKE (fuzzy matching)
   if (book.title && book.title.trim()) {
-    const titleWords = book.title.trim().split(" ").filter((w) => w.length > 3);
-    
+    const titleWords = book.title
+      .trim()
+      .split(" ")
+      .filter((w) => w.length > 3);
+
     if (titleWords.length > 0) {
       // Build a query that checks if any significant word appears in the title
       const { data: titleMatches, error: titleError } = await supabase
@@ -59,7 +60,7 @@ export async function checkDuplicates(
             // Calculate simple similarity score
             const similarity = calculateTitleSimilarity(
               book.title!.toLowerCase(),
-              b.title.toLowerCase(),
+              b.title.toLowerCase()
             );
             return similarity > 0.6;
           })
@@ -79,9 +80,7 @@ export async function checkDuplicates(
       .limit(10);
 
     if (!combinedError && combinedMatches) {
-      result.titleAndAuthor = combinedMatches
-        .filter((b) => b.id !== excludeId)
-        .map(mapBookFromDb);
+      result.titleAndAuthor = combinedMatches.filter((b) => b.id !== excludeId).map(mapBookFromDb);
     }
   }
 
@@ -146,7 +145,7 @@ function levenshteinDistance(str1: string, str2: string): number {
         matrix[i][j] = Math.min(
           matrix[i - 1][j - 1] + 1,
           matrix[i][j - 1] + 1,
-          matrix[i - 1][j] + 1,
+          matrix[i - 1][j] + 1
         );
       }
     }

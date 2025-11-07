@@ -49,9 +49,7 @@ const MemberStats = ({ members, totalBorrowed, overdueCount }: MemberStatsProps)
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  {stat.title}
-                </p>
+                <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
                 <p className="text-2xl font-bold mt-2">{stat.value}</p>
               </div>
               <div className={`${stat.bgColor} p-3 rounded-lg`}>

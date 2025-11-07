@@ -48,18 +48,15 @@ export function DuplicateDetectionDialog({
             Duplicate Books Detected
           </DialogTitle>
           <DialogDescription>
-            Found {duplicates.length} book{duplicates.length > 1 ? "s" : ""} with
-            ISBN{duplicates.length > 1 ? "s" : ""} that already exist in your
-            library.
+            Found {duplicates.length} book{duplicates.length > 1 ? "s" : ""} with ISBN
+            {duplicates.length > 1 ? "s" : ""} that already exist in your library.
           </DialogDescription>
         </DialogHeader>
 
         {isChecking ? (
           <div className="py-8 flex flex-col items-center justify-center">
             <Loader size={48} variant="accent" className="mb-4" />
-            <p className="text-sm text-muted-foreground">
-              Checking for duplicates...
-            </p>
+            <p className="text-sm text-muted-foreground">Checking for duplicates...</p>
           </div>
         ) : (
           <>
@@ -95,15 +92,9 @@ export function DuplicateDetectionDialog({
 
                       {/* Book Info */}
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate">
-                          {book.title}
-                        </p>
-                        <p className="text-xs text-muted-foreground truncate">
-                          by {book.author}
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          ISBN: {book.isbn}
-                        </p>
+                        <p className="font-medium text-sm truncate">{book.title}</p>
+                        <p className="text-xs text-muted-foreground truncate">by {book.author}</p>
+                        <p className="text-xs text-muted-foreground mt-1">ISBN: {book.isbn}</p>
                       </div>
                     </div>
                   ))}
@@ -119,8 +110,7 @@ export function DuplicateDetectionDialog({
                     • <strong>Skip Duplicates:</strong> Import only new books
                   </li>
                   <li>
-                    • <strong>Import All:</strong> Import everything (creates
-                    duplicates)
+                    • <strong>Import All:</strong> Import everything (creates duplicates)
                   </li>
                   <li>
                     • <strong>Cancel:</strong> Stop the import process
@@ -133,11 +123,7 @@ export function DuplicateDetectionDialog({
               <Button variant="outline" onClick={onCancel} className="w-full sm:w-auto">
                 Cancel Import
               </Button>
-              <Button
-                variant="secondary"
-                onClick={onSkip}
-                className="w-full sm:w-auto"
-              >
+              <Button variant="secondary" onClick={onSkip} className="w-full sm:w-auto">
                 Skip Duplicates ({duplicates.length})
               </Button>
               <Button onClick={onContinue} className="w-full sm:w-auto">

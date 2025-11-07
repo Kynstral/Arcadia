@@ -21,13 +21,7 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Link, useNavigate } from "react-router-dom";
@@ -35,11 +29,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useCart } from "@/hooks/use-cart";
 import { useAuth } from "@/components/AuthStatusProvider";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Dialog,
   DialogContent,
@@ -52,11 +42,8 @@ import { TransactionStatus } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 
 const Checkout = () => {
-  const { cart, updateQuantity, removeFromCart, clearCart, setCart } =
-    useCart();
-  const [checkoutMode, setCheckoutMode] = useState<"purchase" | "lending">(
-    "purchase",
-  );
+  const { cart, updateQuantity, removeFromCart, clearCart, setCart } = useCart();
+  const [checkoutMode, setCheckoutMode] = useState<"purchase" | "lending">("purchase");
   const { toast } = useToast();
   const { user, userRole } = useAuth();
   const navigate = useNavigate();
@@ -84,10 +71,8 @@ const Checkout = () => {
 
   const calculateSubtotal = () => {
     return cart.reduce(
-      (sum, item) =>
-        sum +
-        calculateItemPrice(item, checkoutMode === "lending") * item.quantity,
-      0,
+      (sum, item) => sum + calculateItemPrice(item, checkoutMode === "lending") * item.quantity,
+      0
     );
   };
 
@@ -130,9 +115,7 @@ const Checkout = () => {
       const { data, error } = await supabase
         .from("members")
         .select("id, name, email, phone")
-        .or(
-          `name.ilike.%${query}%,email.ilike.%${query}%,phone.ilike.%${query}%`,
-        )
+        .or(`name.ilike.%${query}%,email.ilike.%${query}%,phone.ilike.%${query}%`)
         .order("name");
 
       if (error) throw error;
@@ -196,21 +179,19 @@ const Checkout = () => {
           const dueDate = new Date();
           dueDate.setDate(dueDate.getDate() + 14);
 
-          const { error: borrowError } = await supabase
-            .from("borrowings")
-            .insert([
-              {
-                book_id: item.bookId,
-                member_id: selectedMember.id,
-                due_date: dueDate.toISOString(),
-                status: "Borrowed",
-                checkout_date: new Date().toISOString(),
-                user_id: user.id,
-                quantity: item.quantity,
-                reminder_sent: false,
-                reminder_date: new Date().toISOString(),
-              },
-            ]);
+          const { error: borrowError } = await supabase.from("borrowings").insert([
+            {
+              book_id: item.bookId,
+              member_id: selectedMember.id,
+              due_date: dueDate.toISOString(),
+              status: "Borrowed",
+              checkout_date: new Date().toISOString(),
+              user_id: user.id,
+              quantity: item.quantity,
+              reminder_sent: false,
+              reminder_date: new Date().toISOString(),
+            },
+          ]);
 
           if (borrowError) throw borrowError;
         }
@@ -224,11 +205,7 @@ const Checkout = () => {
               customer_id: selectedMember.id,
               status: "Completed" as TransactionStatus,
               payment_method:
-                checkoutMode === "lending"
-                  ? isBookStore
-                    ? "Rent"
-                    : "Borrow"
-                  : paymentMethod,
+                checkoutMode === "lending" ? (isBookStore ? "Rent" : "Borrow") : paymentMethod,
               total_amount: itemPrice * item.quantity,
               date: new Date().toISOString(),
               user_id: user.id,
@@ -239,17 +216,15 @@ const Checkout = () => {
 
         if (checkoutError) throw checkoutError;
 
-        const { error: itemError } = await supabase
-          .from("checkout_items")
-          .insert([
-            {
-              transaction_id: transactionData.id,
-              title: item.title,
-              quantity: item.quantity,
-              price: itemPrice,
-              book_id: item.bookId,
-            },
-          ]);
+        const { error: itemError } = await supabase.from("checkout_items").insert([
+          {
+            transaction_id: transactionData.id,
+            title: item.title,
+            quantity: item.quantity,
+            price: itemPrice,
+            book_id: item.bookId,
+          },
+        ]);
 
         if (itemError) throw itemError;
 
@@ -324,8 +299,8 @@ const Checkout = () => {
             </div>
             <h2 className="text-2xl font-semibold mb-3">Your cart is empty</h2>
             <p className="text-muted-foreground max-w-md mx-auto mb-8">
-              Looks like you haven't added any books to your cart yet. Browse
-              our catalog to find your next great read.
+              Looks like you haven't added any books to your cart yet. Browse our catalog to find
+              your next great read.
             </p>
             <Button size="lg" asChild>
               <Link to="/catalog">Browse Books</Link>
@@ -363,44 +338,26 @@ const Checkout = () => {
                           />
                         </div>
                         <div className="flex-1 min-w-0 mr-4">
-                          <h4 className="font-medium truncate mb-1">
-                            {item.title}
-                          </h4>
+                          <h4 className="font-medium truncate mb-1">{item.title}</h4>
                           <div className="flex items-center text-sm">
-                            <span className="font-medium">
-                              ${item.price.toFixed(2)}
-                            </span>
-                            <span className="mx-2 text-muted-foreground">
-                              ×
-                            </span>
+                            <span className="font-medium">${item.price.toFixed(2)}</span>
+                            <span className="mx-2 text-muted-foreground">×</span>
                             <div className="flex items-center border rounded-md">
                               <Button
                                 variant="ghost"
                                 size="icon"
                                 className="h-7 w-7 rounded-r-none"
-                                onClick={() =>
-                                  handleQuantityChange(
-                                    item.bookId,
-                                    item.quantity - 1,
-                                  )
-                                }
+                                onClick={() => handleQuantityChange(item.bookId, item.quantity - 1)}
                                 disabled={item.quantity <= 1}
                               >
                                 <Minus className="h-3 w-3" />
                               </Button>
-                              <span className="w-8 text-center">
-                                {item.quantity}
-                              </span>
+                              <span className="w-8 text-center">{item.quantity}</span>
                               <Button
                                 variant="ghost"
                                 size="icon"
                                 className="h-7 w-7 rounded-l-none"
-                                onClick={() =>
-                                  handleQuantityChange(
-                                    item.bookId,
-                                    item.quantity + 1,
-                                  )
-                                }
+                                onClick={() => handleQuantityChange(item.bookId, item.quantity + 1)}
                               >
                                 <Plus className="h-3 w-3" />
                               </Button>
@@ -476,10 +433,7 @@ const Checkout = () => {
                         Select Member
                       </h3>
                       <div className="space-y-2">
-                        <Popover
-                          open={memberSearchOpen}
-                          onOpenChange={setMemberSearchOpen}
-                        >
+                        <Popover open={memberSearchOpen} onOpenChange={setMemberSearchOpen}>
                           <PopoverTrigger asChild>
                             <Button
                               variant="outline"
@@ -497,10 +451,7 @@ const Checkout = () => {
                               <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                             </Button>
                           </PopoverTrigger>
-                          <PopoverContent
-                            className="w-[400px] p-0"
-                            align="start"
-                          >
+                          <PopoverContent className="w-[400px] p-0" align="start">
                             <div className="border rounded-md overflow-hidden">
                               <div className="flex items-center border-b px-2">
                                 <Search className="h-4 w-4 mr-2" />
@@ -548,12 +499,9 @@ const Checkout = () => {
                                   {selectedMember.name.charAt(0).toUpperCase()}
                                 </div>
                                 <div className="ml-3">
-                                  <p className="font-medium">
-                                    {selectedMember.name}
-                                  </p>
+                                  <p className="font-medium">{selectedMember.name}</p>
                                   <p className="text-xs text-muted-foreground">
-                                    {selectedMember.email ||
-                                      "No email provided"}
+                                    {selectedMember.email || "No email provided"}
                                   </p>
                                 </div>
                               </div>
@@ -668,12 +616,9 @@ const Checkout = () => {
                               <Calendar className="h-5 w-5" />
                             </div>
                             <div>
-                              <p className="font-medium">
-                                14-Day {borrowText} Period
-                              </p>
+                              <p className="font-medium">14-Day {borrowText} Period</p>
                               <p className="text-sm text-blue-600">
-                                Books must be returned within 14 days from
-                                checkout
+                                Books must be returned within 14 days from checkout
                               </p>
                             </div>
                           </div>
@@ -706,28 +651,18 @@ const Checkout = () => {
                 <CardContent className="space-y-4 pt-6">
                   <div className="space-y-3">
                     {cart.map((item) => (
-                      <div
-                        key={item.bookId}
-                        className="flex justify-between text-sm"
-                      >
+                      <div key={item.bookId} className="flex justify-between text-sm">
                         <span className="text-muted-foreground flex-1 truncate">
                           {item.title}{" "}
-                          <span className="text-muted-foreground/60">
-                            × {item.quantity}
-                          </span>
+                          <span className="text-muted-foreground/60">× {item.quantity}</span>
                         </span>
                         <span className="font-medium">
                           $
                           {(
-                            calculateItemPrice(
-                              item,
-                              checkoutMode === "lending",
-                            ) * item.quantity
+                            calculateItemPrice(item, checkoutMode === "lending") * item.quantity
                           ).toFixed(2)}
                           {checkoutMode === "lending" && (
-                            <span className="ml-1 text-xs text-green-600">
-                              -40%
-                            </span>
+                            <span className="ml-1 text-xs text-green-600">-40%</span>
                           )}
                         </span>
                       </div>
@@ -761,9 +696,7 @@ const Checkout = () => {
                     onClick={handleCheckout}
                     disabled={isProcessing || !selectedMember}
                   >
-                    {isProcessing ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : null}
+                    {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                     {checkoutMode === "purchase" ? (
                       <span className="flex items-center">
                         Confirm Purchase
@@ -778,8 +711,8 @@ const Checkout = () => {
                   </Button>
 
                   <p className="text-xs text-muted-foreground text-center">
-                    By completing this transaction, you agree to our Terms of
-                    Service and Privacy Policy.
+                    By completing this transaction, you agree to our Terms of Service and Privacy
+                    Policy.
                   </p>
                 </CardFooter>
               </Card>
@@ -798,9 +731,7 @@ const Checkout = () => {
               </div>
               <div>
                 <DialogTitle className="text-xl">
-                  {checkoutMode === "purchase"
-                    ? "Purchase Successful"
-                    : `${borrowText} Successful`}
+                  {checkoutMode === "purchase" ? "Purchase Successful" : `${borrowText} Successful`}
                 </DialogTitle>
                 <DialogDescription className="text-muted-foreground mt-1">
                   {checkoutMode === "purchase"
@@ -831,9 +762,7 @@ const Checkout = () => {
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Date</span>
-                <span className="font-medium">
-                  {new Date().toLocaleDateString()}
-                </span>
+                <span className="font-medium">{new Date().toLocaleDateString()}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Items</span>
@@ -851,9 +780,7 @@ const Checkout = () => {
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Due Date</span>
                   <span className="font-medium">
-                    {new Date(
-                      new Date().setDate(new Date().getDate() + 14),
-                    ).toLocaleDateString()}
+                    {new Date(new Date().setDate(new Date().getDate() + 14)).toLocaleDateString()}
                   </span>
                 </div>
               )}
@@ -863,9 +790,7 @@ const Checkout = () => {
           {/* Book previews */}
           <div>
             <h3 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground mb-3">
-              {checkoutMode === "purchase"
-                ? "Purchased Items"
-                : `${borrowText}ed Items`}
+              {checkoutMode === "purchase" ? "Purchased Items" : `${borrowText}ed Items`}
             </h3>
             <div className="grid grid-cols-1 gap-3 max-h-[200px] overflow-y-auto pr-1">
               {cart.map((item) => (
@@ -886,14 +811,11 @@ const Checkout = () => {
                   <div className="flex-1 min-w-0">
                     <h4 className="font-medium truncate">{item.title}</h4>
                     <div className="flex justify-between items-center mt-1">
-                      <span className="text-xs text-muted-foreground">
-                        Qty: {item.quantity}
-                      </span>
+                      <span className="text-xs text-muted-foreground">Qty: {item.quantity}</span>
                       <span className="text-sm font-medium">
                         $
                         {(
-                          calculateItemPrice(item, checkoutMode === "lending") *
-                          item.quantity
+                          calculateItemPrice(item, checkoutMode === "lending") * item.quantity
                         ).toFixed(2)}
                       </span>
                     </div>
@@ -904,11 +826,7 @@ const Checkout = () => {
           </div>
 
           <DialogFooter className="mt-6 pt-4 border-t flex flex-col sm:flex-row gap-3">
-            <Button
-              variant="outline"
-              onClick={handleCloseSuccess}
-              className="sm:flex-1"
-            >
+            <Button variant="outline" onClick={handleCloseSuccess} className="sm:flex-1">
               View Catalog
             </Button>
             <Button onClick={handleCloseSuccess} className="sm:flex-1">

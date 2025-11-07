@@ -118,9 +118,7 @@ export function BookFilters({
           <ToggleGroup
             type="single"
             value={viewMode}
-            onValueChange={(value) =>
-              value && onViewModeChange(value as "list" | "grid")
-            }
+            onValueChange={(value) => value && onViewModeChange(value as "list" | "grid")}
           >
             <ToggleGroupItem value="list" aria-label="List view">
               <List className="h-4 w-4" />

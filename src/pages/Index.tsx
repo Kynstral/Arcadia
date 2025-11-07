@@ -7,13 +7,7 @@ import LibraryDashboard from "@/components/LibraryDashboard";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthStatusProvider";
 import { isProfileComplete } from "@/lib/auth-utils";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   BarChart3,
   BookOpen,
@@ -45,14 +39,7 @@ import {
   YAxis,
 } from "recharts";
 
-const COLORS = [
-  "#3B82F6",
-  "#10B981",
-  "#F59E0B",
-  "#EF4444",
-  "#8B5CF6",
-  "#EC4899",
-];
+const COLORS = ["#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899"];
 
 const Index = () => {
   const navigate = useNavigate();
@@ -65,9 +52,7 @@ const Index = () => {
       navigate("/onboarding");
     }
   }, [user, navigate, location.pathname]);
-  const [recentlyBorrowed, setRecentlyBorrowed] = useState<
-    Record<string, unknown>[]
-  >([]);
+  const [recentlyBorrowed, setRecentlyBorrowed] = useState<Record<string, unknown>[]>([]);
   const [timeRange, setTimeRange] = useState("monthly");
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -109,7 +94,7 @@ const Index = () => {
           user_id,
           books:book_id (title, author, cover_image),
           members:member_id (name)
-        `,
+        `
         )
         .eq("user_id", userId)
         .order("checkout_date", { ascending: false })
@@ -154,27 +139,21 @@ const Index = () => {
   };
 
   const getRevenueData = () => {
-    if (
-      !dashboardStats?.recentTransactions ||
-      dashboardStats.recentTransactions.length === 0
-    ) {
+    if (!dashboardStats?.recentTransactions || dashboardStats.recentTransactions.length === 0) {
       return [];
     }
 
-    const monthlyData = dashboardStats.recentTransactions.reduce(
-      (acc, transaction) => {
-        const date = new Date(transaction.date);
-        const month = date.toLocaleString("default", { month: "short" });
+    const monthlyData = dashboardStats.recentTransactions.reduce((acc, transaction) => {
+      const date = new Date(transaction.date);
+      const month = date.toLocaleString("default", { month: "short" });
 
-        if (!acc[month]) {
-          acc[month] = 0;
-        }
+      if (!acc[month]) {
+        acc[month] = 0;
+      }
 
-        acc[month] += transaction.totalAmount;
-        return acc;
-      },
-      {},
-    );
+      acc[month] += transaction.totalAmount;
+      return acc;
+    }, {});
 
     return Object.entries(monthlyData).map(([name, value]) => ({
       name,
@@ -183,21 +162,15 @@ const Index = () => {
   };
 
   const getPaymentMethodData = () => {
-    if (
-      !dashboardStats?.recentTransactions ||
-      dashboardStats.recentTransactions.length === 0
-    ) {
+    if (!dashboardStats?.recentTransactions || dashboardStats.recentTransactions.length === 0) {
       return [];
     }
 
-    const paymentCounts = dashboardStats.recentTransactions.reduce(
-      (acc, transaction) => {
-        const method = transaction.paymentMethod || "Other";
-        acc[method] = (acc[method] || 0) + 1;
-        return acc;
-      },
-      {},
-    );
+    const paymentCounts = dashboardStats.recentTransactions.reduce((acc, transaction) => {
+      const method = transaction.paymentMethod || "Other";
+      acc[method] = (acc[method] || 0) + 1;
+      return acc;
+    }, {});
 
     return Object.entries(paymentCounts).map(([name, value]) => ({
       name: formatPaymentMethod(name),
@@ -215,10 +188,7 @@ const Index = () => {
   };
 
   const getBestsellingBooks = () => {
-    if (
-      !dashboardStats?.popularBooks ||
-      dashboardStats.popularBooks.length === 0
-    ) {
+    if (!dashboardStats?.popularBooks || dashboardStats.popularBooks.length === 0) {
       return [];
     }
 
@@ -228,11 +198,7 @@ const Index = () => {
     }));
   };
 
-  if (
-    statsLoading ||
-    booksLoading ||
-    (userRole === "Library" && borrowingsLoading)
-  ) {
+  if (statsLoading || booksLoading || (userRole === "Library" && borrowingsLoading)) {
     return (
       <div className="flex items-center justify-center h-[80vh]">
         <div className="text-center">
@@ -248,18 +214,15 @@ const Index = () => {
   if (statsError || booksError || (userRole === "Library" && borrowingsError)) {
     return (
       <div className="p-8 bg-destructive/10 rounded-lg border border-destructive max-w-md mx-auto mt-12">
-        <h2 className="text-xl font-bold text-destructive mb-2">
-          Error Loading Dashboard
-        </h2>
+        <h2 className="text-xl font-bold text-destructive mb-2">Error Loading Dashboard</h2>
         <p className="text-muted-foreground">
-          There was a problem loading the dashboard data. Please try refreshing
-          the page.
+          There was a problem loading the dashboard data. Please try refreshing the page.
         </p>
         <pre className="mt-4 p-4 bg-card rounded text-xs overflow-auto">
           {String(
             (statsError as Error)?.message ||
-            (booksError as Error)?.message ||
-            (borrowingsError as Error)?.message,
+              (booksError as Error)?.message ||
+              (borrowingsError as Error)?.message
           )}
         </pre>
       </div>
@@ -283,9 +246,7 @@ const Index = () => {
   const BookStoreDashboard = () => (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-3xl font-bold tracking-tight">
-          Bookstore Dashboard
-        </h1>
+        <h1 className="text-3xl font-bold tracking-tight">Bookstore Dashboard</h1>
         <div className="flex items-center gap-2">
           <Select defaultValue={timeRange} onValueChange={setTimeRange}>
             <SelectTrigger className="w-[150px]">
@@ -299,11 +260,7 @@ const Index = () => {
             </SelectContent>
           </Select>
 
-          <Button
-            variant="outline"
-            onClick={handleRefreshData}
-            disabled={isRefreshing}
-          >
+          <Button variant="outline" onClick={handleRefreshData} disabled={isRefreshing}>
             {isRefreshing ? (
               <RefreshCcw className="h-4 w-4 mr-2 animate-spin" />
             ) : (
@@ -319,12 +276,8 @@ const Index = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Total Books
-                </p>
-                <h3 className="text-2xl font-bold mt-1">
-                  {dashboardStats?.totalBooks || 0}
-                </h3>
+                <p className="text-sm font-medium text-muted-foreground">Total Books</p>
+                <h3 className="text-2xl font-bold mt-1">{dashboardStats?.totalBooks || 0}</h3>
               </div>
               <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
                 <BookOpen className="h-6 w-6 text-primary" />
@@ -337,9 +290,7 @@ const Index = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Total Revenue
-                </p>
+                <p className="text-sm font-medium text-muted-foreground">Total Revenue</p>
                 <h3 className="text-2xl font-bold mt-1">
                   ${dashboardStats?.totalRevenue.toFixed(2) || "0.00"}
                 </h3>
@@ -355,9 +306,7 @@ const Index = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Total Sales
-                </p>
+                <p className="text-sm font-medium text-muted-foreground">Total Sales</p>
                 <h3 className="text-2xl font-bold mt-1">
                   {dashboardStats?.totalTransactions || 0}
                 </h3>
@@ -373,12 +322,8 @@ const Index = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Customers
-                </p>
-                <h3 className="text-2xl font-bold mt-1">
-                  {dashboardStats?.totalUsers || 0}
-                </h3>
+                <p className="text-sm font-medium text-muted-foreground">Customers</p>
+                <h3 className="text-2xl font-bold mt-1">{dashboardStats?.totalUsers || 0}</h3>
               </div>
               <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
                 <Users className="h-6 w-6 text-primary" />
@@ -419,19 +364,13 @@ const Index = () => {
                           formatter={(value) => [`$${value}`, "Revenue"]}
                           contentStyle={{ borderRadius: "8px" }}
                         />
-                        <Bar
-                          dataKey="value"
-                          fill="#3B82F6"
-                          radius={[4, 4, 0, 0]}
-                        />
+                        <Bar dataKey="value" fill="#3B82F6" radius={[4, 4, 0, 0]} />
                       </ReBarChart>
                     </ResponsiveContainer>
                   ) : (
                     <div className="h-full flex items-center justify-center flex-col">
                       <Info className="h-10 w-10 text-muted-foreground mb-2" />
-                      <p className="text-muted-foreground">
-                        No revenue data available
-                      </p>
+                      <p className="text-muted-foreground">No revenue data available</p>
                     </div>
                   )}
                 </div>
@@ -440,9 +379,7 @@ const Index = () => {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-base font-medium">
-                  Book Categories
-                </CardTitle>
+                <CardTitle className="text-base font-medium">Book Categories</CardTitle>
                 <Button variant="outline" size="sm" className="h-8 text-xs">
                   View All
                 </Button>
@@ -465,10 +402,7 @@ const Index = () => {
                           }
                         >
                           {categoryData.map((entry, index) => (
-                            <Cell
-                              key={`cell-${index}`}
-                              fill={COLORS[index % COLORS.length]}
-                            />
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                           ))}
                         </Pie>
                         <Tooltip
@@ -480,9 +414,7 @@ const Index = () => {
                   ) : (
                     <div className="h-full flex items-center justify-center flex-col">
                       <Info className="h-10 w-10 text-muted-foreground mb-2" />
-                      <p className="text-muted-foreground">
-                        No category data available
-                      </p>
+                      <p className="text-muted-foreground">No category data available</p>
                     </div>
                   )}
                 </div>
@@ -494,9 +426,7 @@ const Index = () => {
             <Card>
               <CardHeader>
                 <CardTitle>Recent Books</CardTitle>
-                <CardDescription>
-                  Your latest inventory additions
-                </CardDescription>
+                <CardDescription>Your latest inventory additions</CardDescription>
               </CardHeader>
               <CardContent>
                 {books && books.length > 0 ? (
@@ -519,24 +449,16 @@ const Index = () => {
                         )}
                         <div className="flex-1 min-w-0">
                           <h4 className="font-medium truncate">{book.title}</h4>
-                          <p className="text-sm text-muted-foreground truncate">
-                            {book.author}
-                          </p>
-                          <p className="text-sm font-medium">
-                            ${book.price?.toFixed(2) || "0.00"}
-                          </p>
-                          <div className="text-sm text-muted-foreground">
-                            Stock: {book.stock}
-                          </div>
+                          <p className="text-sm text-muted-foreground truncate">{book.author}</p>
+                          <p className="text-sm font-medium">${book.price?.toFixed(2) || "0.00"}</p>
+                          <div className="text-sm text-muted-foreground">Stock: {book.stock}</div>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
                   <div className="text-center py-4">
-                    <p className="text-muted-foreground">
-                      No books in inventory yet
-                    </p>
+                    <p className="text-muted-foreground">No books in inventory yet</p>
                   </div>
                 )}
               </CardContent>
@@ -549,7 +471,7 @@ const Index = () => {
               </CardHeader>
               <CardContent>
                 {dashboardStats?.recentTransactions &&
-                  dashboardStats.recentTransactions.length > 0 ? (
+                dashboardStats.recentTransactions.length > 0 ? (
                   <div className="space-y-4">
                     {dashboardStats.recentTransactions.map((transaction) => (
                       <div
@@ -557,17 +479,13 @@ const Index = () => {
                         className="flex items-center justify-between p-2 hover:bg-muted rounded-md transition-colors"
                       >
                         <div>
-                          <p className="font-medium">
-                            Order #{transaction.id.substring(0, 8)}
-                          </p>
+                          <p className="font-medium">Order #{transaction.id.substring(0, 8)}</p>
                           <p className="text-sm text-muted-foreground">
                             {new Date(transaction.date).toLocaleDateString()}
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="font-medium">
-                            ${transaction.totalAmount.toFixed(2)}
-                          </p>
+                          <p className="font-medium">${transaction.totalAmount.toFixed(2)}</p>
                           <p
                             className={`text-xs ${transaction.status === "Completed" ? "text-green-500" : "text-amber-500"}`}
                           >
@@ -579,9 +497,7 @@ const Index = () => {
                   </div>
                 ) : (
                   <div className="text-center py-4">
-                    <p className="text-muted-foreground">
-                      No sales transactions yet
-                    </p>
+                    <p className="text-muted-foreground">No sales transactions yet</p>
                   </div>
                 )}
               </CardContent>
@@ -617,22 +533,14 @@ const Index = () => {
                         outerRadius={100}
                         fill="#8884d8"
                         dataKey="value"
-                        label={(props: any) =>
-                          `${props.name} ${(props.percent * 100).toFixed(0)}%`
-                        }
+                        label={(props: any) => `${props.name} ${(props.percent * 100).toFixed(0)}%`}
                       >
                         {paymentMethodData.map((entry, index) => (
-                          <Cell
-                            key={`cell-${index}`}
-                            fill={COLORS[index % COLORS.length]}
-                          />
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
                       <Tooltip
-                        formatter={(value) => [
-                          `${value} transactions`,
-                          "Count",
-                        ]}
+                        formatter={(value) => [`${value} transactions`, "Count"]}
                         contentStyle={{ borderRadius: "8px" }}
                       />
                     </RePieChart>
@@ -640,9 +548,7 @@ const Index = () => {
                 ) : (
                   <div className="h-full flex items-center justify-center flex-col">
                     <Info className="h-10 w-10 text-muted-foreground mb-2" />
-                    <p className="text-muted-foreground">
-                      No payment method data available
-                    </p>
+                    <p className="text-muted-foreground">No payment method data available</p>
                   </div>
                 )}
               </div>
@@ -663,30 +569,20 @@ const Index = () => {
                       data={bestsellingBooks}
                       margin={{ top: 10, right: 10, left: 60, bottom: 10 }}
                     >
-                      <CartesianGrid
-                        strokeDasharray="3 3"
-                        horizontal={true}
-                        vertical={false}
-                      />
+                      <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
                       <XAxis type="number" />
                       <YAxis dataKey="name" type="category" />
                       <Tooltip
                         formatter={(value) => [`${value} sold`, "Sales"]}
                         contentStyle={{ borderRadius: "8px" }}
                       />
-                      <Bar
-                        dataKey="value"
-                        fill="#10B981"
-                        radius={[0, 4, 4, 0]}
-                      />
+                      <Bar dataKey="value" fill="#10B981" radius={[0, 4, 4, 0]} />
                     </ReBarChart>
                   </ResponsiveContainer>
                 ) : (
                   <div className="h-full flex items-center justify-center flex-col">
                     <Info className="h-10 w-10 text-muted-foreground mb-2" />
-                    <p className="text-muted-foreground">
-                      No bestseller data available
-                    </p>
+                    <p className="text-muted-foreground">No bestseller data available</p>
                   </div>
                 )}
               </div>
@@ -718,30 +614,20 @@ const Index = () => {
                       layout="vertical"
                       margin={{ top: 5, right: 30, left: 80, bottom: 5 }}
                     >
-                      <CartesianGrid
-                        strokeDasharray="3 3"
-                        horizontal={true}
-                        vertical={false}
-                      />
+                      <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
                       <XAxis type="number" />
                       <YAxis type="category" dataKey="name" />
                       <Tooltip
                         formatter={(value) => [`${value} books`, "Available"]}
                         contentStyle={{ borderRadius: "8px" }}
                       />
-                      <Bar
-                        dataKey="value"
-                        fill="#3B82F6"
-                        radius={[0, 4, 4, 0]}
-                      />
+                      <Bar dataKey="value" fill="#3B82F6" radius={[0, 4, 4, 0]} />
                     </ReBarChart>
                   </ResponsiveContainer>
                 ) : (
                   <div className="h-full flex items-center justify-center flex-col">
                     <Info className="h-10 w-10 text-muted-foreground mb-2" />
-                    <p className="text-muted-foreground">
-                      No inventory data available
-                    </p>
+                    <p className="text-muted-foreground">No inventory data available</p>
                   </div>
                 )}
               </div>

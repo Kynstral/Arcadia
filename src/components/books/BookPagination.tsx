@@ -7,11 +7,7 @@ interface BookPaginationProps {
   onPageChange: (page: number) => void;
 }
 
-export function BookPagination({
-  currentPage,
-  totalPages,
-  onPageChange,
-}: BookPaginationProps) {
+export function BookPagination({ currentPage, totalPages, onPageChange }: BookPaginationProps) {
   if (totalPages <= 1) return null;
 
   return (

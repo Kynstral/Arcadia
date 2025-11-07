@@ -1,11 +1,5 @@
 import { useRef, useState } from "react";
-import {
-  AlertCircle,
-  CheckCircle2,
-  FileText,
-  Info,
-  Upload,
-} from "lucide-react";
+import { AlertCircle, CheckCircle2, FileText, Info, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -219,12 +213,15 @@ export function Import() {
 
   const convertToBook = (
     row: BookRow,
-    userId: string,
+    userId: string
   ): Omit<Book, "id" | "created_at" | "updated_at"> => {
     // Handle tags - could be string or array
     let tags: string[] = [];
     if (typeof row.tags === "string") {
-      tags = row.tags.split(";").map((tag) => tag.trim()).filter(Boolean);
+      tags = row.tags
+        .split(";")
+        .map((tag) => tag.trim())
+        .filter(Boolean);
     } else if (Array.isArray(row.tags)) {
       tags = row.tags;
     }
@@ -268,8 +265,7 @@ export function Import() {
       toast({
         variant: "destructive",
         title: "Unsupported file format",
-        description:
-          "Please upload a CSV, JSON, or Excel file (.csv, .json, .xlsx, .xls)",
+        description: "Please upload a CSV, JSON, or Excel file (.csv, .json, .xlsx, .xls)",
       });
       return;
     }
@@ -353,10 +349,7 @@ export function Import() {
       toast({
         variant: "destructive",
         title: "Error processing file",
-        description:
-          error instanceof Error
-            ? error.message
-            : "An unexpected error occurred",
+        description: error instanceof Error ? error.message : "An unexpected error occurred",
       });
       setIsProcessing(false);
       if (fileInputRef.current) {
@@ -365,10 +358,7 @@ export function Import() {
     }
   };
 
-  const importBooks = async (
-    rows: BookRow[],
-    skipISBNs: Set<string>,
-  ) => {
+  const importBooks = async (rows: BookRow[], skipISBNs: Set<string>) => {
     try {
       setIsProcessing(true);
       setDuplicateDialogOpen(false);
@@ -444,10 +434,7 @@ export function Import() {
       toast({
         variant: "destructive",
         title: "Error importing books",
-        description:
-          error instanceof Error
-            ? error.message
-            : "An unexpected error occurred",
+        description: error instanceof Error ? error.message : "An unexpected error occurred",
       });
     } finally {
       setIsProcessing(false);
@@ -502,38 +489,29 @@ export function Import() {
             <p>title, author, isbn, category, publication_year, publisher</p>
             <p className="font-medium mt-2">Optional fields:</p>
             <p>
-              description, price, status, stock, language, page_count, location,
-              cover_image, tags, rating
+              description, price, status, stock, language, page_count, location, cover_image, tags,
+              rating
             </p>
           </div>
         </div>
 
         <div
-          className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${isDragging
-            ? "border-primary bg-primary/5"
-            : "border-muted hover:border-muted-foreground/50"
-            }`}
+          className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+            isDragging
+              ? "border-primary bg-primary/5"
+              : "border-muted hover:border-muted-foreground/50"
+          }`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         >
           <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <h4 className="text-base font-medium mb-2">
-            Drag & Drop Your File
-          </h4>
-          <p className="text-sm text-muted-foreground mb-1">
-            Supports CSV, JSON, and Excel files
-          </p>
+          <h4 className="text-base font-medium mb-2">Drag & Drop Your File</h4>
+          <p className="text-sm text-muted-foreground mb-1">Supports CSV, JSON, and Excel files</p>
           {detectedFormat && (
-            <p className="text-xs text-primary font-medium mb-3">
-              Detected: {detectedFormat}
-            </p>
+            <p className="text-xs text-primary font-medium mb-3">Detected: {detectedFormat}</p>
           )}
-          <Button
-            onClick={handleButtonClick}
-            disabled={isProcessing}
-            className="mx-auto mt-3"
-          >
+          <Button onClick={handleButtonClick} disabled={isProcessing} className="mx-auto mt-3">
             <FileText className="h-4 w-4 mr-2" />
             Select File
           </Button>
@@ -559,16 +537,12 @@ export function Import() {
           <div className="space-y-2 p-4 bg-muted/50 rounded-lg">
             <div className="flex items-center space-x-2">
               <CheckCircle2 className="h-5 w-5 text-green-500" />
-              <p className="text-sm font-medium">
-                {results.success} books imported successfully
-              </p>
+              <p className="text-sm font-medium">{results.success} books imported successfully</p>
             </div>
             {results.failed > 0 && (
               <div className="flex items-center space-x-2">
                 <AlertCircle className="h-5 w-5 text-red-500" />
-                <p className="text-sm font-medium">
-                  {results.failed} books failed to import
-                </p>
+                <p className="text-sm font-medium">{results.failed} books failed to import</p>
               </div>
             )}
           </div>

@@ -139,11 +139,7 @@ export function InlineEditCell({
             ))}
           </SelectContent>
         </Select>
-        <button
-          onClick={handleCancel}
-          className="p-1 hover:bg-accent rounded"
-          disabled={isSaving}
-        >
+        <button onClick={handleCancel} className="p-1 hover:bg-accent rounded" disabled={isSaving}>
           <X className="h-4 w-4" />
         </button>
       </div>
@@ -152,9 +148,7 @@ export function InlineEditCell({
 
   return (
     <div className="flex items-center gap-1">
-      {field === "price" && (
-        <span className="text-muted-foreground">$</span>
-      )}
+      {field === "price" && <span className="text-muted-foreground">$</span>}
       <input
         ref={inputRef}
         type={type}
@@ -189,9 +183,7 @@ export function InlineEditCell({
           </button>
         </>
       )}
-      {error && (
-        <span className="text-xs text-destructive absolute mt-8">{error}</span>
-      )}
+      {error && <span className="text-xs text-destructive absolute mt-8">{error}</span>}
     </div>
   );
 }
