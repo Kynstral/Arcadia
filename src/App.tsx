@@ -23,7 +23,7 @@ const Books = lazy(() => import("./pages/Books"));
 const BookDetail = lazy(() => import("./pages/BookDetail"));
 const Members = lazy(() => import("./pages/Members"));
 const MemberDetail = lazy(() => import("./pages/MemberDetail"));
-const BookCirculation = lazy(() => import("./pages/BookCirculation.tsx"));
+const ActiveLoans = lazy(() => import("./pages/ActiveLoans.tsx"));
 const Checkout = lazy(() => import("./pages/Checkout.tsx"));
 const Transactions = lazy(() => import("./pages/Transactions.tsx"));
 const Settings = lazy(() => import("./pages/Settings"));
@@ -171,10 +171,10 @@ const App = () => (
                       }
                     />
                     <Route
-                      path="/book-circulation"
+                      path="/loans"
                       element={
                         <ProtectedRoute>
-                          <BookCirculation />
+                          <ActiveLoans />
                         </ProtectedRoute>
                       }
                     />

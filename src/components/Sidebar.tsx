@@ -163,6 +163,14 @@ const Sidebar = ({
         icon: Library,
         path: "/catalog",
       },
+    ];
+
+    const libraryItems = [
+      {
+        title: "Active Loans",
+        icon: RefreshCcw,
+        path: "/loans",
+      },
       {
         title: "Manage Books",
         icon: Boxes,
@@ -178,14 +186,6 @@ const Sidebar = ({
         icon: ArrowLeftRight,
         path: "/transactions",
       },
-    ];
-
-    const libraryItems = [
-      {
-        title: "Book Circulation",
-        icon: RefreshCcw,
-        path: "/book-circulation",
-      },
       {
         title: "Trash",
         icon: Trash2,
@@ -193,7 +193,28 @@ const Sidebar = ({
       },
     ];
 
-    const bookstoreItems = [];
+    const bookstoreItems = [
+      {
+        title: "Manage Books",
+        icon: Boxes,
+        path: "/books",
+      },
+      {
+        title: "Manage Members",
+        icon: Users,
+        path: "/members",
+      },
+      {
+        title: "Transactions",
+        icon: ArrowLeftRight,
+        path: "/transactions",
+      },
+      {
+        title: "Trash",
+        icon: Trash2,
+        path: "/trash",
+      },
+    ];
 
     if (userRole === "Library") {
       return [...commonItems, ...libraryItems];
