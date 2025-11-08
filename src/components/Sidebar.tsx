@@ -353,7 +353,7 @@ const Sidebar = ({
           {user && (
             <div className="flex flex-col space-y-4">
               {collapsed ? (
-                <div className="flex flex-col items-center gap-4">
+                <div className="flex flex-col items-center gap-2">
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <div className="h-7 w-7 rounded-full overflow-hidden flex items-center justify-center bg-primary text-primary-foreground cursor-pointer hover:opacity-80">
@@ -459,7 +459,7 @@ const Sidebar = ({
                   </Tooltip>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-2">
                   <div className="flex flex-col px-3 py-2">
                     <div className="flex items-center">
                       <div className="h-10 w-10 rounded-full overflow-hidden flex items-center justify-center bg-primary text-primary-foreground mr-3">

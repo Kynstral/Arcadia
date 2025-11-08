@@ -91,6 +91,33 @@ const BookDetail = () => {
     enabled: !!id,
   });
 
+  // Fetch condition history for the book
+  const { data: conditionHistory = [] } = useQuery({
+    queryKey: ["conditionHistory", id],
+    queryFn: async () => {
+      if (!id) return [];
+
+      const { data, error } = await supabase
+        .from("borrowings")
+        .select(`
+          id,
+          return_date,
+          return_condition,
+          condition_notes,
+          flagged_for_review,
+          members:member_id(name)
+        `)
+        .eq("book_id", id)
+        .eq("status", "Returned")
+        .not("return_condition", "is", null)
+        .order("return_date", { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!id && isLibraryRole,
+  });
+
   // Fetch members for assignment
   const { data: members = [] } = useQuery({
     queryKey: ["members", userId],
@@ -480,10 +507,11 @@ const BookDetail = () => {
 
             {/* Tabs for Book Info */}
             <Tabs defaultValue="about" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className={`grid w-full ${isLibraryRole ? "grid-cols-4" : "grid-cols-3"}`}>
                 <TabsTrigger value="about">About Book</TabsTrigger>
                 <TabsTrigger value="author">Author</TabsTrigger>
                 <TabsTrigger value="details">Details</TabsTrigger>
+                {isLibraryRole && <TabsTrigger value="condition">Condition History</TabsTrigger>}
               </TabsList>
 
               <TabsContent value="about" className="space-y-4 mt-4">
@@ -527,6 +555,72 @@ const BookDetail = () => {
                   </div>
                 </div>
               </TabsContent>
+
+              {isLibraryRole && (
+                <TabsContent value="condition" className="mt-4">
+                  <div className="bg-card rounded-lg p-6 border shadow-xs">
+                    <h3 className="font-semibold text-lg mb-4">Condition History</h3>
+                    {conditionHistory.length > 0 ? (
+                      <div className="space-y-3">
+                        {conditionHistory.map((record: any) => {
+                          const conditionColor =
+                            record.return_condition === "Excellent"
+                              ? "text-green-600 bg-green-50 border-green-200"
+                              : record.return_condition === "Good"
+                                ? "text-blue-600 bg-blue-50 border-blue-200"
+                                : record.return_condition === "Fair"
+                                  ? "text-amber-600 bg-amber-50 border-amber-200"
+                                  : "text-red-600 bg-red-50 border-red-200";
+
+                          return (
+                            <div
+                              key={record.id}
+                              className={`p-4 rounded-lg border ${record.flagged_for_review ? "border-red-300 bg-red-50/50" : "border-border"}`}
+                            >
+                              <div className="flex items-start justify-between gap-4">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <Badge className={conditionColor}>
+                                      {record.return_condition}
+                                    </Badge>
+                                    {record.flagged_for_review && (
+                                      <Badge variant="destructive" className="text-xs">
+                                        Flagged for Review
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <p className="text-sm text-muted-foreground">
+                                    Returned by: <span className="font-medium">{record.members?.name}</span>
+                                  </p>
+                                  {record.condition_notes && (
+                                    <p className="text-sm mt-2 text-muted-foreground italic">
+                                      "{record.condition_notes}"
+                                    </p>
+                                  )}
+                                </div>
+                                <div className="text-right shrink-0">
+                                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                    <Calendar className="h-3 w-3" />
+                                    {new Date(record.return_date).toLocaleDateString()}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <BookOpen className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+                        <p className="text-muted-foreground">No condition history available</p>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          This book hasn't been returned yet
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+              )}
 
               <TabsContent value="details" className="mt-4">
                 <div className="bg-card rounded-lg p-6 border shadow-xs">

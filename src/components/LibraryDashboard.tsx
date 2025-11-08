@@ -26,7 +26,6 @@ interface DashboardProps {
   stats: DashboardStats;
   recentBooks: Book[];
   recentBorrowings: any[];
-  onAddToCart: (book: Book) => void;
   userId: string;
 }
 
@@ -34,7 +33,6 @@ const LibraryDashboard = ({
   stats,
   recentBooks,
   recentBorrowings,
-  onAddToCart,
   userId,
 }: DashboardProps) => {
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -379,26 +377,14 @@ const LibraryDashboard = ({
                           </h3>
                           <p className="text-sm text-muted-foreground">{book.author}</p>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <span
-                            className={`rounded-full px-2 py-0.5 text-xs ${
-                              book.status === "Available"
-                                ? "bg-primary/10 text-primary"
-                                : "bg-secondary text-muted-foreground"
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-xs ${book.status === "Available"
+                            ? "bg-primary/10 text-primary"
+                            : "bg-secondary text-muted-foreground"
                             }`}
-                          >
-                            {book.status}
-                          </span>
-                          <Button
-                            size="sm"
-                            onClick={() => onAddToCart(book)}
-                            disabled={book.stock <= 0 || book.status !== "Available"}
-                            className="h-8"
-                          >
-                            <BookUp className="h-3.5 w-3.5 mr-1" />
-                            Checkout
-                          </Button>
-                        </div>
+                        >
+                          {book.status}
+                        </span>
                       </div>
                       <div className="mt-1 flex items-center justify-between">
                         <div className="text-sm">
@@ -481,13 +467,12 @@ const LibraryDashboard = ({
                           </div>
                           <div className="flex items-center gap-2">
                             <span
-                              className={`rounded-full px-2 py-0.5 text-xs ${
-                                isReturned
-                                  ? "bg-muted text-muted-foreground"
-                                  : borrowing.status === "Overdue"
-                                    ? "bg-destructive/10 text-destructive"
-                                    : "bg-primary/10 text-primary"
-                              }`}
+                              className={`rounded-full px-2 py-0.5 text-xs ${isReturned
+                                ? "bg-muted text-muted-foreground"
+                                : borrowing.status === "Overdue"
+                                  ? "bg-destructive/10 text-destructive"
+                                  : "bg-primary/10 text-primary"
+                                }`}
                             >
                               {borrowing.status}
                             </span>

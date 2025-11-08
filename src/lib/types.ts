@@ -66,6 +66,7 @@ export type BookCategory =
 export type BookStatus =
   | "Available"
   | "Checked Out"
+  | "Needs Repair"
   | "On Hold"
   | "Processing"
   | "Lost"

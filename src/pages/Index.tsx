@@ -108,11 +108,7 @@ const Index = () => {
     enabled: !!userId && userRole === "Library",
   });
 
-  const handleBookCheckout = (book: Book) => {
-    navigate("/book-checkout", {
-      state: { selectedBook: book, userId: userId },
-    });
-  };
+
 
   const handleRefreshData = () => {
     setIsRefreshing(true);
@@ -221,8 +217,8 @@ const Index = () => {
         <pre className="mt-4 p-4 bg-card rounded text-xs overflow-auto">
           {String(
             (statsError as Error)?.message ||
-              (booksError as Error)?.message ||
-              (borrowingsError as Error)?.message
+            (booksError as Error)?.message ||
+            (borrowingsError as Error)?.message
           )}
         </pre>
       </div>
@@ -471,7 +467,7 @@ const Index = () => {
               </CardHeader>
               <CardContent>
                 {dashboardStats?.recentTransactions &&
-                dashboardStats.recentTransactions.length > 0 ? (
+                  dashboardStats.recentTransactions.length > 0 ? (
                   <div className="space-y-4">
                     {dashboardStats.recentTransactions.map((transaction) => (
                       <div
@@ -653,7 +649,6 @@ const Index = () => {
         <LibraryDashboard
           stats={dashboardStats || defaultStats}
           recentBooks={books || []}
-          onAddToCart={handleBookCheckout}
           recentBorrowings={recentlyBorrowed}
           userId={userId}
         />

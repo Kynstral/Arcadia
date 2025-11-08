@@ -275,12 +275,52 @@ const MemberDetail = () => {
     enabled: !!user?.id,
   });
 
+  // Fetch library settings for borrowing limit
+  const { data: librarySettings } = useQuery({
+    queryKey: ["librarySettings", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("library_settings")
+        .select("*")
+        .eq("user_id", user?.id)
+        .maybeSingle();
+
+      if (error && error.code !== "PGRST116") throw error;
+      return data || {
+        member_borrowing_limit: 5,
+        daily_late_fee_rate: 0.50,
+        grace_period_days: 0,
+        max_late_fee_cap: 10.00,
+      };
+    },
+    enabled: !!user?.id,
+  });
+
+  // Fetch outstanding late fees
+  const { data: outstandingFees = 0 } = useQuery({
+    queryKey: ["outstandingFees", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("borrowings")
+        .select("late_fee_amount")
+        .eq("member_id", id)
+        .eq("fee_paid", false)
+        .eq("fee_waived", false);
+
+      if (error) throw error;
+      return data?.reduce((sum, b) => sum + (b.late_fee_amount || 0), 0) || 0;
+    },
+    enabled: !!id,
+  });
+
   // Calculate stats from queries
   const stats = {
     totalBorrowed: borrowedBooks.length + (checkoutHistory.filter(t => t.payment_method === "Return").length),
     currentlyBorrowed: borrowedBooks.length,
+    borrowingLimit: librarySettings?.member_borrowing_limit || 5,
     overdue: borrowedBooks.filter((b) => new Date(b.due_date) < new Date()).length,
     totalSpent: checkoutHistory.reduce((sum, t) => sum + (t.total_amount || 0), 0),
+    outstandingFees,
     membershipDays: member
       ? Math.floor((new Date().getTime() - new Date(member.joined_date).getTime()) / (1000 * 60 * 60 * 24))
       : 0,
@@ -334,6 +374,7 @@ const MemberDetail = () => {
               status: "Borrowed",
               checkout_date: new Date().toISOString(),
               user_id: userId,
+              renewal_count: 0, // Reset renewal count for new checkout
             },
           ]);
 
@@ -424,13 +465,7 @@ const MemberDetail = () => {
       queryClient.invalidateQueries({ queryKey: ["availableBooks", user?.id] });
 
       toast({
-        description: (
-          <div className="flex items-center font-medium">
-            <Check className="mr-2 h-4 w-4 text-green-500" />
-            Books assigned successfully
-          </div>
-        ),
-        className: "text-green-600",
+        description: "Books assigned successfully",
       });
 
       setAssignBookOpen(false);
@@ -512,13 +547,7 @@ const MemberDetail = () => {
       queryClient.invalidateQueries({ queryKey: ["checkoutHistory", id] });
 
       toast({
-        description: (
-          <div className="flex items-center font-medium">
-            <Check className="mr-2 h-4 w-4 text-green-500" />
-            Book returned successfully
-          </div>
-        ),
-        className: "text-green-600",
+        description: "Book returned successfully",
       });
     },
     onError: (error: Error, params) => {
@@ -650,8 +679,27 @@ const MemberDetail = () => {
         </CardContent>
       </Card>
 
+      {/* Fee Warning Alert */}
+      {stats.outstandingFees > 0 && (
+        <div className="flex items-start gap-3 p-4 bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 rounded-lg">
+          <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5 shrink-0" />
+          <div className="flex-1">
+            <h3 className="font-semibold text-red-900 dark:text-red-100">Outstanding Late Fees</h3>
+            <p className="text-sm text-red-700 dark:text-red-300 mt-1">
+              This member has ${stats.outstandingFees.toFixed(2)} in unpaid late fees.
+              {stats.outstandingFees > 10 && " Borrowing may be restricted until fees are paid."}
+            </p>
+          </div>
+          <div className="text-right shrink-0">
+            <p className="text-2xl font-bold text-red-600 dark:text-red-400">
+              ${stats.outstandingFees.toFixed(2)}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardDescription className="flex items-center gap-2">
@@ -664,7 +712,7 @@ const MemberDetail = () => {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className={stats.currentlyBorrowed >= stats.borrowingLimit ? "border-amber-500" : ""}>
           <CardHeader className="pb-2">
             <CardDescription className="flex items-center gap-2">
               <Clock className="h-4 w-4" />
@@ -672,7 +720,10 @@ const MemberDetail = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{stats.currentlyBorrowed}</div>
+            <div className={`text-3xl font-bold ${stats.currentlyBorrowed >= stats.borrowingLimit ? "text-amber-500" : ""}`}>
+              {stats.currentlyBorrowed}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">of {stats.borrowingLimit} limit</p>
           </CardContent>
         </Card>
 
@@ -686,6 +737,20 @@ const MemberDetail = () => {
           <CardContent>
             <div className={`text-3xl font-bold ${stats.overdue > 0 ? "text-red-500" : ""}`}>
               {stats.overdue}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className={stats.outstandingFees > 0 ? "border-red-500" : ""}>
+          <CardHeader className="pb-2">
+            <CardDescription className="flex items-center gap-2">
+              <DollarSign className="h-4 w-4" />
+              Outstanding Fees
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className={`text-3xl font-bold ${stats.outstandingFees > 0 ? "text-red-500" : ""}`}>
+              ${stats.outstandingFees.toFixed(2)}
             </div>
           </CardContent>
         </Card>

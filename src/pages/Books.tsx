@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useDebounce } from "@/hooks/use-debounce";
 import {
+  Check,
   ChevronDown,
   ChevronUp,
   CircleArrowDown,
@@ -458,6 +459,29 @@ export default function BooksPage() {
     setBookFormDialogOpen(true);
   };
 
+  const handleMarkAsRepaired = async (bookId: string) => {
+    try {
+      const { error } = await supabase
+        .from("books")
+        .update({ status: "Available" })
+        .eq("id", bookId);
+
+      if (error) throw error;
+
+      queryClient.invalidateQueries({ queryKey: ["books"] });
+      toast({
+        title: "Book marked as repaired",
+        description: "The book status has been updated to Available",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Failed to update book",
+        description: error instanceof Error ? error.message : "An error occurred",
+      });
+    }
+  };
+
   const handleAddNew = () => {
     setBookToEdit(null);
     setBookFormDialogOpen(true);
@@ -755,6 +779,18 @@ export default function BooksPage() {
                         >
                           <FileEdit className="h-4 w-4" />
                         </Button>
+                        {book.status === "Needs Repair" && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleMarkAsRepaired(book.id)}
+                            className="text-green-600"
+                            aria-label={`Mark ${book.title} as repaired`}
+                            title="Mark as Repaired"
+                          >
+                            <Check className="h-4 w-4" />
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="icon"

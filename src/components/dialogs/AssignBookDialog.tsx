@@ -1,5 +1,5 @@
 // Shared dialog for assigning books to members
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +21,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   BookOpen,
   Check,
@@ -30,8 +31,13 @@ import {
   ShoppingCart,
   User,
   X,
+  AlertCircle,
 } from "lucide-react";
 import { Book, Member } from "@/lib/types";
+import { canMemberBorrow, checkUnpaidLateFees } from "@/lib/borrowing-limits";
+import { useAuth } from "@/components/AuthStatusProvider";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AssignBookDialogProps {
   open: boolean;
@@ -66,6 +72,7 @@ export function AssignBookDialog({
   onAssign,
   isAssigning,
 }: AssignBookDialogProps) {
+  const { user } = useAuth();
   const [selectedBookIds, setSelectedBookIds] = useState<string[]>(book ? [book.id] : []);
   const [selectedMemberId, setSelectedMemberId] = useState<string>(member?.id || "");
   const [searchQuery, setSearchQuery] = useState("");
@@ -74,6 +81,66 @@ export function AssignBookDialog({
   const [categoryFilter, setCategoryFilter] = useState<string>("");
   const [borrowDuration, setBorrowDuration] = useState<string>("14");
   const [customDays, setCustomDays] = useState<string>("");
+  const [borrowingLimitError, setBorrowingLimitError] = useState<string | null>(null);
+  const [lateFeeError, setLateFeeError] = useState<string | null>(null);
+  const [overrideLimit, setOverrideLimit] = useState(false);
+
+  // Fetch library settings for borrowing limit
+  const { data: librarySettings } = useQuery({
+    queryKey: ["librarySettings", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("library_settings")
+        .select("*")
+        .eq("user_id", user?.id)
+        .maybeSingle();
+
+      if (error && error.code !== "PGRST116") throw error;
+      return data || {
+        member_borrowing_limit: 5,
+        daily_late_fee_rate: 0.50,
+        grace_period_days: 0,
+        max_late_fee_cap: 10.00,
+      };
+    },
+    enabled: !!user?.id && open,
+  });
+
+  // Check borrowing limits when member or assignment type changes
+  useEffect(() => {
+    const checkLimits = async () => {
+      if (!member || assignType !== "borrow" || !user?.id || !librarySettings || overrideLimit) {
+        setBorrowingLimitError(null);
+        setLateFeeError(null);
+        return;
+      }
+
+      // Check borrowing limit
+      const limitCheck = await canMemberBorrow(
+        member.id,
+        user.id,
+        librarySettings.member_borrowing_limit || 5
+      );
+
+      if (!limitCheck.allowed) {
+        setBorrowingLimitError(
+          `${limitCheck.reason}. Currently borrowed: ${limitCheck.current}/${limitCheck.limit}`
+        );
+      } else {
+        setBorrowingLimitError(null);
+      }
+
+      // Check unpaid late fees
+      const feeCheck = await checkUnpaidLateFees(member.id, user.id, 10);
+      if (!feeCheck.allowed) {
+        setLateFeeError(feeCheck.reason || "Member has unpaid late fees");
+      } else {
+        setLateFeeError(null);
+      }
+    };
+
+    checkLimits();
+  }, [member, assignType, user?.id, librarySettings, overrideLimit]);
 
   const getFilteredBooks = () => {
     return availableBooks.filter(
@@ -81,7 +148,8 @@ export function AssignBookDialog({
         (searchQuery === "" ||
           b.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
           b.author.toLowerCase().includes(searchQuery.toLowerCase())) &&
-        (categoryFilter === "all" || categoryFilter === "" || b.category === categoryFilter)
+        (categoryFilter === "all" || categoryFilter === "" || b.category === categoryFilter) &&
+        b.status !== "Needs Repair" // Exclude books needing repair
     );
   };
 
@@ -141,6 +209,9 @@ export function AssignBookDialog({
     setCategoryFilter("");
     setBorrowDuration("14");
     setCustomDays("");
+    setBorrowingLimitError(null);
+    setLateFeeError(null);
+    setOverrideLimit(false);
     onOpenChange(false);
   };
 
@@ -158,6 +229,45 @@ export function AssignBookDialog({
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto space-y-5 px-6 py-4">
+          {/* Borrowing Limit Warnings */}
+          {member && assignType === "borrow" && (borrowingLimitError || lateFeeError) && !overrideLimit && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription className="space-y-2">
+                {borrowingLimitError && <p>{borrowingLimitError}</p>}
+                {lateFeeError && <p>{lateFeeError}</p>}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setOverrideLimit(true)}
+                  className="mt-2 bg-background hover:bg-accent"
+                >
+                  Override Limit (Staff)
+                </Button>
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Override Active Notice */}
+          {overrideLimit && (
+            <Alert className="bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800">
+              <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+              <AlertDescription className="flex items-center justify-between">
+                <span className="text-amber-900 dark:text-amber-100">
+                  Staff override active - borrowing limits bypassed
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setOverrideLimit(false)}
+                  className="h-7 text-xs"
+                >
+                  Cancel Override
+                </Button>
+              </AlertDescription>
+            </Alert>
+          )}
+
           {/* Assignment Type Selector */}
           <div className="space-y-3">
             <Label className="text-sm font-semibold">Assignment Type</Label>
@@ -529,7 +639,12 @@ export function AssignBookDialog({
             </Button>
             <Button
               onClick={handleAssign}
-              disabled={(member && selectedBookIds.length === 0) || (!member && !selectedMemberId) || isAssigning}
+              disabled={
+                (member && selectedBookIds.length === 0) ||
+                (!member && !selectedMemberId) ||
+                isAssigning ||
+                (assignType === "borrow" && (borrowingLimitError || lateFeeError) && !overrideLimit)
+              }
               className="min-w-[120px]"
             >
               {isAssigning ? (
