@@ -480,3 +480,68 @@
     - Verify query performance
     - Check for memory leaks
     - _Requirements: All_
+
+- [x] 13. Polish Transactions Page UI
+  - [x] 13.1 Implement React Query for data fetching
+    - Replace useState with useQuery
+    - Add proper caching and refetching
+    - Handle loading and error states
+    - _Requirements: 8.5_
+
+  - [x] 13.2 Merge filters with transactions table
+    - Move filters into main card
+    - Add subtle background to filters section
+    - Add separator between filters and table
+    - _Requirements: 13.1, 13.2_
+
+  - [x] 13.3 Add expandable rows for quick view
+    - Add chevron button to expand/collapse
+    - Fetch items on-demand when expanded
+    - Display items inline with book covers
+    - _Requirements: 8.6, 13.4_
+
+  - [x] 13.4 Add Details button for modal view
+    - Add "Details" button in Actions column
+    - Open modal with full transaction details
+    - Display payment and customer info in cards
+    - Show formatted date and transaction ID
+    - _Requirements: 9.1, 9.2, 9.5, 9.6_
+
+  - [x] 13.5 Implement accent color hovers
+    - Update all interactive buttons to use primary color on hover
+    - Apply to expand, copy, and details buttons
+    - Use hover:bg-primary/10 hover:text-primary pattern
+    - _Requirements: 13.3_
+
+  - [x] 13.6 Add member search and filtering
+    - Create member search popover
+    - Implement real-time search
+    - Add clear filter button
+    - Display member with avatar icon
+    - _Requirements: 8.3, 13.5_
+
+  - [x] 13.7 Add quick stats dashboard
+    - Display total transactions count
+    - Show completed transactions count
+    - Calculate and display total revenue
+    - Update stats based on current page
+    - _Requirements: 8.4_
+
+  - [x] 13.8 Implement pagination
+    - Set page size to 10 transactions
+    - Add Previous/Next buttons
+    - Display current page number
+    - Disable buttons appropriately
+    - _Requirements: 8.1, 8.7_
+
+  - [x] 13.9 Add copy transaction ID functionality
+    - Add copy button next to transaction IDs
+    - Show toast notification on copy
+    - Apply to both table and modal
+    - _Requirements: 13.7_
+
+  - [x] 13.10 Improve payment method badges
+    - Color code by payment type (cash=green, card=purple, etc.)
+    - Use consistent badge styling
+    - Display in both table and modal
+    - _Requirements: 13.6_

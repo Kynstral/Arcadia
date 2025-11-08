@@ -105,11 +105,13 @@ The Bookstore Checkout System enables bookstore owners to process sales transact
 
 #### Acceptance Criteria
 
-1. WHEN a user navigates to the transactions page, THE Checkout System SHALL display all transactions
-2. EACH transaction SHALL show date, total amount, payment method, and status
-3. THE Checkout System SHALL support filtering by date range, payment method, or status
-4. THE Checkout System SHALL support sorting by date or amount
-5. THE Checkout System SHALL calculate and display total revenue
+1. WHEN a user navigates to the transactions page, THE Checkout System SHALL display all transactions with pagination (10 per page)
+2. EACH transaction SHALL show date, transaction ID, member name, payment method, amount, and status
+3. THE Checkout System SHALL support filtering by date range (All Time, Last 30/60/90 Days, Custom Range) and member
+4. THE Checkout System SHALL display quick stats showing total transactions, completed count, and total revenue
+5. THE Checkout System SHALL use React Query for efficient data fetching with caching
+6. THE Checkout System SHALL provide expandable rows to view transaction items inline
+7. THE Checkout System SHALL provide Previous/Next pagination controls
 
 ### Requirement 9: View Transaction Details
 
@@ -117,11 +119,13 @@ The Bookstore Checkout System enables bookstore owners to process sales transact
 
 #### Acceptance Criteria
 
-1. WHEN a user clicks on a transaction, THE Checkout System SHALL display transaction details
-2. THE Checkout System SHALL show all items purchased in the transaction
-3. EACH item SHALL display book title, quantity, and price
-4. THE Checkout System SHALL show transaction date, payment method, and total amount
-5. THE Checkout System SHALL provide options to print receipt or process return
+1. WHEN a user clicks the expand button, THE Checkout System SHALL display transaction items inline
+2. WHEN a user clicks the "Details" button, THE Checkout System SHALL open a modal with full transaction details
+3. THE Checkout System SHALL show all items purchased with book covers, titles, quantities, and prices
+4. THE Checkout System SHALL display payment information and customer information in separate cards
+5. THE Checkout System SHALL show formatted transaction date with full weekday, month, day, and year
+6. THE Checkout System SHALL provide a copy button for transaction ID
+7. THE Checkout System SHALL show return status badges for items if applicable
 
 ### Requirement 10: Process Returns
 
@@ -158,3 +162,17 @@ The Bookstore Checkout System enables bookstore owners to process sales transact
 3. IF stock is insufficient, THEN THE Checkout System SHALL display an error message
 4. THE Checkout System SHALL prevent checkout if any cart item exceeds available stock
 5. THE Checkout System SHALL update stock validation in real-time as quantities change
+
+### Requirement 13: Transaction Page UI Polish
+
+**User Story:** As a bookstore owner, I want a clean and intuitive transactions interface, so that I can efficiently manage and review sales.
+
+#### Acceptance Criteria
+
+1. THE Checkout System SHALL merge filters and transaction table into a single card for better UX
+2. THE Checkout System SHALL display filters in a subtle bordered section with background color
+3. THE Checkout System SHALL use accent colors (primary) for all interactive button hovers
+4. THE Checkout System SHALL provide both inline expandable view and detailed modal view for transactions
+5. THE Checkout System SHALL display member information with avatar icons
+6. THE Checkout System SHALL show payment method badges with appropriate color coding
+7. THE Checkout System SHALL provide copy-to-clipboard functionality for transaction IDs
