@@ -30,7 +30,3 @@ dist-ssr
 
 # Supabase
 supabase/.temp/
-
-# Documentation (work in progress)
-README.md
-
