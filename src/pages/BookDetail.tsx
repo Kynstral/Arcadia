@@ -22,23 +22,29 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Book, BookCategory, BookStatus } from "@/lib/types";
+import { Book, BookCategory, BookStatus, Member, TransactionStatus } from "@/lib/types";
 import { useAuth } from "@/components/AuthStatusProvider";
 import { useCart } from "@/hooks/use-cart";
 import { Loader } from "@/components/ui/loader";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AssignBookDialog } from "@/components/dialogs/AssignBookDialog";
+import { Check } from "lucide-react";
 
 const BookDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [quantity, setQuantity] = useState(1);
-  const { userRole, userId } = useAuth();
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const { userRole, userId, user } = useAuth();
   const { addToCart, cart } = useCart();
   const queryClient = useQueryClient();
 
   const isLibraryRole = userRole === "Library";
+  const isBookStore = userRole === "Book Store";
+  const borrowText = isBookStore ? "Rent" : "Borrow";
+  const borrowedText = isBookStore ? "Rented" : "Borrowed";
   const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   // Fetch book details
@@ -85,6 +91,23 @@ const BookDetail = () => {
     enabled: !!id,
   });
 
+  // Fetch members for assignment
+  const { data: members = [] } = useQuery({
+    queryKey: ["members", userId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("members")
+        .select("*")
+        .eq("user_id", userId)
+        .eq("status", "Active")
+        .order("name");
+
+      if (error) throw error;
+      return data as Member[];
+    },
+    enabled: !!userId && isLibraryRole,
+  });
+
   // Fetch related books
   const { data: relatedBooks = [] } = useQuery({
     queryKey: ["related-books", book?.category, id],
@@ -126,65 +149,132 @@ const BookDetail = () => {
     enabled: !!book,
   });
 
-  // Check if book is favorited
-  const { data: isFavorite = false } = useQuery({
-    queryKey: ["is-favorite", id, userId],
-    queryFn: async () => {
-      if (!userId || !id) return false;
+  // Mutation for assigning book to member - MUST be before any returns
+  const assignBookMutation = useMutation({
+    mutationFn: async (params: { memberId: string; type: "borrow" | "purchase"; durationDays?: number }) => {
+      if (!book) throw new Error("No book selected");
 
-      const { data, error } = await supabase
-        .from("favorites" as any)
-        .select("id")
-        .eq("user_id", userId)
-        .eq("book_id", id)
-        .single();
+      const dueDate = new Date();
+      dueDate.setDate(dueDate.getDate() + (params.durationDays || 14));
 
-      return !!data && !error;
-    },
-    enabled: !!userId && !!id,
-  });
+      if (params.type === "borrow") {
+        // Create borrowing record
+        const { error: borrowError } = await supabase.from("borrowings").insert([
+          {
+            book_id: book.id,
+            member_id: params.memberId,
+            due_date: dueDate.toISOString(),
+            status: "Borrowed",
+            checkout_date: new Date().toISOString(),
+            user_id: user?.id,
+          },
+        ]);
 
-  // Toggle favorite mutation
-  const toggleFavoriteMutation = useMutation({
-    mutationFn: async () => {
-      if (!userId || !id) throw new Error("Missing user or book ID");
+        if (borrowError) throw borrowError;
 
-      if (isFavorite) {
-        const { error } = await supabase
-          .from("favorites" as any)
-          .delete()
-          .eq("user_id", userId)
-          .eq("book_id", id);
+        // Create transaction
+        const { data: transactionData, error: checkoutError } = await supabase
+          .from("checkout_transactions")
+          .insert([
+            {
+              customer_id: params.memberId,
+              status: "Completed" as TransactionStatus,
+              payment_method: isBookStore ? "Rent" : "Borrow",
+              total_amount: 0,
+              date: new Date().toISOString(),
+              user_id: user?.id,
+            },
+          ])
+          .select()
+          .single();
 
-        if (error) throw error;
+        if (checkoutError) throw checkoutError;
+
+        // Create checkout item
+        const { error: itemError } = await supabase.from("checkout_items").insert([
+          {
+            transaction_id: transactionData.id,
+            book_id: book.id,
+            title: book.title,
+            quantity: 1,
+            price: 0,
+          },
+        ]);
+
+        if (itemError) throw itemError;
       } else {
-        const { error } = await supabase
-          .from("favorites" as any)
-          .insert({ user_id: userId, book_id: id });
+        // Create purchase transaction
+        const { data: transactionData, error: checkoutError } = await supabase
+          .from("checkout_transactions")
+          .insert([
+            {
+              customer_id: params.memberId,
+              status: "Completed" as TransactionStatus,
+              payment_method: "Cash",
+              total_amount: book.price,
+              date: new Date().toISOString(),
+              user_id: user?.id,
+            },
+          ])
+          .select()
+          .single();
 
-        if (error) throw error;
+        if (checkoutError) throw checkoutError;
+
+        // Create checkout item
+        const { error: itemError } = await supabase.from("checkout_items").insert([
+          {
+            transaction_id: transactionData.id,
+            book_id: book.id,
+            title: book.title,
+            quantity: 1,
+            price: book.price,
+          },
+        ]);
+
+        if (itemError) throw itemError;
       }
+
+      // Update book stock
+      const newStock = book.stock - 1;
+      const newStatus = newStock > 0 ? "Available" : "Checked Out";
+
+      const { error: updateError } = await supabase
+        .from("books")
+        .update({
+          stock: newStock,
+          status: newStatus,
+        })
+        .eq("id", book.id);
+
+      if (updateError) throw updateError;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["is-favorite", id, userId] });
-      queryClient.invalidateQueries({ queryKey: ["favorites", userId] });
+      queryClient.invalidateQueries({ queryKey: ["book", id] });
+      queryClient.invalidateQueries({ queryKey: ["members", userId] });
 
       toast({
-        title: isFavorite ? "Removed from favorites" : "Added to favorites",
-        description: isFavorite
-          ? "Book removed from your favorites"
-          : "Book added to your favorites",
+        description: (
+          <div className="flex items-center font-medium">
+            <Check className="mr-2 h-4 w-4 text-green-500" />
+            Book assigned successfully
+          </div>
+        ),
+        className: "text-green-600",
       });
+
+      setAssignDialogOpen(false);
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: error.message || "Failed to update favorites",
+        title: "Failed to assign book",
+        description: error.message,
       });
     },
   });
 
+  // Loading and error states - AFTER all hooks
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center flex-col">
@@ -228,13 +318,7 @@ const BookDetail = () => {
   };
 
   const handleBorrowBook = () => {
-    navigate("/book-circulation", {
-      state: {
-        bookId: book.id,
-        bookTitle: book.title,
-        bookCover: book.coverImage,
-      },
-    });
+    setAssignDialogOpen(true);
   };
 
   return (
@@ -295,13 +379,11 @@ const BookDetail = () => {
                 <Button
                   size="icon"
                   variant="ghost"
-                  className={`h-10 w-10 rounded-full ${
-                    isFavorite ? "text-red-500 hover:text-red-600" : "hover:text-red-500"
-                  }`}
-                  onClick={() => toggleFavoriteMutation.mutate()}
-                  disabled={toggleFavoriteMutation.isPending}
+                  className="h-10 w-10 rounded-full hover:text-red-500"
+                  disabled
+                  title="Favorites feature coming soon"
                 >
-                  <Heart className={`h-5 w-5 ${isFavorite ? "fill-current" : ""}`} />
+                  <Heart className="h-5 w-5" />
                 </Button>
               </div>
               <div className="flex items-center">
@@ -314,11 +396,10 @@ const BookDetail = () => {
                   {[...Array(5)].map((_, i) => (
                     <Star
                       key={i}
-                      className={`h-4 w-4 ${
-                        i < Math.floor(book.rating || 0)
-                          ? "text-yellow-500 fill-yellow-500"
-                          : "text-muted"
-                      }`}
+                      className={`h-4 w-4 ${i < Math.floor(book.rating || 0)
+                        ? "text-yellow-500 fill-yellow-500"
+                        : "text-muted"
+                        }`}
                     />
                   ))}
                   <span className="ml-2 text-sm font-medium">{book.rating}</span>
@@ -352,11 +433,10 @@ const BookDetail = () => {
                   {[...Array(5)].map((_, i) => (
                     <Star
                       key={i}
-                      className={`h-5 w-5 ${
-                        i < Math.floor(book.rating || 0)
-                          ? "text-yellow-500 fill-yellow-500"
-                          : "text-muted"
-                      }`}
+                      className={`h-5 w-5 ${i < Math.floor(book.rating || 0)
+                        ? "text-yellow-500 fill-yellow-500"
+                        : "text-muted"
+                        }`}
                     />
                   ))}
                   <span className="ml-2 text-sm font-medium">{book.rating}</span>
@@ -635,11 +715,10 @@ const BookDetail = () => {
                       <div className="absolute bottom-1.5 left-1.5">
                         <Badge
                           variant="outline"
-                          className={`text-[9px] px-1.5 py-0.5 backdrop-blur-sm bg-background/90 ${
-                            relatedBook.stock === 0
-                              ? "bg-red-100 text-red-800 border-red-200"
-                              : "bg-emerald-100 text-emerald-800 border-emerald-200"
-                          }`}
+                          className={`text-[9px] px-1.5 py-0.5 backdrop-blur-sm bg-background/90 ${relatedBook.stock === 0
+                            ? "bg-red-100 text-red-800 border-red-200"
+                            : "bg-emerald-100 text-emerald-800 border-emerald-200"
+                            }`}
                         >
                           {relatedBook.stock === 0 ? "Out of Stock" : "In Stock"}
                         </Badge>
@@ -669,6 +748,27 @@ const BookDetail = () => {
           </div>
         )}
       </main>
+
+      {/* Assign Book Dialog */}
+      {book && (
+        <AssignBookDialog
+          open={assignDialogOpen}
+          onOpenChange={setAssignDialogOpen}
+          book={book}
+          availableMembers={members}
+          availableBooks={[]}
+          categories={[]}
+          isBookStore={isBookStore}
+          borrowText={borrowText}
+          borrowedText={borrowedText}
+          onAssign={({ memberId, type, durationDays }) => {
+            if (memberId) {
+              assignBookMutation.mutate({ memberId, type, durationDays });
+            }
+          }}
+          isAssigning={assignBookMutation.isPending}
+        />
+      )}
     </div>
   );
 };

@@ -33,6 +33,7 @@
 - `BookDetail.tsx` - Individual book view
 - `EditBook.tsx` - Edit book form
 - `Members.tsx` - Member management
+- `MemberDetail.tsx` - Individual member profile page with borrowed books, transaction history, and book assignment
 - `EditMember.tsx` - Edit member form
 - `BookCirculation.tsx` - Borrowing/lending management
 - `Checkout.tsx` - Bookstore checkout process

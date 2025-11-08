@@ -247,7 +247,7 @@ const Members = () => {
     currentPage * itemsPerPage
   );
 
-  const totalBorrowed = members.reduce((sum, m) => sum + m.booksCheckedOut, 0);
+  const totalBorrowed = members.reduce((sum, m) => sum + (m.booksCheckedOut || 0), 0);
 
   // Mutations with optimistic updates
   const updateStatusMutation = useMutation({
@@ -353,8 +353,7 @@ const Members = () => {
   };
 
   const handleViewDetails = (member: Member) => {
-    setSelectedMemberId(member.id);
-    setIsDetailOpen(true);
+    navigate(`/members/${member.id}`);
   };
 
   const handleSelectMember = (id: string) => {
@@ -669,8 +668,8 @@ const Members = () => {
             <Button
               variant={
                 confirmAction === "delete" ||
-                confirmAction === "ban" ||
-                confirmAction === "bulkDelete"
+                  confirmAction === "ban" ||
+                  confirmAction === "bulkDelete"
                   ? "destructive"
                   : "default"
               }
@@ -682,8 +681,8 @@ const Members = () => {
               }
             >
               {updateStatusMutation.isPending ||
-              deleteMemberMutation.isPending ||
-              bulkDeleteMutation.isPending ? (
+                deleteMemberMutation.isPending ||
+                bulkDeleteMutation.isPending ? (
                 <>
                   <Loader size={16} variant="white" className="mr-2" />
                   Processing...

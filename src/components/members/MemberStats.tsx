@@ -14,28 +14,28 @@ const MemberStats = ({ members, totalBorrowed, overdueCount }: MemberStatsProps)
   const stats = [
     {
       title: "Total Members",
-      value: members.length,
+      value: members.length || 0,
       icon: Users,
       color: "text-blue-600",
       bgColor: "bg-blue-50",
     },
     {
       title: "Active Members",
-      value: activeMembers,
+      value: activeMembers || 0,
       icon: UserCheck,
       color: "text-green-600",
       bgColor: "bg-green-50",
     },
     {
       title: "Books Borrowed",
-      value: totalBorrowed,
+      value: totalBorrowed || 0,
       icon: BookOpen,
       color: "text-purple-600",
       bgColor: "bg-purple-50",
     },
     {
       title: "Overdue Books",
-      value: overdueCount,
+      value: overdueCount || 0,
       icon: AlertCircle,
       color: "text-red-600",
       bgColor: "bg-red-50",

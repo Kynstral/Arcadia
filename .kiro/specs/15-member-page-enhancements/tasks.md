@@ -95,3 +95,48 @@
   - [x] 11.6 Format all project files with Prettier
   - _Requirements: Technical debt_
 
+- [x] 12. Member detail page implementation
+  - [x] 12.1 Create MemberDetail.tsx page component
+  - [x] 12.2 Add route for /members/:id in App.tsx
+  - [x] 12.3 Implement member profile section with stats
+  - [x] 12.4 Add borrowed books section with return functionality
+  - [x] 12.5 Add transaction history with book details
+  - [x] 12.6 Implement book assignment dialog integration
+  - [x] 12.7 Add edit member functionality
+  - [x] 12.8 Display overdue books with visual indicators
+  - _Requirements: 6.1, 6.2, 6.3, 6.4_
+
+- [x] 13. Shared AssignBookDialog component
+  - [x] 13.1 Create reusable AssignBookDialog component
+  - [x] 13.2 Support both member-to-books and book-to-member modes
+  - [x] 13.3 Add searchable member selector with filtering
+  - [x] 13.4 Add searchable book selector with category filter
+  - [x] 13.5 Implement assignment type selector (borrow/purchase)
+  - [x] 13.6 Add borrow duration selector with presets
+  - [x] 13.7 Support custom duration input (1-365 days)
+  - [x] 13.8 Display calculated due dates
+  - [x] 13.9 Add compact member list with name, email, and status
+  - [x] 13.10 Implement proper scrolling for modal content
+  - _Requirements: 6.3, 6.4_
+
+- [x] 14. Book detail page enhancements
+  - [x] 14.1 Integrate AssignBookDialog for library role
+  - [x] 14.2 Update assignBookMutation to support duration
+  - [x] 14.3 Pass durationDays parameter to mutation
+  - [x] 14.4 Update borrow book handler
+  - _Requirements: 6.3_
+
+- [x] 15. Member stats component fixes
+  - [x] 15.1 Fix NaN display issue in MemberStats
+  - [x] 15.2 Add fallback values for undefined stats
+  - [x] 15.3 Fix totalBorrowed calculation in Members.tsx
+  - [x] 15.4 Ensure all numeric values have defaults
+  - _Requirements: 2.1, 2.2_
+
+- [x] 16. Navigation and routing updates
+  - [x] 16.1 Update Members.tsx to navigate to member detail page
+  - [x] 16.2 Add member detail route to App.tsx
+  - [x] 16.3 Update structure.md with MemberDetail.tsx
+  - [x] 16.4 Ensure proper navigation from member table
+  - _Requirements: 6.1, 6.2_
+

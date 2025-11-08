@@ -22,6 +22,7 @@ const Catalog = lazy(() => import("./pages/Catalog"));
 const Books = lazy(() => import("./pages/Books"));
 const BookDetail = lazy(() => import("./pages/BookDetail"));
 const Members = lazy(() => import("./pages/Members"));
+const MemberDetail = lazy(() => import("./pages/MemberDetail"));
 const BookCirculation = lazy(() => import("./pages/BookCirculation.tsx"));
 const Checkout = lazy(() => import("./pages/Checkout.tsx"));
 const Transactions = lazy(() => import("./pages/Transactions.tsx"));
@@ -150,6 +151,14 @@ const App = () => (
                       element={
                         <ProtectedRoute>
                           <Members />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/members/:id"
+                      element={
+                        <ProtectedRoute>
+                          <MemberDetail />
                         </ProtectedRoute>
                       }
                     />
