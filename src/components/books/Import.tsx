@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AlertCircle, CheckCircle2, FileText, Info, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,8 +9,6 @@ import { Progress } from "@/components/ui/progress";
 import { Book, BookCategory, BookStatus } from "@/lib/types";
 import { useQueryClient } from "@tanstack/react-query";
 import * as XLSX from "xlsx";
-import { checkDuplicates } from "@/lib/duplicate-detection";
-import { DuplicateDetectionDialog } from "./DuplicateDetectionDialog";
 
 type BookRow = {
   title: string;
@@ -35,25 +33,33 @@ export function Import() {
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [results, setResults] = useState<{ success: number; failed: number }>({
+  const [displayProgress, setDisplayProgress] = useState(0);
+  const [results, setResults] = useState<{
+    success: number;
+    failed: number;
+    errors: Array<{ row: number; title: string; error: string }>;
+  }>({
     success: 0,
     failed: 0,
+    errors: [],
   });
   const [showResults, setShowResults] = useState(false);
   const [detectedFormat, setDetectedFormat] = useState<string>("");
-  const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false);
-  const [isCheckingDuplicates, setIsCheckingDuplicates] = useState(false);
-  const [duplicateBooks, setDuplicateBooks] = useState<
-    Array<{ isbn: string; title: string; author: string; coverImage?: string }>
-  >([]);
-  const [pendingImport, setPendingImport] = useState<{
-    rows: BookRow[];
-    duplicateISBNs: Set<string>;
-  } | null>(null);
+  const [selectedFileName, setSelectedFileName] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+
+  // Smooth progress animation
+  useEffect(() => {
+    if (displayProgress < progress) {
+      const timer = setTimeout(() => {
+        setDisplayProgress((prev) => Math.min(prev + 1, progress));
+      }, 20); // Adjust speed here (lower = faster)
+      return () => clearTimeout(timer);
+    }
+  }, [progress, displayProgress]);
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -106,32 +112,8 @@ export function Import() {
       errors.push("Page count must be a number");
     }
 
-    const validCategories = [
-      "Fiction",
-      "Non-Fiction",
-      "Science Fiction",
-      "Mystery",
-      "Romance",
-      "Biography",
-      "History",
-      "Self-Help",
-      "Business",
-      "Children",
-      "Young Adult",
-      "Poetry",
-      "Reference",
-      "Art",
-      "Travel",
-      "Religion",
-      "Cooking",
-      "Science",
-      "Technology",
-      "Other",
-    ];
-
-    if (row.category && !validCategories.includes(row.category)) {
-      errors.push(`Category must be one of: ${validCategories.join(", ")}`);
-    }
+    // Category validation removed - database will handle it
+    // This allows for more flexible category names
 
     const validStatuses = [
       "Available",
@@ -270,12 +252,14 @@ export function Import() {
       return;
     }
 
+    setSelectedFileName(file.name);
     setDetectedFormat(format.toUpperCase());
 
     try {
       setIsProcessing(true);
       setShowResults(false);
       setProgress(0);
+      setDisplayProgress(0);
 
       let rows: BookRow[] = [];
 
@@ -299,51 +283,8 @@ export function Import() {
         return;
       }
 
-      // Check for duplicates
-      setIsCheckingDuplicates(true);
-      setDuplicateDialogOpen(true);
-
-      const duplicateISBNs = new Set<string>();
-      const duplicateBooksList: Array<{
-        isbn: string;
-        title: string;
-        author: string;
-        coverImage?: string;
-      }> = [];
-
-      for (const row of rows) {
-        if (row.isbn && row.isbn.trim()) {
-          const duplicateCheck = await checkDuplicates({
-            isbn: row.isbn.trim(),
-          });
-
-          if (duplicateCheck.exactISBN.length > 0) {
-            duplicateISBNs.add(row.isbn.trim());
-            duplicateBooksList.push({
-              isbn: row.isbn.trim(),
-              title: row.title || "Unknown Title",
-              author: row.author || "Unknown Author",
-              coverImage: row.cover_image || "",
-            });
-          }
-        }
-      }
-
-      setIsCheckingDuplicates(false);
-
-      // If duplicates found, show dialog with details
-      if (duplicateBooksList.length > 0) {
-        setDuplicateBooks(duplicateBooksList);
-        setPendingImport({ rows, duplicateISBNs });
-        setIsProcessing(false);
-        return;
-      }
-
-      // No duplicates, close dialog and proceed
-      setDuplicateDialogOpen(false);
-
-      // No duplicates, proceed with import
-      await importBooks(rows, new Set());
+      // Proceed with import directly
+      await importBooks(rows);
     } catch (error) {
       console.error("Error processing file:", error);
       toast({
@@ -358,29 +299,33 @@ export function Import() {
     }
   };
 
-  const importBooks = async (rows: BookRow[], skipISBNs: Set<string>) => {
+  const importBooks = async (rows: BookRow[]) => {
     try {
       setIsProcessing(true);
-      setDuplicateDialogOpen(false);
       setProgress(0);
+      setDisplayProgress(0);
 
       let successCount = 0;
       let failCount = 0;
-      let skippedCount = 0;
+      const errorList: Array<{ row: number; title: string; error: string }> = [];
 
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
+        const { valid, errors } = validateRow(row);
 
-        // Skip if ISBN is in the skip list
-        if (row.isbn && skipISBNs.has(row.isbn.trim())) {
-          skippedCount++;
+        if (!valid) {
+          failCount++;
+          errorList.push({
+            row: i + 2,
+            title: row.title || "Unknown",
+            error: errors.join(", "),
+          });
           setProgress(Math.round(((i + 1) / rows.length) * 100));
           continue;
         }
 
-        const { valid, errors } = validateRow(row);
+        if (user) {
 
-        if (valid && user) {
           const book = convertToBook(row, user.id);
 
           const { error } = await supabase.from("books").insert([
@@ -406,20 +351,25 @@ export function Import() {
           ]);
 
           if (error) {
-            console.error(`Error inserting book ${book.title}:`, error);
             failCount++;
+            errorList.push({
+              row: i + 2,
+              title: book.title,
+              error: error.message || "Database error",
+            });
           } else {
             successCount++;
           }
-        } else {
-          console.error(`Invalid row ${i + 1}:`, errors);
-          failCount++;
         }
 
         setProgress(Math.round(((i + 1) / rows.length) * 100));
       }
 
-      setResults({ success: successCount, failed: failCount });
+      setResults({
+        success: successCount,
+        failed: failCount,
+        errors: errorList,
+      });
       setShowResults(true);
 
       // Refresh the book list
@@ -427,7 +377,7 @@ export function Import() {
 
       toast({
         title: "Import completed",
-        description: `${successCount} books imported${skippedCount > 0 ? `, ${skippedCount} skipped` : ""}${failCount > 0 ? `, ${failCount} failed` : ""}`,
+        description: `${successCount} books imported${failCount > 0 ? `, ${failCount} failed` : ""}`,
       });
     } catch (error) {
       console.error("Error importing books:", error);
@@ -438,33 +388,9 @@ export function Import() {
       });
     } finally {
       setIsProcessing(false);
-      setPendingImport(null);
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
-    }
-  };
-
-  const handleContinueWithDuplicates = () => {
-    if (pendingImport) {
-      importBooks(pendingImport.rows, new Set());
-    }
-  };
-
-  const handleSkipDuplicates = () => {
-    if (pendingImport) {
-      importBooks(pendingImport.rows, pendingImport.duplicateISBNs);
-    }
-  };
-
-  const handleCancelImport = () => {
-    setDuplicateDialogOpen(false);
-    setPendingImport(null);
-    setDuplicateBooks([]);
-    setIsProcessing(false);
-    setIsCheckingDuplicates(false);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
     }
   };
 
@@ -495,71 +421,119 @@ export function Import() {
           </div>
         </div>
 
-        <div
-          className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-            isDragging
+        {!isProcessing && !selectedFileName ? (
+          <div
+            className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${isDragging
               ? "border-primary bg-primary/5"
               : "border-muted hover:border-muted-foreground/50"
-          }`}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-        >
-          <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <h4 className="text-base font-medium mb-2">Drag & Drop Your File</h4>
-          <p className="text-sm text-muted-foreground mb-1">Supports CSV, JSON, and Excel files</p>
-          {detectedFormat && (
-            <p className="text-xs text-primary font-medium mb-3">Detected: {detectedFormat}</p>
-          )}
-          <Button onClick={handleButtonClick} disabled={isProcessing} className="mx-auto mt-3">
-            <FileText className="h-4 w-4 mr-2" />
-            Select File
-          </Button>
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileInputChange}
-            accept=".csv,.json,.xlsx,.xls"
-            className="hidden"
-            disabled={isProcessing}
-          />
-        </div>
+              }`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
+            <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+            <h4 className="text-base font-medium mb-2">Drag & Drop Your File</h4>
+            <p className="text-sm text-muted-foreground mb-1">Supports CSV, JSON, and Excel files</p>
+            <Button onClick={handleButtonClick} disabled={isProcessing} className="mx-auto mt-3">
+              <FileText className="h-4 w-4 mr-2" />
+              Select File
+            </Button>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileInputChange}
+              accept=".csv,.json,.xlsx,.xls"
+              className="hidden"
+              disabled={isProcessing}
+            />
+          </div>
+        ) : selectedFileName && !showResults ? (
+          <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/30">
+            <div className="flex items-center gap-3">
+              <FileText className="h-8 w-8 text-primary" />
+              <div>
+                <p className="font-medium">{selectedFileName}</p>
+                <p className="text-xs text-muted-foreground">
+                  {detectedFormat} • {isProcessing ? "Importing..." : "Ready to import"}
+                </p>
+              </div>
+            </div>
+            {!isProcessing && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSelectedFileName("");
+                  setDetectedFormat("");
+                  if (fileInputRef.current) fileInputRef.current.value = "";
+                }}
+              >
+                Change File
+              </Button>
+            )}
+          </div>
+        ) : null}
 
         {isProcessing && (
           <div className="space-y-2">
             <p className="text-sm font-medium">Importing books...</p>
-            <Progress value={progress} className="h-2" />
-            <p className="text-xs text-muted-foreground">{progress}% complete</p>
+            <Progress value={displayProgress} className="h-2" />
+            <p className="text-xs text-muted-foreground">{displayProgress}% complete</p>
           </div>
         )}
 
         {showResults && (
-          <div className="space-y-2 p-4 bg-muted/50 rounded-lg">
-            <div className="flex items-center space-x-2">
-              <CheckCircle2 className="h-5 w-5 text-green-500" />
-              <p className="text-sm font-medium">{results.success} books imported successfully</p>
+          <div className="space-y-3">
+            <div className="space-y-3 p-4 bg-muted/50 rounded-lg">
+              {results.success > 0 && (
+                <div className="flex items-center space-x-2">
+                  <CheckCircle2 className="h-5 w-5 text-green-500" />
+                  <p className="text-sm font-medium">{results.success} books imported successfully</p>
+                </div>
+              )}
+
+
+
+              {results.failed > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <AlertCircle className="h-5 w-5 text-red-500" />
+                    <p className="text-sm font-medium">{results.failed} books failed to import</p>
+                  </div>
+                  <div className="ml-7 space-y-1 max-h-40 overflow-y-auto">
+                    {results.errors.map((error, index) => (
+                      <div key={index} className="text-xs text-muted-foreground">
+                        <span className="font-medium">Row {error.row}:</span> {error.title} -{" "}
+                        {error.error}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-            {results.failed > 0 && (
-              <div className="flex items-center space-x-2">
-                <AlertCircle className="h-5 w-5 text-red-500" />
-                <p className="text-sm font-medium">{results.failed} books failed to import</p>
-              </div>
-            )}
+            <Button
+              onClick={() => {
+                setShowResults(false);
+                setSelectedFileName("");
+                setDetectedFormat("");
+                setResults({
+                  success: 0,
+                  failed: 0,
+                  errors: [],
+                });
+                if (fileInputRef.current) fileInputRef.current.value = "";
+              }}
+              variant="outline"
+              className="w-full"
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              Import Another File
+            </Button>
           </div>
         )}
       </CardContent>
 
-      {/* Duplicate Detection Dialog */}
-      <DuplicateDetectionDialog
-        open={duplicateDialogOpen}
-        onOpenChange={setDuplicateDialogOpen}
-        duplicates={duplicateBooks}
-        totalBooks={pendingImport?.rows.length || 0}
-        isChecking={isCheckingDuplicates}
-        onContinue={handleContinueWithDuplicates}
-        onSkip={handleSkipDuplicates}
-        onCancel={handleCancelImport}
-      />
+
     </Card>
   );
 }

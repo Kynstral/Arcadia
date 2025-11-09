@@ -44,6 +44,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Import } from "@/components/books/Import";
 import { Export } from "@/components/books/Export";
 import { PrintLabels } from "@/components/books/PrintLabels";
+import { DuplicateChecker } from "@/components/books/DuplicateChecker";
 import { deleteBook, bulkUpdateBooks } from "@/lib/data-service";
 import { BookPagination, BookStats, BookEmptyState, BookFilters } from "@/components/books";
 import { BulkEditModal, BulkEditData } from "@/components/books/BulkEditModal";
@@ -137,6 +138,7 @@ export default function BooksPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [bookToDelete, setBookToDelete] = useState<Book | null>(null);
   const [importExportDialogOpen, setImportExportDialogOpen] = useState(false);
+  const [duplicateCheckerOpen, setDuplicateCheckerOpen] = useState(false);
   const [bookFormDialogOpen, setBookFormDialogOpen] = useState(false);
   const [bookToEdit, setBookToEdit] = useState<Book | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
@@ -543,6 +545,17 @@ export default function BooksPage() {
             <span className="sm:hidden">I/E</span>
           </Button>
 
+          <Button
+            variant="outline"
+            onClick={() => setDuplicateCheckerOpen(true)}
+            size="sm"
+            className="whitespace-nowrap"
+          >
+            <Search className="mr-2 h-4 w-4" />
+            <span className="hidden sm:inline">Check Duplicates</span>
+            <span className="sm:hidden">Dupes</span>
+          </Button>
+
           <Button onClick={handleAddNew} size="sm" className="whitespace-nowrap">
             <PlusCircle className="mr-2 h-4 w-4" />
             <span className="hidden sm:inline">Add Book</span>
@@ -910,6 +923,9 @@ export default function BooksPage() {
           </Tabs>
         </DialogContent>
       </Dialog>
+
+      {/* Duplicate Checker Dialog */}
+      <DuplicateChecker open={duplicateCheckerOpen} onOpenChange={setDuplicateCheckerOpen} />
 
       <AddBookModal
         open={bookFormDialogOpen}
