@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthStatusProvider";
 import { isProfileComplete } from "@/lib/auth-utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { DashboardPageSkeleton } from "@/components/dashboard/DashboardSkeleton";
 import {
   BarChart3,
   BookOpen,
@@ -195,16 +196,7 @@ const Index = () => {
   };
 
   if (statsLoading || booksLoading || (userRole === "Library" && borrowingsLoading)) {
-    return (
-      <div className="flex items-center justify-center h-[80vh]">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="mt-4 text-lg font-medium text-muted-foreground">
-            Loading dashboard data...
-          </p>
-        </div>
-      </div>
-    );
+    return <DashboardPageSkeleton />;
   }
 
   if (statsError || booksError || (userRole === "Library" && borrowingsError)) {

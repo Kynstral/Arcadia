@@ -51,7 +51,7 @@ import { BulkEditModal, BulkEditData } from "@/components/books/BulkEditModal";
 import { BookCard } from "@/components/books/BookCard";
 import { AddBookModal } from "@/components/books/AddBookModal";
 import { InlineEditCell } from "@/components/books/InlineEditCell";
-import { Loader } from "@/components/ui/loader";
+import { BooksPageSkeleton } from "@/components/books/BooksSkeleton";
 
 const bookCategories: BookCategory[] = [
   "Action & Adventure",
@@ -490,11 +490,7 @@ export default function BooksPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader size={48} variant="accent" />
-      </div>
-    );
+    return <BooksPageSkeleton viewMode={viewMode} />;
   }
 
   if (!userId) {
@@ -881,14 +877,7 @@ export default function BooksPage() {
               onClick={confirmDelete}
               disabled={deleteMutation.isPending}
             >
-              {deleteMutation.isPending ? (
-                <>
-                  <Loader size={16} variant="white" className="mr-2" />
-                  Deleting...
-                </>
-              ) : (
-                "Delete"
-              )}
+              {deleteMutation.isPending ? "Deleting..." : "Delete"}
             </Button>
           </DialogFooter>
         </DialogContent>

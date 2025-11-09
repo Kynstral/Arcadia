@@ -45,6 +45,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthStatusProvider";
 import { useNavigate } from "react-router-dom";
 import { calculateLateFee, formatLateFee, LibrarySettings } from "@/lib/late-fees";
+import { ActiveLoansPageSkeleton } from "@/components/loans/ActiveLoansSkeleton";
 
 interface Borrowing {
   id: string;
@@ -440,6 +441,10 @@ const ActiveLoans = () => {
       );
     }
   };
+
+  if (isLoading) {
+    return <ActiveLoansPageSkeleton />;
+  }
 
   const borrowings = borrowingsData || [];
   const activeBorrowings = borrowings.filter((b) => b.status === "Borrowed");

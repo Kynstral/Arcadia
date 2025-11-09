@@ -36,9 +36,9 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader } from "@/components/ui/loader";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { CatalogPageSkeleton } from "@/components/catalog/CatalogSkeleton";
 
 const ALL_CATEGORIES = "all_categories";
 const ALL_PUBLISHERS = "all_publishers";
@@ -106,10 +106,10 @@ const Catalog = () => {
   useEffect(() => {
     setIsFilterActive(
       categoryFilter !== ALL_CATEGORIES ||
-        publisherFilter !== ALL_PUBLISHERS ||
-        yearFilter !== ALL_YEARS ||
-        !!priceRange ||
-        !!searchQuery
+      publisherFilter !== ALL_PUBLISHERS ||
+      yearFilter !== ALL_YEARS ||
+      !!priceRange ||
+      !!searchQuery
     );
   }, [categoryFilter, publisherFilter, yearFilter, priceRange, searchQuery]);
 
@@ -264,14 +264,7 @@ const Catalog = () => {
   }, [searchQuery, categoryFilter, publisherFilter, yearFilter, priceRange]);
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <Loader size={48} variant="accent" className="mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading your catalog...</p>
-        </div>
-      </div>
-    );
+    return <CatalogPageSkeleton viewMode={viewMode} />;
   }
 
   if (!userId) {
@@ -547,11 +540,10 @@ const Catalog = () => {
                       <Button
                         size="icon"
                         variant="ghost"
-                        className={`absolute top-2 right-2 h-8 w-8 rounded-full backdrop-blur-sm shadow-sm ${
-                          favoritesSet.has(book.id)
-                            ? "bg-red-500/90 hover:bg-red-600 text-white"
-                            : "bg-background/80 hover:bg-background"
-                        }`}
+                        className={`absolute top-2 right-2 h-8 w-8 rounded-full backdrop-blur-sm shadow-sm ${favoritesSet.has(book.id)
+                          ? "bg-red-500/90 hover:bg-red-600 text-white"
+                          : "bg-background/80 hover:bg-background"
+                          }`}
                         onClick={(e) => handleToggleFavorite(e, book.id)}
                       >
                         <Heart
@@ -656,11 +648,10 @@ const Catalog = () => {
                         <Button
                           size="icon"
                           variant="ghost"
-                          className={`h-9 w-9 rounded-full shrink-0 ${
-                            favoritesSet.has(book.id)
-                              ? "text-red-500 hover:text-red-600"
-                              : "hover:text-red-500"
-                          }`}
+                          className={`h-9 w-9 rounded-full shrink-0 ${favoritesSet.has(book.id)
+                            ? "text-red-500 hover:text-red-600"
+                            : "hover:text-red-500"
+                            }`}
                           onClick={(e) => handleToggleFavorite(e, book.id)}
                         >
                           <Heart

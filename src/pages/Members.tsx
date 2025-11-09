@@ -41,7 +41,7 @@ import {
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useNavigate } from "react-router-dom";
-import { Loader } from "@/components/ui/loader";
+import { MembersPageSkeleton } from "@/components/members/MembersSkeleton";
 
 const fetchMembers = async (userId: string | null): Promise<Member[]> => {
   if (!userId) return [];
@@ -522,11 +522,7 @@ const Members = () => {
   }
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader size={48} variant="accent" />
-      </div>
-    );
+    return <MembersPageSkeleton />;
   }
 
   if (error) {

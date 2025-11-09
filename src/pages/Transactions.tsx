@@ -43,6 +43,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/AuthStatusProvider";
 import { useNavigate } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
+import { TransactionsPageSkeleton } from "@/components/transactions/TransactionsSkeleton";
 
 interface CheckoutItem {
   id: string;
@@ -346,6 +347,10 @@ const Transactions = () => {
       </Badge>
     );
   };
+
+  if (isLoading) {
+    return <TransactionsPageSkeleton />;
+  }
 
   const transactions = transactionsData?.transactions || [];
   const hasMore = transactionsData?.hasMore || false;
