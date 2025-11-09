@@ -233,15 +233,15 @@ const Sidebar = ({
         ref={sidebarRef}
         className={cn(
           "flex h-screen flex-col bg-sidebar border-r border-sidebar-border transition-all duration-300 ease-in-out z-10",
-          collapsed ? "w-16" : "w-64"
+          collapsed ? "w-16" : "w-64 md:w-56"
         )}
       >
-        <div className="flex items-center h-16 px-3 py-5">
+        <div className="flex items-center h-16 md:h-14 px-3 py-5 md:py-3">
           {!collapsed ? (
             <div className="flex items-center justify-between w-full py-4">
               <Link to="/dashboard" className="flex items-center gap-2">
-                <img src="/logo.svg" alt="arcadia-logo" className="h-10 w-10 ml-2" />
-                <h1 className="text-xl font-bold text-primary">Arcadia</h1>
+                <img src="/logo.svg" alt="arcadia-logo" className="h-10 w-10 md:h-8 md:w-8 ml-2" />
+                <h1 className="text-xl md:text-lg font-bold text-primary">Arcadia</h1>
               </Link>
 
               <Tooltip>
@@ -282,8 +282,8 @@ const Sidebar = ({
 
         <hr className="my-2 mx-3" />
 
-        <nav className="flex-1 overflow-y-auto py-5 px-3">
-          <ul className="space-y-4">
+        <nav className="flex-1 overflow-y-auto py-4 md:py-3 px-3 md:px-2">
+          <ul className="space-y-2 md:space-y-1.5">
             {navItems.map((item) => {
               const isActive = location.pathname === item.path;
               return collapsed ? (
@@ -293,13 +293,13 @@ const Sidebar = ({
                       <Link
                         to={item.path}
                         className={cn(
-                          "flex items-center justify-center h-10 w-10 rounded-md",
+                          "flex items-center justify-center h-9 w-9 rounded-md",
                           isActive
                             ? "bg-primary text-primary-foreground"
                             : "hover:bg-muted text-muted-foreground hover:text-foreground"
                         )}
                       >
-                        <item.icon className="h-5 w-5" />
+                        <item.icon className="h-4 w-4" />
                       </Link>
                     </li>
                   </TooltipTrigger>
@@ -312,13 +312,13 @@ const Sidebar = ({
                   <Link
                     to={item.path}
                     className={cn(
-                      "flex items-center h-10 px-3 rounded-md transition-colors",
+                      "flex items-center h-9 md:h-8 px-3 md:px-2.5 rounded-md transition-colors text-sm",
                       isActive
                         ? "bg-primary text-primary-foreground"
                         : "hover:bg-muted text-muted-foreground hover:text-foreground"
                     )}
                   >
-                    <item.icon className="h-5 w-5 mr-3" />
+                    <item.icon className="h-4 w-4 md:h-3.5 md:w-3.5 mr-2.5 md:mr-2" />
                     <span>{item.title}</span>
                   </Link>
                 </li>
@@ -349,9 +349,9 @@ const Sidebar = ({
           </div>
         )}
 
-        <div className={cn("mt-auto py-4 px-3 space-y-4", collapsed ? "" : "pb-6")}>
+        <div className={cn("mt-auto py-3 px-3 space-y-2", collapsed ? "" : "pb-4")}>
           {user && (
-            <div className="flex flex-col space-y-4">
+            <div className="flex flex-col space-y-2">
               {collapsed ? (
                 <div className="flex flex-col items-center gap-2">
                   <Tooltip>
@@ -383,13 +383,13 @@ const Sidebar = ({
                       <Link
                         to="/settings"
                         className={cn(
-                          "flex items-center justify-center h-10 w-10 rounded-md",
+                          "flex items-center justify-center h-9 w-9 rounded-md",
                           location.pathname === "/settings"
                             ? "bg-primary text-primary-foreground"
                             : "hover:bg-muted text-muted-foreground hover:text-foreground"
                         )}
                       >
-                        <Settings className="h-5 w-5" />
+                        <Settings className="h-4 w-4" />
                       </Link>
                     </TooltipTrigger>
                     <TooltipContent side="right">
@@ -402,7 +402,7 @@ const Sidebar = ({
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-10 w-10 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground"
+                        className="h-9 w-9 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground"
                         onClick={() => {
                           // Trigger keyboard shortcuts dialog
                           window.dispatchEvent(
@@ -414,7 +414,7 @@ const Sidebar = ({
                           );
                         }}
                       >
-                        <Keyboard className="h-5 w-5" />
+                        <Keyboard className="h-4 w-4" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent side="right">
@@ -427,13 +427,13 @@ const Sidebar = ({
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-10 w-10 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground"
+                        className="h-9 w-9 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground"
                         onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
                       >
                         {theme === "dark" ? (
-                          <Sun className="h-5 w-5" />
+                          <Sun className="h-4 w-4" />
                         ) : (
-                          <Moon className="h-5 w-5" />
+                          <Moon className="h-4 w-4" />
                         )}
                       </Button>
                     </TooltipTrigger>
@@ -447,10 +447,10 @@ const Sidebar = ({
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-10 w-10 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground"
+                        className="h-9 w-9 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground"
                         onClick={handleSignOut}
                       >
-                        <LogOut className="h-5 w-5" />
+                        <LogOut className="h-4 w-4" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent side="right">
@@ -486,19 +486,19 @@ const Sidebar = ({
                   <Link
                     to="/settings"
                     className={cn(
-                      "flex items-center h-10 px-3 rounded-md transition-colors",
+                      "flex items-center h-9 md:h-8 px-3 md:px-2.5 rounded-md transition-colors text-sm",
                       location.pathname === "/settings"
                         ? "bg-primary text-primary-foreground"
                         : "hover:bg-muted text-muted-foreground hover:text-foreground"
                     )}
                   >
-                    <Settings className="h-5 w-5 mr-3" />
+                    <Settings className="h-4 w-4 md:h-3.5 md:w-3.5 mr-2.5 md:mr-2" />
                     <span>Settings</span>
                   </Link>
 
                   <Button
                     variant="ghost"
-                    className="w-full justify-start px-3"
+                    className="w-full justify-start px-3 md:px-2.5 h-9 md:h-8 text-sm"
                     onClick={() => {
                       window.dispatchEvent(
                         new KeyboardEvent("keydown", {
@@ -509,29 +509,29 @@ const Sidebar = ({
                       );
                     }}
                   >
-                    <Keyboard className="h-5 w-5 mr-3" />
+                    <Keyboard className="h-4 w-4 md:h-3.5 md:w-3.5 mr-2.5 md:mr-2" />
                     <span>Keyboard Shortcuts</span>
                   </Button>
 
                   <Button
                     variant="ghost"
-                    className="w-full justify-start px-3"
+                    className="w-full justify-start px-3 md:px-2.5 h-9 md:h-8 text-sm"
                     onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
                   >
                     {theme === "dark" ? (
-                      <Sun className="h-5 w-5 mr-3" />
+                      <Sun className="h-4 w-4 md:h-3.5 md:w-3.5 mr-2.5 md:mr-2" />
                     ) : (
-                      <Moon className="h-5 w-5 mr-3" />
+                      <Moon className="h-4 w-4 md:h-3.5 md:w-3.5 mr-2.5 md:mr-2" />
                     )}
                     <span>{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
                   </Button>
 
                   <Button
                     variant="ghost"
-                    className="w-full justify-start px-3"
+                    className="w-full justify-start px-3 md:px-2.5 h-9 md:h-8 text-sm"
                     onClick={handleSignOut}
                   >
-                    <LogOut className="h-5 w-5 mr-3" />
+                    <LogOut className="h-4 w-4 md:h-3.5 md:w-3.5 mr-2.5 md:mr-2" />
                     <span>Log Out</span>
                   </Button>
                 </div>
